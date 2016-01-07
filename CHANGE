@@ -1,0 +1,12 @@
+bobonis
+    - changed debug output in cpu.c
+    - moved bioslogo declaration to rom.c to get rid of warning
+    - included rom.h in main.c declarations to get rid of warning
+    - added dummy functions for gpu timers input and interrups
+    - moved header files under include folder
+    
+bobonis
+    - Added two new functions in memory: readMemory and writeMemory
+    - Added two new functions in memory: setBit and testBit
+    - Made some corrections to if syntax shame shame shame
+    - Implement timer functions  
