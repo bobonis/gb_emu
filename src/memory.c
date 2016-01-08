@@ -184,35 +184,35 @@ unsigned char readMemory (unsigned short pos){
 void setBit(unsigned short pos, unsigned char bit, bool value){
     switch (bit){
         case 0:
-            if (value == true) memory[pos] = (memory[pos] | 0x01);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x01);
             else               memory[pos] = (memory[pos] & 0xFE);
             break;
         case 1:
-            if (value == true) memory[pos] = (memory[pos] | 0x02);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x02);
             else               memory[pos] = (memory[pos] & 0xFD);
             break;
         case 2:
-            if (value == true) memory[pos] = (memory[pos] | 0x04);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x04);
             else               memory[pos] = (memory[pos] & 0xFB);
             break;
         case 3:
-            if (value == true) memory[pos] = (memory[pos] | 0x08);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x08);
             else               memory[pos] = (memory[pos] & 0xF7);
             break;
         case 4:
-            if (value == true) memory[pos] = (memory[pos] | 0x10);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x10);
             else               memory[pos] = (memory[pos] & 0xEF);
             break;
         case 5:
-            if (value == true) memory[pos] = (memory[pos] | 0x20);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x20);
             else               memory[pos] = (memory[pos] & 0xDF);
             break;
         case 6:
-            if (value == true) memory[pos] = (memory[pos] | 0x40);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x40);
             else               memory[pos] = (memory[pos] & 0xBF);
             break;
         case 7:
-            if (value == true) memory[pos] = (memory[pos] | 0x80);
+            if (value == TRUE) memory[pos] = (memory[pos] | 0x80);
             else               memory[pos] = (memory[pos] & 0x7F);
             break;
     }
@@ -220,29 +220,42 @@ void setBit(unsigned short pos, unsigned char bit, bool value){
 bool testBit(unsigned short pos, unsigned char bit){
     switch (bit){
         case 0:
-            if ((memory[pos] & 0x01) != 0) return true;  
+            if ((memory[pos] & 0x01) != 0) return TRUE;  
             break;
         case 1:
-            if ((memory[pos] & 0x02) != 0) return true; 
+            if ((memory[pos] & 0x02) != 0) return TRUE; 
             break;
         case 2:
-            if ((memory[pos] & 0x04) != 0) return true; 
+            if ((memory[pos] & 0x04) != 0) return TRUE; 
             break;
         case 3:
-            if ((memory[pos] & 0x08) != 0) return true; 
+            if ((memory[pos] & 0x08) != 0) return TRUE; 
             break;
         case 4:
-            if ((memory[pos] & 0x10) != 0) return true;
+            if ((memory[pos] & 0x10) != 0) return TRUE;
             break;
         case 5:
-            if ((memory[pos] & 0x20) != 0) return true; 
+            if ((memory[pos] & 0x20) != 0) return TRUE; 
             break;
         case 6:
-            if ((memory[pos] & 0x40) != 0) return true; 
+            if ((memory[pos] & 0x40) != 0) return TRUE; 
             break;
         case 7:
-            if ((memory[pos] & 0x80) != 0) return true; 
+            if ((memory[pos] & 0x80) != 0) return TRUE; 
             break;
     }
-    return false;
+    return FALSE;
+}
+
+void stackPush16 (unsigned short value){
+    registers.SP--;                            // Decrease stack pointer
+    memory[registers.SP] = (value & 0x00FF);   // Push low part in the stack
+    registers.SP--;                            // Decrease stack pointer again
+    memory[registers.SP] = ((value & 0xFF00) >> 8); // Push high part in the stack
+}
+
+unsigned short stackPop16 (void){
+    unsigned short value = 0;
+    value = (memory[registers.SP - 1] | (memory[registers.SP - 2] << 8));
+    registers.SP += 2;
 }

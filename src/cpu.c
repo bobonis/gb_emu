@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "memory.h"
 #include "rom.h"
+#include "interrupts.h"
 
 #define ZERO_F 			7
 #define SUBSTRACT_F		6
@@ -207,23 +208,23 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xBD
 	{tempfunction,0},		// 0xBE
 	{tempfunction,0},		// 0xBF
-	{tempfunction,0},		// 0xC0
+	{RET_NZ,     0,  8},	// 0xC0
 	{tempfunction,0},		// 0xC1
 	{JP_NZ_nn,	2,	12},	// 0xC2
 	{JP_nn,		2,	12},	// 0xC3
 	{tempfunction,0},		// 0xC4
 	{tempfunction,0},		// 0xC5
-	{ADD_A_n,	1,	8},		// 0xC6
+	{ADD_A_n,	1,	 8},	// 0xC6
 	{tempfunction,0},		// 0xC7
-	{tempfunction,0},		// 0xC8
-	{tempfunction,0},		// 0xC9
+	{RET_Z,     0,   8},    // 0xC8
+	{RET,       0,   8},	// 0xC9
 	{JP_Z_nn,	2,	12},	// 0xCA
 	{tempfunction,0},		// 0xCB
 	{tempfunction,0},		// 0xCC
 	{tempfunction,0},		// 0xCD
-	{ADC_A_n,   1,  8},		// 0xCE
+	{ADC_A_n,   1,   8},	// 0xCE
 	{tempfunction,0},		// 0xCF
-	{tempfunction,0},		// 0xD0
+	{RET_NC,     0,  8},	// 0xD0
 	{tempfunction,0},		// 0xD1
 	{JP_NC_nn,	2,	12},	// 0xD2
 	{tempfunction,0},		// 0xD3
@@ -231,8 +232,8 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xD5
 	{tempfunction,0},		// 0xD6
 	{tempfunction,0},		// 0xD7
-	{tempfunction,0},		// 0xD8
-	{tempfunction,0},		// 0xD9
+	{RET_C,     0,   8},    // 0xD8
+	{RETI,      0,   8},    // 0xD9
 	{JP_C_nn,	2,	12},	// 0xDA
 	{tempfunction,0},		// 0xDB
 	{tempfunction,0},		// 0xDC
@@ -318,10 +319,10 @@ void tempfunction(void) {
 }
 
 
-/*
- * 8-Bit Loads
- */
 
+ /********************
+ * 8-Bit Loads       *
+ *********************/
 /*
  * LD nn,n
  * Description: Put value nn into n.
@@ -334,8 +335,6 @@ void LD_D_n (void){ registers.D = operand8; }
 void LD_E_n (void){ registers.E = operand8; }
 void LD_H_n (void){ registers.H = operand8; }
 void LD_L_n (void){ registers.L = operand8; }
-
-
 /*
  * LDD (HL),A
  * Description:
@@ -351,12 +350,22 @@ void LDD_HL_A (void) {
     if (registers.HL == 0xF)
         setFlag(HALF_CARRY_F);
 }
-
-
+/********************
+ * 16-Bit Loads     *
+ ********************/
 /*
- * 8-Bit ALU
+ * LD n,nn
+ * Description: Put value nn into n.
+ * Use with: n = BC,DE,HL,SP
+ *           nn = 16 bit immediate value
  */
- 
+void LD_BC_nn (void) { registers.BC = operand16; }
+void LD_DE_nn (void) { registers.DE = operand16; }
+void LD_HL_nn (void) { registers.HL = operand16; }
+void LD_SP_nn (void) { registers.SP = operand16; }
+/********************
+ * 8-Bit ALU        *
+ ********************/
 /*
  * ADD A,n
  * Description: Add n to A.
@@ -376,7 +385,6 @@ void ADD_A_H (void){ add (registers.A, registers.H); }
 void ADD_A_L (void){ add (registers.A, registers.L); }
 void ADD_A_HL (void){ add (registers.A, registers.HL); }
 void ADD_A_n (void){ add (registers.A, operand8); }
-
 /*
  * ADC A,n
  * Description: Add n + Carry flag to A.
@@ -396,7 +404,6 @@ void ADC_A_H (void){ adc (registers.A, registers.H); }
 void ADC_A_L (void){ adc (registers.A, registers.L); }
 void ADC_A_HL (void){ adc (registers.A, registers.HL); }
 void ADC_A_n (void){ adc (registers.A, operand8); }
-
 /*
  * XOR n
  * Description: Logical exclusive OR n with register A, result in A.
@@ -416,7 +423,6 @@ void XOR_H (void) { xor (registers.H); }
 void XOR_L (void) { xor (registers.L); }
 void XOR_HL (void) { xor (registers.HL); }
 void XOR_n (void) { xor (operand8); }
-
 /*
  * DEC n
  * Description: Decrement register n.
@@ -442,55 +448,87 @@ void DEC_HL (void) {
     if (registers.HL == 0xF)
         setFlag(HALF_CARRY_F);
 }
-
-
-/*
- * 16-Bit Loads
- */
-
-/*
- * LD n,nn
- * Description: Put value nn into n.
- * Use with: n = BC,DE,HL,SP
- *           nn = 16 bit immediate value
- */
-void LD_BC_nn (void) { registers.BC = operand16; }
-void LD_DE_nn (void) { registers.DE = operand16; }
-void LD_HL_nn (void) { registers.HL = operand16; }
-void LD_SP_nn (void) { registers.SP = operand16; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void NOP (void){ };
-
-
-//SET
-void SET_0_E (void){ registers.E = registers.E & 0x1; }
-
-//JUMPS
+/********************
+ * 16-Bit ALU       *
+ ********************/
+ /*******************
+ * ADD, INC, DEC    *
+ ********************/
+/********************
+ * Miscellaneous    *
+ ********************/
+ void NOP (void){ };
+/********************
+ * Rotates & Shifts *
+ ********************/
+/********************
+ * Bit Opcodes      *
+ ********************/
+/********************
+ * Jumps            *
+ ********************/
 void JP_nn (void)	{ registers.PC = operand16; }
-void JP_NZ_nn (void){ if (testFlag(ZERO_F) == 0)  registers.PC = operand16; }
-void JP_Z_nn (void)	{ if (testFlag(ZERO_F) == 1)  registers.PC = operand16; }
+void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0) registers.PC = operand16; }
+void JP_Z_nn (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = operand16; }
 void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0) registers.PC = operand16; }
 void JP_C_nn (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = operand16; }
 void JP_HL (void)	{ registers.PC = registers.HL; }
 void JR_n (void)	{ registers.PC = registers.PC + operand8; }
-void JR_NZ_n (void)	{ if (testFlag(ZERO_F) == 0)  registers.PC = registers.PC + operand8; }
-void JR_Z_n (void)	{ if (testFlag(ZERO_F) == 1)  registers.PC = registers.PC + operand8; }
+void JR_NZ_n (void)	{ if (testFlag(ZERO_F)  == 0) registers.PC = registers.PC + operand8; }
+void JR_Z_n (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = registers.PC + operand8; }
 void JR_NC_n (void)	{ if (testFlag(CARRY_F) == 0) registers.PC = registers.PC + operand8; }
 void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = registers.PC + operand8; }
+/********************
+ * Calls            *
+ ********************/
+/********************
+ * Restarts         *
+ ********************/
+/********************
+ * Returns          *
+ ********************/
+/*
+ * RET
+ * Description: Pop two bytes from stack & jump to that address.
+ */
+void RET    (void){ registers.PC = stackPop16(); }
+/*
+ * RET cc
+ * Description: Return if following condition is true:
+ * Use with:
+ * cc = NZ, Return if Z flag is reset.
+ * cc = Z, Return if Z flag is set.
+ * cc = NC, Return if C flag is reset.
+ */
+void RET_NZ (void){ if (testFlag(ZERO_F)  == 0) registers.PC = stackPop16(); }
+void RET_Z  (void){ if (testFlag(ZERO_F)  == 1) registers.PC = stackPop16(); }
+void RET_NC (void){ if (testFlag(CARRY_F) == 0) registers.PC = stackPop16(); }
+void RET_C  (void){ if (testFlag(CARRY_F) == 1) registers.PC = stackPop16(); }
+/*
+ * RETI
+ * Description: Pop two bytes from stack & jump to that address then
+ * enable interrupts.
+ */
+void RETI   (void){ registers.PC = stackPop16(); interruptMaster = TRUE;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//void SET_0_E (void){ registers.E = registers.E & 0x1; }
+
+
+

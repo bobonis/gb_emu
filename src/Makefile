@@ -7,10 +7,10 @@ LDIR =../lib
 
 LIBS=
 
-DEPS = memory.h rom.h cpu.h gpu.h timers.h
+DEPS = memory.h rom.h cpu.h gpu.h timers.h interrupts.c
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = gpu.o memory.o rom.o cpu.o main.o timers.o
+_OBJ = gpu.o memory.o rom.o cpu.o main.o timers.o interrupts.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
