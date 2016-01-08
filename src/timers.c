@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "memory.h"
 #include "timers.h"
+#include "interrupts.h"
 
 #define CLOCKSPEED 4194304
 #define FREQ_1   4096 //1024 cycles
@@ -72,7 +73,7 @@ void updateTimers(int cycles){
     if (cycleCounter > maxCycles){
         if (timeCounter == 255){
             timeCounter = 0;
-            //interrupt(time)
+            triggerInterrupt(TIMER);
         }
         else{
             timeCounter++;

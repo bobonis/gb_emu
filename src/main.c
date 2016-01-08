@@ -4,6 +4,7 @@
 #include "rom.h"
 #include "gpu.h"
 #include "timers.h"
+#include "interrupts.h"
 
 int main(int argc, char **argv){
 
@@ -26,7 +27,7 @@ int main(int argc, char **argv){
         updateTimers(cycles);
 		gpu();
 		//input();
-		//interupts();
+		handleInterrupts();
 	}
 	
 	//struct registers reg;

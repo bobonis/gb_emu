@@ -6,7 +6,29 @@ const struct opCode{
 
 int execute (void);
 void tempfunction (void);
-//8-Bit ALU
+ /********************
+ * 8-Bit Loads       *
+ *********************/
+ //LD nn,n
+void LD_B_n (void);
+void LD_C_n (void);
+void LD_D_n (void);
+void LD_E_n (void);
+void LD_H_n (void);
+void LD_L_n (void);
+/********************
+ * 16-Bit Loads     *
+ ********************/
+//LD n,nn
+void LD_BC_nn (void);
+void LD_DE_nn (void);
+void LD_HL_nn (void);
+void LD_SP_nn (void);
+//LDD (HL),A
+void LDD_HL_A (void);
+/********************
+ * 8-Bit ALU        *
+ ********************/
 //ADD A,n
 void ADD_A_A (void);
 void ADD_A_B (void);
@@ -46,30 +68,26 @@ void DEC_E (void);
 void DEC_H (void);
 void DEC_L (void);
 void DEC_HL (void);
-
-//LD n,nn
-void LD_BC_nn (void);
-void LD_DE_nn (void);
-void LD_HL_nn (void);
-void LD_SP_nn (void);
-
-//LDD (HL),A
-void LDD_HL_A (void);
-
-void NOP (void);
-
-
-void LD_B_n (void);
-void LD_C_n (void);
-void LD_D_n (void);
-void LD_E_n (void);
-void LD_H_n (void);
-void LD_L_n (void);
-
-//SET
-void SET_0_E (void);
-
-//JUMPS
+/********************
+ * 16-Bit ALU       *
+ ********************/
+ /*******************
+ * ADD, INC, DEC    *
+ ********************/
+/********************
+ * Miscellaneous    *
+ ********************/
+ void NOP (void);
+/********************
+ * Rotates & Shifts *
+ ********************/
+/********************
+ * Bit Opcodes      *
+ ********************/
+/********************
+ * Jumps            *
+ ********************/
+ //JUMPS
 void JP_nn (void) ;
 void JP_NZ_nn (void);
 void JP_Z_nn (void);
@@ -81,6 +99,36 @@ void JR_NZ_n (void);
 void JR_Z_n (void);
 void JR_NC_n (void);
 void JR_C_n (void);
+/********************
+ * Calls            *
+ ********************/
+/********************
+ * Restarts         *
+ ********************/
+/********************
+ * Returns          *
+ ********************/
+void RET (void);
+void RET_NZ (void);
+void RET_Z (void);
+void RET_NC (void);
+void RET_C (void);
+void RETI (void);
+
+
+
+
+
+
+
+
+
+
+
+//SET
+//void SET_0_E (void);
+
+
 
 
 	

@@ -1,6 +1,6 @@
 typedef int bool;
-#define true 1
-#define false 0
+#define TRUE 1
+#define FALSE 0
 
 void memCopy(unsigned char *memory, unsigned short start, unsigned char *buffer, unsigned short length);
 void reset (void);
@@ -15,6 +15,8 @@ void writeMemory (unsigned short pos, unsigned char value);
 unsigned char readMemory (unsigned short pos);
 void setBit(unsigned short pos, unsigned char bit, bool value);
 bool testBit(unsigned short pos, unsigned char bit);
+void stackPush16 (unsigned short value);
+unsigned short stackPop16 (void);
 /* The GameBoy has eight 8-bit registers A,B,C,D,E,F,H,L 
  * and two 16-bit registers SP & PC.
  * Some instructions, however, allow you to use the 
