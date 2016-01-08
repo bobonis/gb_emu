@@ -1,4 +1,8 @@
 bobonis
+    - Updated flag handling so when manual say that a register is set if condition
+      then I reset it if condition is not met
+
+bobonis
     - Implemented stack with pushStack and popStack
     - Implemented interrupts
     - Updated cpu.c and cpu.h structure
