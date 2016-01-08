@@ -24,7 +24,7 @@ void memCopy(unsigned char *memory, unsigned short start, unsigned char *buffer,
 
 void reset (void){
 	
-	registers.AF = 0x0001;
+	registers.AF = 0x01B0;
 	registers.BC = 0x0013;
 	registers.DE = 0x00D8;
 	registers.HL = 0x014D;
@@ -122,11 +122,17 @@ int testFlag (unsigned char flag){
 void add (unsigned short value1, unsigned short value2){
     if ((value1 + value2) > 255) 
         setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
     if ((value1 + value2) > 15)  
         setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
     
     if ((value1 + value2) == 0)  
         setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
     
     resetFlag(SUBSTRACT_F);
     
@@ -136,12 +142,18 @@ void add (unsigned short value1, unsigned short value2){
 void adc (unsigned short value1, unsigned short value2){
     if ((value1 + value2 + testFlag(CARRY_F)) > 255) 
         setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
     
     if ((value1 + value2 + testFlag(CARRY_F)) > 15)  
         setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
     
     if ((value1 + value2 + testFlag(CARRY_F)) == 0)  
         setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
 
     resetFlag(SUBSTRACT_F);
 
@@ -152,18 +164,28 @@ void xor (unsigned short value1){
     registers.A = registers.A ^ value1;
     if (registers.A == 0)
         setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
     resetFlag(CARRY_F);
 }
 
 void dec (unsigned char *value1){
+    if (*value1 & 0x0F)
+        resetFlag(HALF_CARRY_F);
+    else 
+        setFlag(HALF_CARRY_F);
+        
     *value1 = *value1 - 1;
+    
     if (*value1 == 0)
         setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+
     setFlag(SUBSTRACT_F);
-    if (*value1 == 0xF)
-        setFlag(HALF_CARRY_F);
+
 }
 
 

@@ -341,14 +341,20 @@ void LD_L_n (void){ registers.L = operand8; }
  * Put A into memory address HL. Decrement HL.
  * Same as: LD (HL),A - DEC HL
  */
-void LDD_HL_A (void) { 
+void LDD_HL_A (void) {    
     memory[registers.HL] = registers.A;
+// flags are not affected according to cinoop    
+//    if (memory[registers.HL] & 0x0F)
+//        resetFlag(HALF_CARRY_F);
+//    else 
+//        setFlag(HALF_CARRY_F);
+        
     registers.HL--;
-    if (registers.HL == 0)
-        setFlag(ZERO_F);
-    setFlag(SUBSTRACT_F);
-    if (registers.HL == 0xF)
-        setFlag(HALF_CARRY_F);
+//    if (registers.HL == 0)
+//        setFlag(ZERO_F);
+//    else
+//        resetFlag(ZERO_F);
+//    setFlag(SUBSTRACT_F);
 }
 /********************
  * 16-Bit Loads     *
@@ -474,7 +480,7 @@ void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0) registers.PC = operand16; }
 void JP_C_nn (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = operand16; }
 void JP_HL (void)	{ registers.PC = registers.HL; }
 void JR_n (void)	{ registers.PC = registers.PC + operand8; }
-void JR_NZ_n (void)	{ if (testFlag(ZERO_F)  == 0) registers.PC = registers.PC + operand8; }
+void JR_NZ_n (void)	{ if (testFlag(ZERO_F)  == 0) registers.PC = registers.PC + operand8; printf("%d\n",testFlag(ZERO_F));}
 void JR_Z_n (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = registers.PC + operand8; }
 void JR_NC_n (void)	{ if (testFlag(CARRY_F) == 0) registers.PC = registers.PC + operand8; }
 void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = registers.PC + operand8; }
