@@ -350,6 +350,12 @@ void LDD_HL_A (void) {
 //        setFlag(HALF_CARRY_F);
         
     registers.HL--;
+/*
+question alam:
+    why commented? flags will be ignored?
+    or you are unsure? or typo?
+*/
+
 //    if (registers.HL == 0)
 //        setFlag(ZERO_F);
 //    else
@@ -451,8 +457,17 @@ void DEC_HL (void) {
     if (registers.HL == 0)
         setFlag(ZERO_F);
     setFlag(SUBSTRACT_F);
-    if (registers.HL == 0xF)
-        setFlag(HALF_CARRY_F);
+    
+// please check cpu.c line 353
+//    if (registers.HL == 0)
+//        setFlag(ZERO_F);
+//    else
+//        resetFlag(ZERO_F);
+//    setFlag(SUBSTRACT_F);
+
+// flags are not affected according to cinoop    
+// if (registers.HL == 0xF)
+//     setFlag(HALF_CARRY_F);
 }
 /********************
  * 16-Bit ALU       *
