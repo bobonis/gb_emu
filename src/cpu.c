@@ -280,30 +280,34 @@ int execute (void){
 	instruction = memory[registers.PC];
 
 	
-	printf("[DEBUG] Opcode    - 0x%04x, P counter - 0x%04x, S pointer - 0x%04x\n",memory[registers.PC],registers.PC,registers.SP);
-    printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-                   ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-	
+//	printf("[DEBUG] Opcode    - 0x%04x, P counter - 0x%04x, S pointer - 0x%04x\n",memory[registers.PC],registers.PC,registers.SP);
+//  printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
+//                  ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
+
+    printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 
 	switch (opCodes[instruction].opLength){
 		case 0 :
 			registers.PC = registers.PC + 1;
-			printf("[DEBUG] Operand   - NONE\n");
+			printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = memory[registers.PC + 1];
 			registers.PC = registers.PC + 2;
-			printf("[DEBUG] Operand   - 0x%02x\n",operand8);
+			printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
 			operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
 			registers.PC = registers.PC + 3;
-			printf("[DEBUG] Operand   - 0x%04x\n",operand16);
+			printf("ARG-0x%04x, ",operand16);
 			break;
 	};
 	
 	//opCodes[memory[registers.PC]].function();
 	((void (*)(void))opCodes[instruction].function)();
+
+    printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
+        ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
 	
 	return opCodes[instruction].cycles;
 	
@@ -494,11 +498,11 @@ void JP_Z_nn (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = operand16; }
 void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0) registers.PC = operand16; }
 void JP_C_nn (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = operand16; }
 void JP_HL (void)	{ registers.PC = registers.HL; }
-void JR_n (void)	{ registers.PC = registers.PC + operand8; }
-void JR_NZ_n (void)	{ if (testFlag(ZERO_F)  == 0) registers.PC = registers.PC + operand8; printf("%d\n",testFlag(ZERO_F));}
-void JR_Z_n (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = registers.PC + operand8; }
-void JR_NC_n (void)	{ if (testFlag(CARRY_F) == 0) registers.PC = registers.PC + operand8; }
-void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = registers.PC + operand8; }
+void JR_n (void)	{ registers.PC = registers.PC + (signed char)operand8; }
+void JR_NZ_n (void)	{ if (testFlag(ZERO_F)  == 0) registers.PC = registers.PC + (signed char)operand8; }
+void JR_Z_n (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = registers.PC + (signed char)operand8; }
+void JR_NC_n (void)	{ if (testFlag(CARRY_F) == 0) registers.PC = registers.PC + (signed char)operand8; }
+void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = registers.PC + (signed char)operand8; }
 /********************
  * Calls            *
  ********************/
