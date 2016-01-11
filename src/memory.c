@@ -66,6 +66,14 @@ void reset (void){
 	memory[0xFFFF] = 0x00;	// IE
 }
 
+unsigned char readMemory8 (unsigned short address){
+    return memory[address];    
+}
+
+unsigned short readMemory16 (unsigned short address){
+    return (memory[address] | (memory[address + 1] << 8));
+}
+
 void setFlag (unsigned char flag){
     switch (flag){
         case 7:

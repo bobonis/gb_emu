@@ -68,7 +68,7 @@ void updateTimers(int cycles){
     }
     
     cycleCounter += cycles;
-    printf("[DEBUG] Timers    - Cycles=%07d,MaxCycles=%07d,Timer=%07d\n",cycleCounter,maxCycles,timeCounter);
+    //printf("[DEBUG] Timers    - Cycles=%07d,MaxCycles=%07d,Timer=%07d\n",cycleCounter,maxCycles,timeCounter);
 
     if (cycleCounter > maxCycles){
         if (timeCounter == 255){
