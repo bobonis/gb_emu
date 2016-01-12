@@ -73,7 +73,7 @@ void updateTimers(int cycles){
     if (cycleCounter > maxCycles){
         if (timeCounter == 255){
             timeCounter = 0;
-            triggerInterrupt(TIMER);
+            triggerInterrupt(TIMER_INTERRUPT);
         }
         else{
             timeCounter++;
