@@ -7,6 +7,8 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
+#define LY      0xFF44 //Vertical line counter
+
 unsigned short test;
 
 struct registers registers;
@@ -206,6 +208,8 @@ void writeMemory (unsigned short pos, unsigned char value){
         case 0xFF07:
             updateFrequency();
             break;
+        case LY:    // Writing will reset the counter
+            memory[LY] = 0;
     }
 }
 
