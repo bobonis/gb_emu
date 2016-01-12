@@ -1,11 +1,14 @@
 bobonis
+    - Most of work done for GPU timers and registers.
+
+bobonis
     - Started working on GPU
 
 bobonis
     - Two new functions in memory.c to read from memory. readMemory8 and readMemory16
     - Fixed jumps to handle signed chars (needs testing)
     - I've tested running of Tetris so far in comparison with cinoop. 100% match!!! Well Done!
-
+    
 
 bobonis
     - Updated flag handling so when manual say that a register is set if condition

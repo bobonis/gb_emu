@@ -26,15 +26,15 @@ void handleInterrupts(void){
                 stackPush16(registers.PC); // Push program counter in the stack
                 
                 switch (bit){              // Set program counter to intterupt address
-                    case VBLANK:
+                    case VBLANK_INTERRUPT:
                         registers.PC = 0x40; break;
-                    case LCDC  :
+                    case LCDC_INTERRUPT  :
                         registers.PC = 0x48; break;
-                    case TIMER :
+                    case TIMER_INTERRUPT :
                         registers.PC = 0x50; break;
-                    case SERIAL:
+                    case SERIAL_INTERRUPT:
                         registers.PC = 0x58; break;
-                    case JOYPAD:
+                    case JOYPAD_INTERRUPT:
                         registers.PC = 0x60; break;
                 }
                 setBit(IFR,bit,FALSE);     // Reset Interrupt request Register
