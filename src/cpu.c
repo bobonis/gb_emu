@@ -26,7 +26,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x07
 	{tempfunction,0},		// 0x08
 	{tempfunction,0},		// 0x09
-	{tempfunction,0},		// 0x0A
+	{LD_A_BC,   0,  8, "LD_A_BC"},		// 0x0A
 	{tempfunction,0},		// 0x0B
 	{tempfunction,0},		// 0x0C
 	{DEC_C,     0,  4, "DEC_C"},		// 0x0D
@@ -40,9 +40,9 @@ const struct opCode opCodes[256] = {
 	{DEC_D,     0,  4, "DEC_D"},		// 0x15
 	{LD_D_n,	1,	8, "LD_D_n"},		// 0x16
 	{tempfunction,0},		// 0x17
-	{JR_n,		1,	8, "JR_n"},		// 0x18
+	{JR_n,		1,	8, "JR_n"},		    // 0x18
 	{tempfunction,0},		// 0x19
-	{tempfunction,0},		// 0x1A
+	{LD_A_DE,   0,  8, "LD_A_DE"},		// 0x1A
 	{tempfunction,0},		// 0x1B
 	{tempfunction,0},		// 0x1C
 	{DEC_E,     0,  4, "DEC_E"},		// 0x1D
@@ -69,7 +69,7 @@ const struct opCode opCodes[256] = {
 	{LDD_HL_A,  0,  8, "LDD_HL_A"},	    // 0x32
 	{tempfunction,0},		// 0x33
 	{tempfunction,0},		// 0x34
-	{DEC_HL,    0,  12, "DEC_HL"},	// 0x35
+	{DEC_HL,    0,  12, "DEC_HL"},	    // 0x35
 	{tempfunction,0},		// 0x36
 	{tempfunction,0},		// 0x37
 	{JR_C_n,	1,	8, "JR_C_n"},		// 0x38
@@ -78,7 +78,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x3B
 	{tempfunction,0},		// 0x3C
 	{DEC_A,     0,  4, "DEC_A"},		// 0x3D
-	{tempfunction,0},		// 0x3E
+	{LD_A_n,    1,  8, "LD_A_n"},		// 0x3E
 	{tempfunction,0},		// 0x3F
 	{tempfunction,0},		// 0x40
 	{tempfunction,0},		// 0x41
@@ -136,14 +136,14 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x75
 	{tempfunction,0},		// 0x76
 	{tempfunction,0},		// 0x77
-	{tempfunction,0},		// 0x78
-	{tempfunction,0},		// 0x79
-	{tempfunction,0},		// 0x7A
-	{tempfunction,0},		// 0x7B
-	{tempfunction,0},		// 0x7C
-	{tempfunction,0},		// 0x7D
-	{tempfunction,0},		// 0x7E
-	{tempfunction,0},		// 0x7F
+	{LD_A_B,    0,  4, "LD_A_B"},		// 0x78
+	{LD_A_C,    0,  4, "LD_A_C"},		// 0x79
+	{LD_A_D,    0,  4, "LD_A_D"},		// 0x7A
+	{LD_A_E,    0,  4, "LD_A_E"},		// 0x7B
+	{LD_A_H,    0,  4, "LD_A_H"},		// 0x7C
+	{LD_A_L,    0,  4, "LD_A_L"},		// 0x7D
+	{LD_A_HL,   0,  8, "LD_A_HL"},		// 0x7E
+	{LD_A_A,    0,  4, "LD_A_A"},		// 0x7F
 	{ADD_A_B,   0,  4, "ADD_A_B"},		// 0x80
 	{ADD_A_C,   0,  4, "ADD_A_C"},		// 0x81
 	{ADD_A_D,   0,  4, "ADD_A_D"},		// 0x82
@@ -200,31 +200,31 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xB5
 	{tempfunction,0},		// 0xB6
 	{tempfunction,0},		// 0xB7
-	{tempfunction,0},		// 0xB8
-	{tempfunction,0},		// 0xB9
-	{tempfunction,0},		// 0xBA
-	{tempfunction,0},		// 0xBB
-	{tempfunction,0},		// 0xBC
-	{tempfunction,0},		// 0xBD
-	{tempfunction,0},		// 0xBE
-	{tempfunction,0},		// 0xBF
-	{RET_NZ,     0,  8, "RET_NZ"},	// 0xC0
+	{CP_B,       0,  4, "CP_B"},		// 0xB8
+	{CP_C,       0,  4, "CP_C"},		// 0xB9
+	{CP_D,       0,  4, "CP_D"},		// 0xBA
+	{CP_E,       0,  4, "CP_E"},		// 0xBB
+	{CP_H,       0,  4, "CP_H"},		// 0xBC
+	{CP_L,       0,  4, "CP_L"},		// 0xBD
+	{CP_HL,      0,  4, "CP_HL"},		// 0xBE
+	{CP_A,       0,  4, "CP_A"},		// 0xBF
+	{RET_NZ,     0,  8, "RET_NZ"},	    // 0xC0
 	{tempfunction,0},		// 0xC1
 	{JP_NZ_nn,	2,	12, "JP_NZ_nn"},	// 0xC2
-	{JP_nn,		2,	12, "JP_nn"},	// 0xC3
+	{JP_nn,		2,	12, "JP_nn"},	    // 0xC3
 	{tempfunction,0},		// 0xC4
 	{tempfunction,0},		// 0xC5
-	{ADD_A_n,	1,	 8, "ADD_A_n"},	// 0xC6
+	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
 	{tempfunction,0},		// 0xC7
-	{RET_Z,     0,   8, "RET_Z"},    // 0xC8
-	{RET,       0,   8, "RET"},	// 0xC9
-	{JP_Z_nn,	2,	12, "JP_Z_nn"},	// 0xCA
+	{RET_Z,     0,   8, "RET_Z"},       // 0xC8
+	{RET,       0,   8, "RET"},	        // 0xC9
+	{JP_Z_nn,	2,	12, "JP_Z_nn"},	    // 0xCA
 	{tempfunction,0},		// 0xCB
 	{tempfunction,0},		// 0xCC
 	{tempfunction,0},		// 0xCD
-	{ADC_A_n,   1,   8, "ADC_A_n"},	// 0xCE
+	{ADC_A_n,   1,   8, "ADC_A_n"},	    // 0xCE
 	{tempfunction,0},		// 0xCF
-	{RET_NC,     0,  8, "RET_NC"},	// 0xD0
+	{RET_NC,     0,  8, "RET_NC"},	    // 0xD0
 	{tempfunction,0},		// 0xD1
 	{JP_NC_nn,	2,	12, "JP_NC_nn"},	// 0xD2
 	{tempfunction,0},		// 0xD3
@@ -232,15 +232,15 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xD5
 	{tempfunction,0},		// 0xD6
 	{tempfunction,0},		// 0xD7
-	{RET_C,     0,   8, "RET_C"},    // 0xD8
-	{RETI,      0,   8, "RETI"},    // 0xD9
-	{JP_C_nn,	2,	12, "JP_C_nn"},	// 0xDA
+	{RET_C,     0,   8, "RET_C"},       // 0xD8
+	{RETI,      0,   8, "RETI"},        // 0xD9
+	{JP_C_nn,	2,	12, "JP_C_nn"},	    // 0xDA
 	{tempfunction,0},		// 0xDB
 	{tempfunction,0},		// 0xDC
 	{tempfunction,0},		// 0xDD
 	{tempfunction,0},		// 0xDE
 	{tempfunction,0},		// 0xDF
-	{tempfunction,0},		// 0xE0
+	{LDH_n_A,   1,  12, "LDH_n_A"},		// 0xE0
 	{tempfunction,0},		// 0xE1
 	{tempfunction,0},		// 0xE2
 	{tempfunction,0},		// 0xE3
@@ -256,21 +256,21 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xED
 	{XOR_n,     1,  8, "XOR_n"},		// 0xEE
 	{tempfunction,0},		// 0xEF
-	{tempfunction,0},		// 0xF0
+	{LDH_A_n,   1,  12, "LDH_A_n"},		// 0xF0
 	{tempfunction,0},		// 0xF1
 	{tempfunction,0},		// 0xF2
-	{tempfunction,0},		// 0xF3
+	{DI,        0,  4, "DI"},		    // 0xF3
 	{tempfunction,0},		// 0xF4
 	{tempfunction,0},		// 0xF5
 	{tempfunction,0},		// 0xF6
 	{tempfunction,0},		// 0xF7
 	{tempfunction,0},		// 0xF8
 	{tempfunction,0},		// 0xF9
-	{tempfunction,0},		// 0xFA
+	{LD_A_nn,   0, 16, "LD_A_nn"},		// 0xFA
 	{tempfunction,0},		// 0xFB
 	{tempfunction,0},		// 0xFC
 	{tempfunction,0},		// 0xFD
-	{tempfunction,0},		// 0xFE
+	{CP_n,       0,  4, "CP_n"},		// 0xFE
 	{tempfunction,0},		// 0xFF
 };
 
@@ -340,6 +340,29 @@ void LD_E_n (void){ registers.E = operand8; }
 void LD_H_n (void){ registers.H = operand8; }
 void LD_L_n (void){ registers.L = operand8; }
 /*
+ * LD A,n
+ * Description: Put value n into A.
+ * Use with: n = A,B,C,D,E,H,L,(BC),(DE),(HL),(nn),#
+             nn = two byte immediate value. (LS byte first.)
+*/
+void LD_A_A  (void){registers.A = registers.A;}
+void LD_A_B  (void){registers.A = registers.B;}
+void LD_A_C  (void){registers.A = registers.C;}
+void LD_A_D  (void){registers.A = registers.D;}
+void LD_A_E  (void){registers.A = registers.E;}
+void LD_A_H  (void){registers.A = registers.H;}
+void LD_A_L  (void){registers.A = registers.L;}
+//16bits registers are used to fetch 2 byte memory addresses
+//void LD_A_BC (void){registers.A = registers.BC;}
+//void LD_A_DE (void){registers.A = registers.DE;}
+//void LD_A_HL (void){registers.A = registers.HL;}
+//void LD_A_nn (void){registers.A = operand16;}
+void LD_A_BC (void){registers.A = memory[registers.BC];}
+void LD_A_DE (void){registers.A = memory[registers.DE];}
+void LD_A_HL (void){registers.A = memory[registers.HL];}
+void LD_A_nn (void){registers.A = memory[operand16];}
+void LD_A_n  (void){registers.A = operand8;}
+/*
  * LDD (HL),A
  * Description:
  * Put A into memory address HL. Decrement HL.
@@ -366,6 +389,19 @@ question alam:
 //        resetFlag(ZERO_F);
 //    setFlag(SUBSTRACT_F);
 }
+/*
+ * LDH (n),A
+ * Description: Put A into memory address $FF00+n.
+ * Use with: n = one byte immediate value.
+ */
+ void LDH_n_A (void) { memory[0xFF00+operand8] = registers.A; }
+/*
+ * LDH A,(n)
+ * Description: Put memory address $FF00+n into A.
+ * Use with: n = one byte immediate value.
+ */
+  void LDH_A_n (void) { registers.A = memory[0xFF00+operand8]; }
+ 
 /********************
  * 16-Bit Loads     *
  ********************/
@@ -399,7 +435,9 @@ void ADD_A_D (void){ add (registers.A, registers.D); }
 void ADD_A_E (void){ add (registers.A, registers.E); }
 void ADD_A_H (void){ add (registers.A, registers.H); }
 void ADD_A_L (void){ add (registers.A, registers.L); }
-void ADD_A_HL (void){ add (registers.A, registers.HL); }
+//check eg. LD_A_BC
+//void ADD_A_HL (void){ add (registers.A, registers.HL); }
+void ADD_A_HL (void){ add (registers.A, memory[registers.HL]); }
 void ADD_A_n (void){ add (registers.A, operand8); }
 /*
  * ADC A,n
@@ -418,7 +456,9 @@ void ADC_A_D (void){ adc (registers.A, registers.D); }
 void ADC_A_E (void){ adc (registers.A, registers.E); }
 void ADC_A_H (void){ adc (registers.A, registers.H); }
 void ADC_A_L (void){ adc (registers.A, registers.L); }
-void ADC_A_HL (void){ adc (registers.A, registers.HL); }
+//check eg. LD_A_BC
+//void ADC_A_HL (void){ adc (registers.A, memory[registers.HL]); }
+void ADC_A_HL (void){ adc (registers.A, memory[registers.HL]); }
 void ADC_A_n (void){ adc (registers.A, operand8); }
 /*
  * XOR n
@@ -437,8 +477,31 @@ void XOR_D (void) { xor (registers.D); }
 void XOR_E (void) { xor (registers.E); }
 void XOR_H (void) { xor (registers.H); }
 void XOR_L (void) { xor (registers.L); }
-void XOR_HL (void) { xor (registers.HL); }
+//check eg. LD_A_BC
+//void XOR_HL (void) { xor (registers.HL); }
+void XOR_HL (void) { xor (memory[registers.HL]); }
 void XOR_n (void) { xor (operand8); }
+
+/*
+ * CP n
+ * Description: Compare A with n. This is basically an A - n
+ *              subtraction instruction but the results are thrown away.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero. (Set if A = n.)
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set for no borrow. (Set if A < n.)
+*/
+ void CP_A (void) {comp (registers.A);}
+ void CP_B (void) {comp (registers.B);}
+ void CP_C (void) {comp (registers.C);}
+ void CP_D (void) {comp (registers.D);}
+ void CP_E (void) {comp (registers.E);}
+ void CP_H (void) {comp (registers.H);}
+ void CP_L (void) {comp (registers.L);}
+ void CP_HL (void) {comp (memory[registers.HL]);}
+ void CP_n (void) {comp (operand8);}
 /*
  * DEC n
  * Description: Decrement register n.
@@ -457,10 +520,12 @@ void DEC_E (void) {dec (&registers.E);}
 void DEC_H (void) {dec (&registers.H);}
 void DEC_L (void) {dec (&registers.L);}
 void DEC_HL (void) {
-    registers.HL--;
-    if (registers.HL == 0)
-        setFlag(ZERO_F);
-    setFlag(SUBSTRACT_F);
+//    registers.HL--;
+//    if (registers.HL == 0)
+//        setFlag(ZERO_F);
+//    setFlag(SUBSTRACT_F);
+
+memory[registers.HL] -= 1;
     
 // please check cpu.c line 353
 //    if (registers.HL == 0)
@@ -483,6 +548,15 @@ void DEC_HL (void) {
  * Miscellaneous    *
  ********************/
  void NOP (void){ };
+/*
+ * DI
+ * Description:
+ * This instruction disables interrupts but not immediately. Interrupts are disabled after
+ * instruction after DI is executed.
+ * Flags affected: None.
+ *
+*/
+ void DI (void)     { interruptMaster = FALSE; }
 /********************
  * Rotates & Shifts *
  ********************/

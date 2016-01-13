@@ -17,6 +17,20 @@ void LD_D_n (void);
 void LD_E_n (void);
 void LD_H_n (void);
 void LD_L_n (void);
+void LD_A_n (void);
+void LD_A_A (void);
+void LD_A_B (void);
+void LD_A_C (void);
+void LD_A_D (void);
+void LD_A_E (void);
+void LD_A_H (void);
+void LD_A_L (void);
+void LD_A_BC (void);
+void LD_A_DE (void);
+void LD_A_HL (void);
+void LD_A_nn (void);
+void LDH_n_A (void);
+void LDH_A_n (void);
 /********************
  * 16-Bit Loads     *
  ********************/
@@ -60,6 +74,16 @@ void XOR_H (void);
 void XOR_L (void);
 void XOR_HL (void);
 void XOR_n (void);
+//CP n
+void CP_A (void);
+void CP_B (void);
+void CP_C (void);
+void CP_D (void);
+void CP_E (void);
+void CP_H (void);
+void CP_L (void);
+void CP_HL (void);
+void CP_n (void);
 //DEC n
 void DEC_A (void);
 void DEC_B (void);
@@ -79,6 +103,7 @@ void DEC_HL (void);
  * Miscellaneous    *
  ********************/
  void NOP (void);
+ void DI (void);
 /********************
  * Rotates & Shifts *
  ********************/
