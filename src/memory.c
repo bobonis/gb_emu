@@ -181,6 +181,26 @@ void xor (unsigned short value1){
     resetFlag(CARRY_F);
 }
 
+void comp (unsigned char value){
+    if (registers.A == value)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+        
+    setFlag(SUBSTRACT_F);
+    
+    if ((value & 0x0f) > (registers.A & 0x0f))
+        setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
+    
+    if (registers.A < value)
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
+    
+}
+
 void dec (unsigned char *value1){
     // checking register before decremented
     // do we really care about HALF_CARRY??

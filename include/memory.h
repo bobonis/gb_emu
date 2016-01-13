@@ -10,6 +10,7 @@ int testFlag (unsigned char flag);
 void add (unsigned short value1, unsigned short value2);
 void adc (unsigned short value1, unsigned short value2);
 void xor (unsigned short value1);
+void comp (unsigned char value1);
 void dec (unsigned char *value1);
 void writeMemory (unsigned short pos, unsigned char value);
 unsigned char readMemory (unsigned short pos);
