@@ -2,6 +2,7 @@ const struct opCode{
 	void *function;
 	unsigned char opLength;
 	unsigned char cycles;
+    char *function_name;
 }extern const opCodes[256];
 
 int execute (void);

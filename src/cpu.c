@@ -16,68 +16,68 @@ unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
 
 const struct opCode opCodes[256] = {
-	{NOP,		0,	4},		// 0x00
-	{LD_BC_nn,  2,  12},	// 0x01
+	{NOP,		0,	4,  "NOP"},		    // 0x00
+	{LD_BC_nn,  2,  12, "LD_BC_nn" },	// 0x01
 	{tempfunction,0},		// 0x02
 	{tempfunction,0},		// 0x03
 	{tempfunction,0},		// 0x04
-	{DEC_B,     0,  4},		// 0x05
-	{LD_B_n,	1,	8},		// 0x06
+	{DEC_B,     0,  4,  "DEC_B"},		// 0x05
+	{LD_B_n,	1,	8,  "LD_B_n"},	    // 0x06
 	{tempfunction,0},		// 0x07
 	{tempfunction,0},		// 0x08
 	{tempfunction,0},		// 0x09
 	{tempfunction,0},		// 0x0A
 	{tempfunction,0},		// 0x0B
 	{tempfunction,0},		// 0x0C
-	{DEC_C,     0,  4},		// 0x0D
-	{LD_C_n,	1,	8},		// 0x0E
+	{DEC_C,     0,  4, "DEC_C"},		// 0x0D
+	{LD_C_n,	1,	8, "LD_C_n"},		// 0x0E
 	{tempfunction,0},		// 0x0F
 	{tempfunction,0},		// 0x10
-	{LD_DE_nn,  2,  12},	// 0x11
+	{LD_DE_nn,  2,  12, "LD_DE_nn"},	// 0x11
 	{tempfunction,0},		// 0x12
 	{tempfunction,0},		// 0x13
 	{tempfunction,0},		// 0x14
-	{DEC_D,     0,  4},		// 0x15
-	{LD_D_n,	1,	8},		// 0x16
+	{DEC_D,     0,  4, "DEC_D"},		// 0x15
+	{LD_D_n,	1,	8, "LD_D_n"},		// 0x16
 	{tempfunction,0},		// 0x17
-	{JR_n,		1,	8},		// 0x18
+	{JR_n,		1,	8, "JR_n"},		// 0x18
 	{tempfunction,0},		// 0x19
 	{tempfunction,0},		// 0x1A
 	{tempfunction,0},		// 0x1B
 	{tempfunction,0},		// 0x1C
-	{DEC_E,     0,  4},		// 0x1D
-	{LD_E_n,	1,	8},		// 0x1E
+	{DEC_E,     0,  4, "DEC_E"},		// 0x1D
+	{LD_E_n,	1,	8, "LD_E_n"},		// 0x1E
 	{tempfunction,0},		// 0x1F
-	{JR_NZ_n,	1,	8},		// 0x20
-	{LD_HL_nn,  2,  12},	// 0x21
+	{JR_NZ_n,	1,	8, "JR_NZ_n"},		// 0x20
+	{LD_HL_nn,  2,  12, "LD_HL_nn"},	// 0x21
 	{tempfunction,0},		// 0x22
 	{tempfunction,0},		// 0x23
 	{tempfunction,0},		// 0x24
-	{DEC_H,     0,  4},		// 0x25
-	{LD_H_n,	1,	8},		// 0x26
+	{DEC_H,     0,  4, "DEC_H"},		// 0x25
+	{LD_H_n,	1,	8, "LD_H_n"},		// 0x26
 	{tempfunction,0},		// 0x27
-	{JR_Z_n,	1,	8},		// 0x28
+	{JR_Z_n,	1,	8, "JR_Z_n"},		// 0x28
 	{tempfunction,0},		// 0x29
 	{tempfunction,0},		// 0x2A
 	{tempfunction,0},		// 0x2B
 	{tempfunction,0},		// 0x2C
-	{DEC_L,     0,  4},		// 0x2D
-	{LD_L_n,	1,	8},		// 0x2E
+	{DEC_L,     0,  4, "DEC_L"},		// 0x2D
+	{LD_L_n,	1,	8, "LD_L_n"},		// 0x2E
 	{tempfunction,0},		// 0x2F
-	{JR_NC_n,	1,	8},		// 0x30
-	{LD_SP_nn,  2,  12},	// 0x31
-	{LDD_HL_A,  0,  8},	    // 0x32
+	{JR_NC_n,	1,	8, "JR_NC_n"},		// 0x30
+	{LD_SP_nn,  2,  12, "LD_SP_nn"},	// 0x31
+	{LDD_HL_A,  0,  8, "LDD_HL_A"},	    // 0x32
 	{tempfunction,0},		// 0x33
 	{tempfunction,0},		// 0x34
-	{DEC_HL,    0,  12},	// 0x35
+	{DEC_HL,    0,  12, "DEC_HL"},	// 0x35
 	{tempfunction,0},		// 0x36
 	{tempfunction,0},		// 0x37
-	{JR_C_n,	1,	8},		// 0x38
+	{JR_C_n,	1,	8, "JR_C_n"},		// 0x38
 	{tempfunction,0},		// 0x39
 	{tempfunction,0},		// 0x3A
 	{tempfunction,0},		// 0x3B
 	{tempfunction,0},		// 0x3C
-	{DEC_A,     0,  4},		// 0x3D
+	{DEC_A,     0,  4, "DEC_A"},		// 0x3D
 	{tempfunction,0},		// 0x3E
 	{tempfunction,0},		// 0x3F
 	{tempfunction,0},		// 0x40
@@ -144,22 +144,22 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x7D
 	{tempfunction,0},		// 0x7E
 	{tempfunction,0},		// 0x7F
-	{ADD_A_B,   0,  4},		// 0x80
-	{ADD_A_C,   0,  4},		// 0x81
-	{ADD_A_D,   0,  4},		// 0x82
-	{ADD_A_E,   0,  4},		// 0x83
-	{ADD_A_H,   0,  4},		// 0x84
-	{ADD_A_L,   0,  4},		// 0x85
-	{ADD_A_HL,  0,  8},		// 0x86
-	{ADD_A_A,   0,  4},		// 0x87
-	{ADC_A_B,   0,  4},		// 0x88
-	{ADC_A_C,   0,  4},		// 0x89
-	{ADC_A_D,   0,  4},		// 0x8A
-	{ADC_A_E,   0,  4},		// 0x8B
-	{ADC_A_H,   0,  4},		// 0x8C
-	{ADC_A_L,   0,  4},		// 0x8D
-	{ADC_A_HL,  0,  8},		// 0x8E
-	{ADC_A_A,   0,  4},		// 0x8F
+	{ADD_A_B,   0,  4, "ADD_A_B"},		// 0x80
+	{ADD_A_C,   0,  4, "ADD_A_C"},		// 0x81
+	{ADD_A_D,   0,  4, "ADD_A_D"},		// 0x82
+	{ADD_A_E,   0,  4, "ADD_A_E"},		// 0x83
+	{ADD_A_H,   0,  4, "ADD_A_H"},		// 0x84
+	{ADD_A_L,   0,  4, "ADD_A_L"},		// 0x85
+	{ADD_A_HL,  0,  8, "ADD_A_HL"},		// 0x86
+	{ADD_A_A,   0,  4, "ADD_A_A"},		// 0x87
+	{ADC_A_B,   0,  4, "ADC_A_B"},		// 0x88
+	{ADC_A_C,   0,  4, "ADC_A_C"},		// 0x89
+	{ADC_A_D,   0,  4, "ADC_A_D"},		// 0x8A
+	{ADC_A_E,   0,  4, "ADC_A_E"},		// 0x8B
+	{ADC_A_H,   0,  4, "ADC_A_H"},		// 0x8C
+	{ADC_A_L,   0,  4, "ADC_A_L"},		// 0x8D
+	{ADC_A_HL,  0,  8, "ADC_A_HL"},		// 0x8E
+	{ADC_A_A,   0,  4, "ADC_A_A"},		// 0x8F
 	{tempfunction,0},		// 0x90
 	{tempfunction,0},		// 0x91
 	{tempfunction,0},		// 0x92
@@ -184,14 +184,14 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xA5
 	{tempfunction,0},		// 0xA6
 	{tempfunction,0},		// 0xA7
-	{XOR_B,     0,  4},		// 0xA8
-	{XOR_C,     0,  4},		// 0xA9
-	{XOR_D,     0,  4},		// 0xAA
-	{XOR_E,     0,  4},		// 0xAB
-	{XOR_H,     0,  4},		// 0xAC
-	{XOR_L,     0,  4},		// 0xAD
-	{XOR_HL,    0,  8},		// 0xAE
-	{XOR_A,     0,  4},		// 0xAF
+	{XOR_B,     0,  4, "XOR_B"},		// 0xA8
+	{XOR_C,     0,  4, "XOR_C"},		// 0xA9
+	{XOR_D,     0,  4, "XOR_D"},		// 0xAA
+	{XOR_E,     0,  4, "XOR_E"},		// 0xAB
+	{XOR_H,     0,  4, "XOR_H"},		// 0xAC
+	{XOR_L,     0,  4, "XOR_L"},		// 0xAD
+	{XOR_HL,    0,  8, "XOR_HL"},		// 0xAE
+	{XOR_A,     0,  4, "XOR_A"},		// 0xAF
 	{tempfunction,0},		// 0xB0
 	{tempfunction,0},		// 0xB1
 	{tempfunction,0},		// 0xB2
@@ -208,33 +208,33 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xBD
 	{tempfunction,0},		// 0xBE
 	{tempfunction,0},		// 0xBF
-	{RET_NZ,     0,  8},	// 0xC0
+	{RET_NZ,     0,  8, "RET_NZ"},	// 0xC0
 	{tempfunction,0},		// 0xC1
-	{JP_NZ_nn,	2,	12},	// 0xC2
-	{JP_nn,		2,	12},	// 0xC3
+	{JP_NZ_nn,	2,	12, "JP_NZ_nn"},	// 0xC2
+	{JP_nn,		2,	12, "JP_nn"},	// 0xC3
 	{tempfunction,0},		// 0xC4
 	{tempfunction,0},		// 0xC5
-	{ADD_A_n,	1,	 8},	// 0xC6
+	{ADD_A_n,	1,	 8, "ADD_A_n"},	// 0xC6
 	{tempfunction,0},		// 0xC7
-	{RET_Z,     0,   8},    // 0xC8
-	{RET,       0,   8},	// 0xC9
-	{JP_Z_nn,	2,	12},	// 0xCA
+	{RET_Z,     0,   8, "RET_Z"},    // 0xC8
+	{RET,       0,   8, "RET"},	// 0xC9
+	{JP_Z_nn,	2,	12, "JP_Z_nn"},	// 0xCA
 	{tempfunction,0},		// 0xCB
 	{tempfunction,0},		// 0xCC
 	{tempfunction,0},		// 0xCD
-	{ADC_A_n,   1,   8},	// 0xCE
+	{ADC_A_n,   1,   8, "ADC_A_n"},	// 0xCE
 	{tempfunction,0},		// 0xCF
-	{RET_NC,     0,  8},	// 0xD0
+	{RET_NC,     0,  8, "RET_NC"},	// 0xD0
 	{tempfunction,0},		// 0xD1
-	{JP_NC_nn,	2,	12},	// 0xD2
+	{JP_NC_nn,	2,	12, "JP_NC_nn"},	// 0xD2
 	{tempfunction,0},		// 0xD3
 	{tempfunction,0},		// 0xD4
 	{tempfunction,0},		// 0xD5
 	{tempfunction,0},		// 0xD6
 	{tempfunction,0},		// 0xD7
-	{RET_C,     0,   8},    // 0xD8
-	{RETI,      0,   8},    // 0xD9
-	{JP_C_nn,	2,	12},	// 0xDA
+	{RET_C,     0,   8, "RET_C"},    // 0xD8
+	{RETI,      0,   8, "RETI"},    // 0xD9
+	{JP_C_nn,	2,	12, "JP_C_nn"},	// 0xDA
 	{tempfunction,0},		// 0xDB
 	{tempfunction,0},		// 0xDC
 	{tempfunction,0},		// 0xDD
@@ -249,12 +249,12 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xE6
 	{tempfunction,0},		// 0xE7
 	{tempfunction,0},		// 0xE8
-	{JP_HL,		0,	4},		// 0xE9
+	{JP_HL,		0,	4, "JP_HL"},		// 0xE9
 	{tempfunction,0},		// 0xEA
 	{tempfunction,0},		// 0xEB
 	{tempfunction,0},		// 0xEC
 	{tempfunction,0},		// 0xED
-	{XOR_n,     1,  8},		// 0xEE
+	{XOR_n,     1,  8, "XOR_n"},		// 0xEE
 	{tempfunction,0},		// 0xEF
 	{tempfunction,0},		// 0xF0
 	{tempfunction,0},		// 0xF1
@@ -284,7 +284,7 @@ int execute (void){
 //  printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
 //                  ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
 
-    printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+    printf("[DEBUG] OPC-0x%04x-[%s],\tPC-0x%04x, SP-0x%04x, ",instruction,opCodes[instruction].function_name,registers.PC,registers.SP);
 
 	switch (opCodes[instruction].opLength){
 		case 0 :

@@ -1,3 +1,7 @@
+alam
+    - Enrich DEBUG printout with the name of the opcode
+    - Started working on opcodes
+
 bobonis
     - Most of work done for GPU timers and registers.
 
