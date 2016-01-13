@@ -10,8 +10,12 @@
 
 #define LCDC    0xFF40 //LCD control
 #define STAT    0xFF41 //LCDC status
+#define SCY     0xFF42 //Scroll Y
+#define SCX     0xFF43 //Scroll X
 #define LY      0xFF44 //Vertical line counter
 #define LYC     0xFF45 //Vertical line coincidence
+#define WY      0xFF4A //Window Y position
+#define WX      0xFF4B //Window X position
  
 
 unsigned char gpu_state = SCAN_OAM;
@@ -150,3 +154,66 @@ void gpuChangeMode(int mode){
     }
     
 }
+
+/*
+ * Region	    Usage
+ * ---------    -----------------------------
+ * 8000-87FF	Tile set #1: tiles 0-127
+ * 8800-8FFF	Tile set #1: tiles 128-255
+ *              Tile set #0: tiles -1 to -128
+ * 9000-97FF	Tile set #0: tiles 0-127
+ * 9800-9BFF	Tile map #0
+ * 9C00-9FFF	Tile map #1
+ */
+ 
+ void gpuDrawScanline(void){
+     
+     int using_signed = FALSE;
+     int tileset_number;
+     
+     unsigned char tile[16];
+     
+     unsigned char posX = readMemory8(SCX);
+     unsigned char posY = readMemory8(SCY) + readMemory8(LY);
+ 
+     int tileset_memory_addr;     
+     int tileset_offset;
+     int tilemap_memory_addr;     
+     int tilemap_offset;
+
+
+
+
+
+     //find which tilemap is in use
+     if (testBit(LCDC,3) == FALSE){
+        tilemap_memory_addr = 0x9800;
+        using_signed = TRUE;
+     }
+     else{
+        tilemap_memory_addr = 0x9C00;
+     }
+     
+     //find tile in tilemap
+     tilemap_offset = (posX / 8) + ((posY / 8) * 32);
+     
+     //find tileset number
+     if (using_signed == TRUE)
+        tileset_number = (signed)readMemory8(tilemap_memory_addr + tilemap_offset);
+     else
+        tileset_number = readMemory8(tilemap_memory_addr + tilemap_offset);
+
+     //find tile
+     if (testBit(LCDC,4) == FALSE){
+        tileset_memory_addr = 0x8800;
+     }
+     else{
+        tileset_memory_addr = 0x8000;
+     }
+     if (using_signed == TRUE)
+        tileset_offset = tileset_memory_addr + ((tileset_number + 128) * 16);
+     else
+        tileset_offset = tileset_memory_addr + (tileset_number * 16);
+     
+     //read tile
+ }
