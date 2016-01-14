@@ -201,6 +201,31 @@ void comp (unsigned char value){
     
 }
 
+void sub (unsigned char value){
+
+    if (value > registers.A)
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
+
+    setFlag(SUBSTRACT_F);
+    
+    if ((value & 0x0f) > (registers.A & 0x0f))
+        setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
+    
+    if (registers.A == value)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+    //printf("[debug1-alam]O A einai twra%d\tenw to value pou phrame einai%d\n",registers.A,value);
+    registers.A = registers.A - value;
+    //printf("[debug2-alam]O A einai pleon%d\tenw to value pou phrame einai%d\n",registers.A,value);
+    
+}
+
+
 void dec (unsigned char *value1){
     // checking register before decremented
     // do we really care about HALF_CARRY??

@@ -1,6 +1,7 @@
 #include "gpu.h"
 #include "memory.h"
 #include "interrupts.h"
+#include <stdio.h>
 
 #define SCAN_OAM  2 //Scanline (accessing OAM)
 #define SCAN_VRAM 3 //Scanline (accessing VRAM)
@@ -39,7 +40,6 @@ void gpu (int cycles){
     }    
     
     gpu_cycles += cycles;
-    
     switch (gpu_state){
         
         case SCAN_OAM:
@@ -58,7 +58,6 @@ void gpu (int cycles){
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
                 memory[LY] += 1;          //Scanning a line completed, move to next
-                                
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      
                 }
@@ -131,7 +130,7 @@ void gpuChangeMode(int mode){
         case H_BLANK: //mode 0
             if (testBit(STAT,3) == TRUE)
                 triggerInterrupt(LCDC_INTERRUPT);
-            gpu_state = SCAN_OAM;
+            gpu_state = H_BLANK;
             setBit(STAT,0,FALSE);
             setBit(STAT,1,FALSE);            
             break;        
