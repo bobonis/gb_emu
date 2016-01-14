@@ -2,6 +2,7 @@
 #include "gpu.h"
 #include "memory.h"
 #include "interrupts.h"
+#include <stdio.h>
 
 #define SCAN_OAM  2 //Scanline (accessing OAM)
 #define SCAN_VRAM 3 //Scanline (accessing VRAM)
@@ -59,7 +60,7 @@ void gpu (int cycles){
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
                 memory[LY] += 1;          //Scanning a line completed, move to next
-                     
+
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      
                 }

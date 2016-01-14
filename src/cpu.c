@@ -160,14 +160,14 @@ const struct opCode opCodes[256] = {
 	{ADC_A_L,   0,  4, "ADC_A_L"},		// 0x8D
 	{ADC_A_HL,  0,  8, "ADC_A_HL"},		// 0x8E
 	{ADC_A_A,   0,  4, "ADC_A_A"},		// 0x8F
-	{tempfunction,0},		// 0x90
-	{tempfunction,0},		// 0x91
-	{tempfunction,0},		// 0x92
-	{tempfunction,0},		// 0x93
-	{tempfunction,0},		// 0x94
-	{tempfunction,0},		// 0x95
-	{tempfunction,0},		// 0x96
-	{tempfunction,0},		// 0x97
+	{SUB_B,     0,  4, "SUB_B"},		// 0x90
+	{SUB_C,     0,  4, "SUB_C"},		// 0x91
+	{SUB_D,     0,  4, "SUB_D"},		// 0x92
+	{SUB_E,     0,  4, "SUB_E"},		// 0x93
+	{SUB_H,     0,  4, "SUB_H"},		// 0x94
+	{SUB_L,     0,  4, "SUB_L"},		// 0x95
+	{SUB_HL,    0,  8, "SUB_HL"},		// 0x96
+	{SUB_A,     0,  4, "SUB_A"},		// 0x97
 	{tempfunction,0},		// 0x98
 	{tempfunction,0},		// 0x99
 	{tempfunction,0},		// 0x9A
@@ -230,7 +230,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xD3
 	{tempfunction,0},		// 0xD4
 	{tempfunction,0},		// 0xD5
-	{tempfunction,0},		// 0xD6
+	{SUB_n,     1,  8,  "SUB_n"},		// 0xD6
 	{tempfunction,0},		// 0xD7
 	{RET_C,     0,   8, "RET_C"},       // 0xD8
 	{RETI,      0,   8, "RETI"},        // 0xD9
@@ -285,7 +285,6 @@ int execute (void){
 //                  ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
 
     printf("[DEBUG] OPC-0x%04x-[%s],\tPC-0x%04x, SP-0x%04x, ",instruction,opCodes[instruction].function_name,registers.PC,registers.SP);
-
 	switch (opCodes[instruction].opLength){
 		case 0 :
 			registers.PC = registers.PC + 1;
@@ -317,7 +316,7 @@ int execute (void){
 	
 void tempfunction(void) {
 	
-	printf("[ERROR] Opcode 0x%02x not implemented\n",instruction);
+	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 39\%\n[*******=============]\n",instruction);
 	exit(1);
 
 }
@@ -448,7 +447,7 @@ void ADD_A_n (void){ add (registers.A, operand8); }
  * N - Reset.
  * H - Set if carry from bit 3.
  * C - Set if carry from bit 7.
-*/
+ */
 void ADC_A_A (void){ adc (registers.A, registers.A); }
 void ADC_A_B (void){ adc (registers.A, registers.B); }
 void ADC_A_C (void){ adc (registers.A, registers.C); }
@@ -460,6 +459,27 @@ void ADC_A_L (void){ adc (registers.A, registers.L); }
 //void ADC_A_HL (void){ adc (registers.A, memory[registers.HL]); }
 void ADC_A_HL (void){ adc (registers.A, memory[registers.HL]); }
 void ADC_A_n (void){ adc (registers.A, operand8); }
+/*
+ * SUB n
+ * Description: Subtract n from A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set if no borrow.
+ */
+ 
+ void SUB_A (void) { sub (registers.A);}
+ void SUB_B (void) { sub (registers.B);}
+ void SUB_C (void) { sub (registers.C);}
+ void SUB_D (void) { sub (registers.D);}
+ void SUB_E (void) { sub (registers.E);}
+ void SUB_H (void) { sub (registers.H);}
+ void SUB_L (void) { sub (registers.L);}
+ void SUB_HL (void) { sub (memory[registers.HL]);}
+ void SUB_n (void) { sub (operand8);}
+ 
 /*
  * XOR n
  * Description: Logical exclusive OR n with register A, result in A.
