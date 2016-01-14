@@ -64,6 +64,16 @@ void ADC_A_H (void);
 void ADC_A_L (void);
 void ADC_A_HL (void);
 void ADC_A_n (void);
+//SUB n
+void SUB_A (void);
+void SUB_B (void);
+void SUB_C (void);
+void SUB_D (void);
+void SUB_E (void);
+void SUB_H (void);
+void SUB_L (void);
+void SUB_HL (void);
+void SUB_n (void);
 //XOR n
 void XOR_A (void);
 void XOR_B (void);

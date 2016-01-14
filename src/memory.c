@@ -219,9 +219,9 @@ void sub (unsigned char value){
         setFlag(ZERO_F);
     else
         resetFlag(ZERO_F);
-    //printf("[debug1-alam]O A einai twra%d\tenw to value pou phrame einai%d\n",registers.A,value);
-    registers.A = registers.A - value;
-    //printf("[debug2-alam]O A einai pleon%d\tenw to value pou phrame einai%d\n",registers.A,value);
+        
+    registers.A -= value;
+
     
 }
 
