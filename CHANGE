@@ -1,3 +1,7 @@
+bobonis
+    - Finished work on backround
+    - Started working on SDL window 
+
 alam
     - Enrich DEBUG printout with the name of the opcode
     - Started working on opcodes
