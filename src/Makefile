@@ -5,7 +5,7 @@ CFLAGS=-I$(IDIR)
 ODIR=obj
 LDIR =../lib
 
-LIBS=
+LIBS=-lSDLmain -lSDL2 -lSDL_image
 
 DEPS = memory.h rom.h cpu.h gpu.h timers.h interrupts.c
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))

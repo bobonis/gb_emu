@@ -14,10 +14,11 @@
 #define SCX     0xFF43 //Scroll X
 #define LY      0xFF44 //Vertical line counter
 #define LYC     0xFF45 //Vertical line coincidence
+#define BGP     0xFF47 //BG & Window Palette Data
 #define WY      0xFF4A //Window Y position
 #define WX      0xFF4B //Window X position
  
-
+unsigned char framebuffer[160][144][3];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles;
@@ -55,6 +56,7 @@ void gpu (int cycles){
             
         case H_BLANK:
             if (gpu_cycles >= 204){
+                gpuDrawScanline();
                 memory[LY] += 1;          //Scanning a line completed, move to next
                                 
                 if (memory[LY] > 143){
@@ -169,51 +171,127 @@ void gpuChangeMode(int mode){
  void gpuDrawScanline(void){
      
      int using_signed = FALSE;
+     int using_window = FALSE;
      int tileset_number;
+     int bit_1;
+     int bit_2;
+     int pixel;
      
-     unsigned char tile[16];
+     
+     unsigned char colour;
+     unsigned char red;
+     unsigned char green;
+     unsigned char blue;
      
      unsigned char posX = readMemory8(SCX);
      unsigned char posY = readMemory8(SCY) + readMemory8(LY);
  
-     int tileset_memory_addr;     
-     int tileset_offset;
-     int tilemap_memory_addr;     
-     int tilemap_offset;
+     unsigned short tileset_start_addr;    //Tile Set start address in memory
+     unsigned short tilemap_start_addr;    //Tile Map start address in memory
+     unsigned short window_start_addr;     //Window start address in memory
+     
+     unsigned short tileset_offset;
+     unsigned short tilemap_offset;    
 
+     //Initialize flags and memory addresses
+     if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
+        if (readMemory8(LY) >= readMemory8(WY)){//Current scanline is after window position
+            using_window = TRUE;
+            if (testBit(LCDC,6) == TRUE){  //Window Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+                window_start_addr = 0x9C00;
+            }
+            else{
+                window_start_addr = 0x9888;
+            }
+        }
+     }
 
-
-
-
-     //find which tilemap is in use
-     if (testBit(LCDC,3) == FALSE){
-        tilemap_memory_addr = 0x9800;
-        using_signed = TRUE;
+     if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+        tilemap_start_addr = 0x9800;
+        using_signed = TRUE;            //tilemap number is signed number
      }
      else{
-        tilemap_memory_addr = 0x9C00;
+        tilemap_start_addr = 0x9C00;
      }
      
-     //find tile in tilemap
-     tilemap_offset = (posX / 8) + ((posY / 8) * 32);
-     
-     //find tileset number
-     if (using_signed == TRUE)
-        tileset_number = (signed)readMemory8(tilemap_memory_addr + tilemap_offset);
-     else
-        tileset_number = readMemory8(tilemap_memory_addr + tilemap_offset);
-
-     //find tile
-     if (testBit(LCDC,4) == FALSE){
-        tileset_memory_addr = 0x8800;
+     if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
+        tileset_start_addr = 0x8800;
      }
      else{
-        tileset_memory_addr = 0x8000;
+        tileset_start_addr = 0x8000;
      }
-     if (using_signed == TRUE)
-        tileset_offset = tileset_memory_addr + ((tileset_number + 128) * 16);
-     else
-        tileset_offset = tileset_memory_addr + (tileset_number * 16);
+     
+     //Loop for every pixel in the scanline
+     for (pixel=0;pixel<160;pixel++){
+        
+        tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
+        
+        if (using_signed == TRUE)   //find tileset number
+            tileset_number = (signed)readMemory8(tilemap_start_addr + tilemap_offset);
+        else
+            tileset_number = readMemory8(tilemap_start_addr + tilemap_offset);
+            
+        if (using_signed == TRUE)   //find tile
+            tileset_offset = tileset_start_addr + ((tileset_number + 128) * 16);
+        else
+            tileset_offset = tileset_start_addr + (tileset_number * 16);
+            
+        bit_1 = (readMemory8(tileset_offset + ((posY % 8) * 2)) >> (posX % 8)) & 0x01; //do some magic
+        bit_2 = (readMemory8(tileset_offset + ((posY % 8) * 2) + 1) >> (posX % 8)) & 0x01; //do some more magic   
+        colour = (bit_2 << 1) | bit_1;
+
+        //Pass colour through the palette
+        switch (colour){
+            case 00:
+                colour = testBit(BGP,0) | (testBit(BGP,1) << 1);
+                break;
+            
+            case 01:
+                colour = testBit(BGP,2) | (testBit(BGP,3) << 1);
+                break;
+                
+            case 10:
+                colour = testBit(BGP,4) | (testBit(BGP,5) << 1);
+                break;
+
+            case 11:
+                colour = testBit(BGP,6) | (testBit(BGP,7) << 1);          
+                break;
+        }
+        //Set actuall dot colour
+        switch (colour){
+            case 00:
+                red = 0xFF; green = 0xFF; blue = 0xFF;
+                break;
+            
+            case 01:
+                red = 0xCC; green = 0xCC; blue = 0xCC;
+                break;
+                
+            case 10:
+                red = 0x77; green = 0x77; blue = 0x77;
+                break;
+
+            case 11:
+                red = 0x00; green = 0x00; blue = 0x00;         
+                break;
+        }
+        //Finaly...
+        
+        framebuffer[pixel][readMemory8(LY)][0] = red;
+        framebuffer[pixel][readMemory8(LY)][1] = green;
+        framebuffer[pixel][readMemory8(LY)][2] = blue;
+     }
+          
+     
+
+     
+     
+
+
+     
+
+
      
      //read tile
  }
