@@ -40,4 +40,3 @@ bobonis
     - included rom.h in main.c declarations to get rid of warning
     - added dummy functions for gpu timers input and interrups
     - moved header files under include folder
-    
