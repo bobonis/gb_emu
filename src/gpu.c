@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "gpu.h"
 #include "memory.h"
 #include "interrupts.h"
@@ -22,7 +23,7 @@
 unsigned char framebuffer[160][144][3];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
-int gpu_cycles;
+int gpu_cycles = 0;
 
 /*  Period  GPU mode          Time spent   (clocks)
  * -----------------------------------------------------
@@ -40,6 +41,7 @@ void gpu (int cycles){
     }    
     
     gpu_cycles += cycles;
+
     switch (gpu_state){
         
         case SCAN_OAM:
@@ -58,6 +60,7 @@ void gpu (int cycles){
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
                 memory[LY] += 1;          //Scanning a line completed, move to next
+
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      
                 }

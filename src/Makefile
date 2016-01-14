@@ -5,12 +5,12 @@ CFLAGS=-I$(IDIR)
 ODIR=obj
 LDIR =../lib
 
-LIBS=-lSDLmain -lSDL2 -lSDL_image
+LIBS=-lSDLmain -lSDL2 -lSDL_image -lGL
 
-DEPS = memory.h rom.h cpu.h gpu.h timers.h interrupts.c
+DEPS = gpu.h memory.h rom.h cpu.h  timers.h interrupts.c
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = gpu.o memory.o rom.o cpu.o main.o timers.o interrupts.o
+_OBJ = gpu.o memory.o rom.o cpu.o timers.o interrupts.o main.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
