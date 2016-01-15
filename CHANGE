@@ -1,3 +1,8 @@
+bobonis
+    - new file display.c and its header
+    - create SDL opengl window reading from framebuffer
+    - Window now closes correctly !!
+
 alam
     - Fixed opcode 0xFA
     - Implemented "family" LD r1,r2
