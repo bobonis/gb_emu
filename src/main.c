@@ -39,10 +39,15 @@ int main(int argc, char **argv){
     SDL_Window *window;                    // Declare a pointer
     SDL_Renderer* renderer;
 
-    SDL_Init(SDL_INIT_VIDEO);              // Initialize SDL2
+
+SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+    //SDL_Init(SDL_INIT_VIDEO);              // Initialize SDL2
     // Create an application window with the following settings:
+    /*
     window = SDL_CreateWindow(
-        "gb_emu",                           // window title
+        "gb_emu",                          // window title
         SDL_WINDOWPOS_UNDEFINED,           // initial x position
         SDL_WINDOWPOS_UNDEFINED,           // initial y position
         160,                               // width, in pixels
@@ -55,9 +60,9 @@ int main(int argc, char **argv){
         printf("Could not create window: %s\n", SDL_GetError());
         return 1;
     }
-    initGL(window);
+    //initGL(window);
     renderer = SDL_CreateRenderer(window, -1, 0);
-	
+	*/
     int cycles;
     
 	while (1) {
@@ -76,11 +81,11 @@ int main(int argc, char **argv){
         //SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 
         // Clear the entire screen to our selected color.
-        SDL_RenderClear(renderer);
-        updateTexture();
+       // SDL_RenderClear(renderer);
+       // updateTexture();
         // Up until now everything was drawn behind the scenes.
         // This will show the new, red contents of the window.
-        SDL_RenderPresent(renderer);
+       // SDL_RenderPresent(renderer);
 
         //SDL_Delay(30);  // Pause execution for 3000 milliseconds, for example
 	}

@@ -14,6 +14,7 @@
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
+unsigned char cpuCycles = 0;        //count internal cpu cycles
 
 const struct opCode opCodes[256] = {
 	{NOP,		0,	4,  "NOP"},		    // 0x00
@@ -270,21 +271,22 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xFB
 	{tempfunction,0},		// 0xFC
 	{tempfunction,0},		// 0xFD
-	{CP_n,       0,  4, "CP_n"},		// 0xFE
+	{CP_n,       1,  4, "CP_n"},		// 0xFE
 	{tempfunction,0},		// 0xFF
 };
 
 
 int execute (void){
 	
+    
 	instruction = memory[registers.PC];
-
+    cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
 	
 //	printf("[DEBUG] Opcode    - 0x%04x, P counter - 0x%04x, S pointer - 0x%04x\n",memory[registers.PC],registers.PC,registers.SP);
 //  printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
 //                  ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-
     printf("[DEBUG] OPC-0x%04x-[%s],\tPC-0x%04x, SP-0x%04x, ",instruction,opCodes[instruction].function_name,registers.PC,registers.SP);
+    //printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 	switch (opCodes[instruction].opLength){
 		case 0 :
 			registers.PC = registers.PC + 1;
@@ -307,8 +309,9 @@ int execute (void){
 
     printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
         ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-	
-	return opCodes[instruction].cycles;
+
+
+	return cpuCycles;
 	
 }
 
@@ -587,16 +590,16 @@ memory[registers.HL] -= 1;
  * Jumps            *
  ********************/
 void JP_nn (void)	{ registers.PC = operand16; }
-void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0) registers.PC = operand16; }
-void JP_Z_nn (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = operand16; }
-void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0) registers.PC = operand16; }
-void JP_C_nn (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = operand16; }
+void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0){ registers.PC = operand16; cpuCycles += 4;}}
+void JP_Z_nn (void)	{ if (testFlag(ZERO_F)  == 1){ registers.PC = operand16; cpuCycles += 4;}}
+void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0){ registers.PC = operand16; cpuCycles += 4;}}
+void JP_C_nn (void)	{ if (testFlag(CARRY_F) == 1){ registers.PC = operand16; cpuCycles += 4;}}
 void JP_HL (void)	{ registers.PC = registers.HL; }
 void JR_n (void)	{ registers.PC = registers.PC + (signed char)operand8; }
-void JR_NZ_n (void)	{ if (testFlag(ZERO_F)  == 0) registers.PC = registers.PC + (signed char)operand8; }
-void JR_Z_n (void)	{ if (testFlag(ZERO_F)  == 1) registers.PC = registers.PC + (signed char)operand8; }
-void JR_NC_n (void)	{ if (testFlag(CARRY_F) == 0) registers.PC = registers.PC + (signed char)operand8; }
-void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1) registers.PC = registers.PC + (signed char)operand8; }
+void JR_NZ_n (void)	{ if (testFlag(ZERO_F)  == 0){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4;}}
+void JR_Z_n (void)	{ if (testFlag(ZERO_F)  == 1){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4;}}
+void JR_NC_n (void)	{ if (testFlag(CARRY_F) == 0){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4;}}
+void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4;}}
 /********************
  * Calls            *
  ********************/
@@ -619,10 +622,10 @@ void RET    (void){ registers.PC = stackPop16(); }
  * cc = Z, Return if Z flag is set.
  * cc = NC, Return if C flag is reset.
  */
-void RET_NZ (void){ if (testFlag(ZERO_F)  == 0) registers.PC = stackPop16(); }
-void RET_Z  (void){ if (testFlag(ZERO_F)  == 1) registers.PC = stackPop16(); }
-void RET_NC (void){ if (testFlag(CARRY_F) == 0) registers.PC = stackPop16(); }
-void RET_C  (void){ if (testFlag(CARRY_F) == 1) registers.PC = stackPop16(); }
+void RET_NZ (void){ if (testFlag(ZERO_F)  == 0){ registers.PC = stackPop16(); cpuCycles += 12;}}
+void RET_Z  (void){ if (testFlag(ZERO_F)  == 1){ registers.PC = stackPop16(); cpuCycles += 12;}}
+void RET_NC (void){ if (testFlag(CARRY_F) == 0){ registers.PC = stackPop16(); cpuCycles += 12;}}
+void RET_C  (void){ if (testFlag(CARRY_F) == 1){ registers.PC = stackPop16(); cpuCycles += 12;}}
 /*
  * RETI
  * Description: Pop two bytes from stack & jump to that address then
