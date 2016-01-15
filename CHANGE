@@ -1,4 +1,8 @@
 bobonis
+    - Comment out SDL until there is some progress done
+    - Fixed opcode 0xFE
+
+bobonis
     - Finished work on backround
     - Started working on SDL window 
 

@@ -14,6 +14,12 @@ unsigned short test;
 struct registers registers;
 unsigned char memory[0xFFFF];
 
+/*
+const unsigned char bios[256] = {
+//0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
+0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0x, 0x, 0x, 0x, 0x, 0x, 0x, 0x, };
+*/
+
 void memCopy(unsigned char *memory, unsigned short start, unsigned char *buffer, unsigned short length){
 	unsigned short i;
 	
@@ -32,8 +38,6 @@ void reset (void){
 	registers.HL = 0x014D;
 	registers.SP = 0xFFFE;
 	registers.PC = 0x0100;
-	
-	registers.F = 0xB0;
 
 	memory[0xFF05] = 0x00;	// TIMA
 	memory[0xFF06] = 0x00;	// TMA
