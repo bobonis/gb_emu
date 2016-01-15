@@ -1,3 +1,7 @@
+alam
+    - Fixed opcode 0xFA
+    - Implemented "family" LD r1,r2
+
 bobonis
     - Comment out SDL until there is some progress done
     - Fixed opcode 0xFE

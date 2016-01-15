@@ -17,6 +17,57 @@ void LD_D_n (void);
 void LD_E_n (void);
 void LD_H_n (void);
 void LD_L_n (void);
+//LD r1,r2
+void LD_B_B (void);
+void LD_B_C (void);
+void LD_B_D (void);
+void LD_B_E (void);
+void LD_B_H (void);
+void LD_B_L (void);
+void LD_B_HL (void);
+void LD_C_B (void);
+void LD_C_C (void);
+void LD_C_D (void);
+void LD_C_E (void);
+void LD_C_H (void);
+void LD_C_L (void);
+void LD_C_HL (void);
+void LD_D_B (void); 
+void LD_D_C (void);
+void LD_D_D (void);
+void LD_D_E (void);
+void LD_D_H (void);
+void LD_D_L (void);
+void LD_D_HL (void);
+void LD_E_B (void); 
+void LD_E_C (void);
+void LD_E_D (void);
+void LD_E_E (void);
+void LD_E_H (void);
+void LD_E_L (void);
+void LD_E_HL (void);
+void LD_H_B (void); 
+void LD_H_C (void);
+void LD_H_D (void);
+void LD_H_E (void);
+void LD_H_H (void);
+void LD_H_L (void);
+void LD_H_HL (void);
+void LD_L_B (void); 
+void LD_L_C (void);
+void LD_L_D (void);
+void LD_L_E (void);
+void LD_L_H (void);
+void LD_L_L (void);
+void LD_L_HL (void);
+void LD_HL_B (void); 
+void LD_HL_C (void);
+void LD_HL_D (void);
+void LD_HL_E (void);
+void LD_HL_H (void);
+void LD_HL_L (void);
+void LD_HL_n (void);
+//LD A,n
 void LD_A_n (void);
 void LD_A_A (void);
 void LD_A_B (void);
@@ -29,8 +80,11 @@ void LD_A_BC (void);
 void LD_A_DE (void);
 void LD_A_HL (void);
 void LD_A_nn (void);
+//LDH (n),A
 void LDH_n_A (void);
+//LDH A,(n)
 void LDH_A_n (void);
+
 /********************
  * 16-Bit Loads     *
  ********************/

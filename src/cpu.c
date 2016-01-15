@@ -71,7 +71,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x33
 	{tempfunction,0},		// 0x34
 	{DEC_HL,    0,  12, "DEC_HL"},	    // 0x35
-	{tempfunction,0},		// 0x36
+	{LD_HL_n,    1,  12, "LD_HL_n"},	// 0x36
 	{tempfunction,0},		// 0x37
 	{JR_C_n,	1,	8, "JR_C_n"},		// 0x38
 	{tempfunction,0},		// 0x39
@@ -81,60 +81,60 @@ const struct opCode opCodes[256] = {
 	{DEC_A,     0,  4, "DEC_A"},		// 0x3D
 	{LD_A_n,    1,  8, "LD_A_n"},		// 0x3E
 	{tempfunction,0},		// 0x3F
-	{tempfunction,0},		// 0x40
-	{tempfunction,0},		// 0x41
-	{tempfunction,0},		// 0x42
-	{tempfunction,0},		// 0x43
-	{tempfunction,0},		// 0x44
-	{tempfunction,0},		// 0x45
-	{tempfunction,0},		// 0x46
+	{LD_B_B,    0,  4, "LD_B_B"},		// 0x40
+	{LD_B_C,    0,  4, "LD_B_C"},		// 0x41
+	{LD_B_D,    0,  4, "LD_B_D"},		// 0x42
+	{LD_B_E,    0,  4, "LD_B_E"},		// 0x43
+	{LD_B_H,    0,  4, "LD_B_H"},		// 0x44
+	{LD_B_L,    0,  4, "LD_B_L"},		// 0x45
+	{LD_B_HL,   0,  8, "LD_B_HL"},		// 0x46
 	{tempfunction,0},		// 0x47
-	{tempfunction,0},		// 0x48
-	{tempfunction,0},		// 0x49
-	{tempfunction,0},		// 0x4A
-	{tempfunction,0},		// 0x4B
-	{tempfunction,0},		// 0x4C
-	{tempfunction,0},		// 0x4D
-	{tempfunction,0},		// 0x4E
+	{LD_C_B,    0,  4, "LD_C_B"},		// 0x48
+	{LD_C_C,    0,  4, "LD_C_C"},		// 0x49
+	{LD_C_D,    0,  4, "LD_C_D"},		// 0x4A
+	{LD_C_E,    0,  4, "LD_C_E"},		// 0x4B
+	{LD_C_H,    0,  4, "LD_C_H"},		// 0x4C
+	{LD_C_L,    0,  4, "LD_C_L"},		// 0x4D
+	{LD_C_HL,   0,  8, "LD_C_HL"},		// 0x4E
 	{tempfunction,0},		// 0x4F
-	{tempfunction,0},		// 0x50
-	{tempfunction,0},		// 0x51
-	{tempfunction,0},		// 0x52
-	{tempfunction,0},		// 0x53
-	{tempfunction,0},		// 0x54
-	{tempfunction,0},		// 0x55
-	{tempfunction,0},		// 0x56
+	{LD_D_B,    0,  4, "LD_D_B"},		// 0x50
+	{LD_D_C,    0,  4, "LD_D_C"},		// 0x51
+	{LD_D_D,    0,  4, "LD_D_D"},		// 0x52
+	{LD_D_E,    0,  4, "LD_D_E"},		// 0x53
+	{LD_D_H,    0,  4, "LD_D_H"},		// 0x54
+	{LD_D_L,    0,  4, "LD_D_L"},		// 0x55
+	{LD_D_HL,   0,  8, "LD_D_HL"},		// 0x56
 	{tempfunction,0},		// 0x57
-	{tempfunction,0},		// 0x58
-	{tempfunction,0},		// 0x59
-	{tempfunction,0},		// 0x5A
-	{tempfunction,0},		// 0x5B
-	{tempfunction,0},		// 0x5C
-	{tempfunction,0},		// 0x5D
-	{tempfunction,0},		// 0x5E
+	{LD_E_B,    0,  4, "LD_E_B"},		// 0x58
+	{LD_E_C,    0,  4, "LD_E_C"},		// 0x59
+	{LD_E_D,    0,  4, "LD_E_D"},		// 0x5A
+	{LD_E_E,    0,  4, "LD_E_E"},		// 0x5B
+	{LD_E_H,    0,  4, "LD_E_H"},		// 0x5C
+	{LD_E_L,    0,  4, "LD_E_L"},		// 0x5D
+	{LD_E_HL,   0,  8, "LD_E_HL"},		// 0x5E
 	{tempfunction,0},		// 0x5F
-	{tempfunction,0},		// 0x60
-	{tempfunction,0},		// 0x61
-	{tempfunction,0},		// 0x62
-	{tempfunction,0},		// 0x63
-	{tempfunction,0},		// 0x64
-	{tempfunction,0},		// 0x65
-	{tempfunction,0},		// 0x66
+	{LD_H_B,    0,  4, "LD_H_B"},		// 0x60
+	{LD_H_C,    0,  4, "LD_H_C"},		// 0x61
+	{LD_H_D,    0,  4, "LD_H_D"},		// 0x62
+	{LD_H_E,    0,  4, "LD_H_E"},		// 0x63
+	{LD_H_H,    0,  4, "LD_H_H"},		// 0x64
+	{LD_H_L,    0,  4, "LD_H_L"},		// 0x65
+	{LD_H_HL,   0,  8, "LD_H_HL"},		// 0x66
 	{tempfunction,0},		// 0x67
-	{tempfunction,0},		// 0x68
-	{tempfunction,0},		// 0x69
-	{tempfunction,0},		// 0x6A
-	{tempfunction,0},		// 0x6B
-	{tempfunction,0},		// 0x6C
-	{tempfunction,0},		// 0x6D
-	{tempfunction,0},		// 0x6E
+	{LD_L_B,    0,  4, "LD_L_B"},		// 0x68
+	{LD_L_C,    0,  4, "LD_L_C"},		// 0x69
+	{LD_L_D,    0,  4, "LD_L_D"},		// 0x6A
+	{LD_L_E,    0,  4, "LD_L_E"},		// 0x6B
+	{LD_L_H,    0,  4, "LD_L_H"},		// 0x6C
+	{LD_L_L,    0,  4, "LD_L_L"},		// 0x6D
+	{LD_L_HL,   0,  8, "LD_L_HL"},		// 0x6E
 	{tempfunction,0},		// 0x6F
-	{tempfunction,0},		// 0x70
-	{tempfunction,0},		// 0x71
-	{tempfunction,0},		// 0x72
-	{tempfunction,0},		// 0x73
-	{tempfunction,0},		// 0x74
-	{tempfunction,0},		// 0x75
+    {LD_HL_B,    0,  8, "LD_HL_B"},		// 0x70
+	{LD_HL_C,    0,  8, "LD_HL_C"},		// 0x71
+	{LD_HL_D,    0,  8, "LD_HL_D"},		// 0x72
+	{LD_HL_E,    0,  8, "LD_HL_E"},		// 0x73
+	{LD_HL_H,    0,  8, "LD_HL_H"},		// 0x74
+	{LD_HL_L,    0,  8, "LD_HL_L"},		// 0x75
 	{tempfunction,0},		// 0x76
 	{tempfunction,0},		// 0x77
 	{LD_A_B,    0,  4, "LD_A_B"},		// 0x78
@@ -267,7 +267,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xF7
 	{tempfunction,0},		// 0xF8
 	{tempfunction,0},		// 0xF9
-	{LD_A_nn,   0, 16, "LD_A_nn"},		// 0xFA
+	{LD_A_nn,   2, 16, "LD_A_nn"},		// 0xFA
 	{tempfunction,0},		// 0xFB
 	{tempfunction,0},		// 0xFC
 	{tempfunction,0},		// 0xFD
@@ -282,11 +282,12 @@ int execute (void){
 	instruction = memory[registers.PC];
     cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
 	
-//	printf("[DEBUG] Opcode    - 0x%04x, P counter - 0x%04x, S pointer - 0x%04x\n",memory[registers.PC],registers.PC,registers.SP);
-//  printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-//                  ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-    printf("[DEBUG] OPC-0x%04x-[%s],\tPC-0x%04x, SP-0x%04x, ",instruction,opCodes[instruction].function_name,registers.PC,registers.SP);
-    //printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+	//printf("[DEBUG] Opcode    - 0x%04x, P counter - 0x%04x, S pointer - 0x%04x\n",memory[registers.PC],registers.PC,registers.SP);
+    // printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
+    //             ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
+    //printf("[DEBUG] OPC-0x%04x-[%s],\tPC-0x%04x, SP-0x%04x, ",instruction,opCodes[instruction].function_name,registers.PC,registers.SP);
+
+    printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 	switch (opCodes[instruction].opLength){
 		case 0 :
 			registers.PC = registers.PC + 1;
@@ -319,7 +320,7 @@ int execute (void){
 	
 void tempfunction(void) {
 	
-	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 39\%\n[*******=============]\n",instruction);
+	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 60\%\n[************========]\n",instruction);
 	exit(1);
 
 }
@@ -341,6 +342,63 @@ void LD_D_n (void){ registers.D = operand8; }
 void LD_E_n (void){ registers.E = operand8; }
 void LD_H_n (void){ registers.H = operand8; }
 void LD_L_n (void){ registers.L = operand8; }
+
+/*
+ * LD r1,r2
+ * Description: Put value r2 into r1.
+ * Use with: r1,r2 = A,B,C,D,E,H,L,(HL)
+ */
+ 
+ void LD_B_B (void) { registers.B = registers.B;}
+ void LD_B_C (void) { registers.B = registers.C;}
+ void LD_B_D (void) { registers.B = registers.D;}
+ void LD_B_E (void) { registers.B = registers.E;}
+ void LD_B_H (void) { registers.B = registers.H;}
+ void LD_B_L (void) { registers.B = registers.L;}
+ void LD_B_HL (void) { registers.B = memory[registers.HL];}
+ void LD_C_B (void) { registers.C = registers.B;}
+ void LD_C_C (void) { registers.C = registers.C;}
+ void LD_C_D (void) { registers.C = registers.D;}
+ void LD_C_E (void) { registers.C = registers.E;}
+ void LD_C_H (void) { registers.C = registers.H;}
+ void LD_C_L (void) { registers.C = registers.L;}
+ void LD_C_HL (void) { registers.C = memory[registers.HL];}
+ void LD_D_B (void) { registers.D = registers.B;} 
+ void LD_D_C (void) { registers.D = registers.C;}
+ void LD_D_D (void) { registers.D = registers.D;}
+ void LD_D_E (void) { registers.D = registers.E;}
+ void LD_D_H (void) { registers.D = registers.H;}
+ void LD_D_L (void) { registers.D = registers.L;}
+ void LD_D_HL (void) { registers.D = memory[registers.HL];}
+ void LD_E_B (void) { registers.E = registers.B;} 
+ void LD_E_C (void) { registers.E = registers.C;}
+ void LD_E_D (void) { registers.E = registers.D;}
+ void LD_E_E (void) { registers.E = registers.E;}
+ void LD_E_H (void) { registers.E = registers.H;}
+ void LD_E_L (void) { registers.E = registers.L;}
+ void LD_E_HL (void) { registers.E = memory[registers.HL];}
+ void LD_H_B (void) { registers.H = registers.B;} 
+ void LD_H_C (void) { registers.H = registers.C;}
+ void LD_H_D (void) { registers.H = registers.D;}
+ void LD_H_E (void) { registers.H = registers.E;}
+ void LD_H_H (void) { registers.H = registers.H;}
+ void LD_H_L (void) { registers.H = registers.L;}
+ void LD_H_HL (void) { registers.H = memory[registers.HL];}
+ void LD_L_B (void) { registers.L = registers.B;} 
+ void LD_L_C (void) { registers.L = registers.C;}
+ void LD_L_D (void) { registers.L = registers.D;}
+ void LD_L_E (void) { registers.L = registers.E;}
+ void LD_L_H (void) { registers.L = registers.H;}
+ void LD_L_L (void) { registers.L = registers.L;}
+ void LD_L_HL (void) { registers.L = memory[registers.HL];}
+ void LD_HL_B (void) { memory[registers.HL] = registers.B;} 
+ void LD_HL_C (void) { memory[registers.HL] = registers.C;}
+ void LD_HL_D (void) { memory[registers.HL] = registers.D;}
+ void LD_HL_E (void) { memory[registers.HL] = registers.E;}
+ void LD_HL_H (void) { memory[registers.HL] = registers.H;}
+ void LD_HL_L (void) { memory[registers.HL] = registers.L;}
+ void LD_HL_n (void) { memory[registers.HL] = operand8;}
+ 
 /*
  * LD A,n
  * Description: Put value n into A.
@@ -354,11 +412,6 @@ void LD_A_D  (void){registers.A = registers.D;}
 void LD_A_E  (void){registers.A = registers.E;}
 void LD_A_H  (void){registers.A = registers.H;}
 void LD_A_L  (void){registers.A = registers.L;}
-//16bits registers are used to fetch 2 byte memory addresses
-//void LD_A_BC (void){registers.A = registers.BC;}
-//void LD_A_DE (void){registers.A = registers.DE;}
-//void LD_A_HL (void){registers.A = registers.HL;}
-//void LD_A_nn (void){registers.A = operand16;}
 void LD_A_BC (void){registers.A = memory[registers.BC];}
 void LD_A_DE (void){registers.A = memory[registers.DE];}
 void LD_A_HL (void){registers.A = memory[registers.HL];}
@@ -437,8 +490,6 @@ void ADD_A_D (void){ add (registers.A, registers.D); }
 void ADD_A_E (void){ add (registers.A, registers.E); }
 void ADD_A_H (void){ add (registers.A, registers.H); }
 void ADD_A_L (void){ add (registers.A, registers.L); }
-//check eg. LD_A_BC
-//void ADD_A_HL (void){ add (registers.A, registers.HL); }
 void ADD_A_HL (void){ add (registers.A, memory[registers.HL]); }
 void ADD_A_n (void){ add (registers.A, operand8); }
 /*
@@ -458,8 +509,6 @@ void ADC_A_D (void){ adc (registers.A, registers.D); }
 void ADC_A_E (void){ adc (registers.A, registers.E); }
 void ADC_A_H (void){ adc (registers.A, registers.H); }
 void ADC_A_L (void){ adc (registers.A, registers.L); }
-//check eg. LD_A_BC
-//void ADC_A_HL (void){ adc (registers.A, memory[registers.HL]); }
 void ADC_A_HL (void){ adc (registers.A, memory[registers.HL]); }
 void ADC_A_n (void){ adc (registers.A, operand8); }
 /*
@@ -500,8 +549,6 @@ void XOR_D (void) { xor (registers.D); }
 void XOR_E (void) { xor (registers.E); }
 void XOR_H (void) { xor (registers.H); }
 void XOR_L (void) { xor (registers.L); }
-//check eg. LD_A_BC
-//void XOR_HL (void) { xor (registers.HL); }
 void XOR_HL (void) { xor (memory[registers.HL]); }
 void XOR_n (void) { xor (operand8); }
 
@@ -542,22 +589,21 @@ void DEC_D (void) {dec (&registers.D);}
 void DEC_E (void) {dec (&registers.E);}
 void DEC_H (void) {dec (&registers.H);}
 void DEC_L (void) {dec (&registers.L);}
-void DEC_HL (void) {
-//    registers.HL--;
-//    if (registers.HL == 0)
-//        setFlag(ZERO_F);
-//    setFlag(SUBSTRACT_F);
+void DEC_HL (void) {dec (&memory[registers.HL]);
 
-memory[registers.HL] -= 1;
-    
-// please check cpu.c line 353
-//    if (registers.HL == 0)
+//    if (memory[registers.HL] == 0)
+//        setFlag(ZERO_F);
+
+//memory[registers.HL] -= 1;   
+
+//    if (memory[registers.HL] == 0)
 //        setFlag(ZERO_F);
 //    else
 //        resetFlag(ZERO_F);
 //    setFlag(SUBSTRACT_F);
 
-// flags are not affected according to cinoop    
+// flags are not affected according to cinoop
+// flags indeed are affected
 // if (registers.HL == 0xF)
 //     setFlag(HALF_CARRY_F);
 }
