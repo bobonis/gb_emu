@@ -231,8 +231,7 @@ void sub (unsigned char value){
 
 
 void dec (unsigned char *value1){
-    // checking register before decremented
-    // do we really care about HALF_CARRY??
+    
     if (*value1 & 0x0F)
         resetFlag(HALF_CARRY_F);
     else 
