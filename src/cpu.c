@@ -21,7 +21,7 @@ const struct opCode opCodes[256] = {
 	{LD_BC_nn,  2,  12, "LD_BC_nn" },	// 0x01
 	{LD_BC_A,    0,  8, "LD_BC_A"},		// 0x02
 	{tempfunction,0},		// 0x03
-	{tempfunction,0},		// 0x04
+	{INC_B,     0,  4,  "INC_B"},		// 0x04
 	{DEC_B,     0,  4,  "DEC_B"},		// 0x05
 	{LD_B_n,	1,	8,  "LD_B_n"},	    // 0x06
 	{tempfunction,0},		// 0x07
@@ -29,7 +29,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x09
 	{LD_A_BC,   0,  8, "LD_A_BC"},		// 0x0A
 	{tempfunction,0},		// 0x0B
-	{tempfunction,0},		// 0x0C
+	{INC_C,     0,  4, "INC_C"},		// 0x0C
 	{DEC_C,     0,  4, "DEC_C"},		// 0x0D
 	{LD_C_n,	1,	8, "LD_C_n"},		// 0x0E
 	{tempfunction,0},		// 0x0F
@@ -37,7 +37,7 @@ const struct opCode opCodes[256] = {
 	{LD_DE_nn,  2,  12, "LD_DE_nn"},	// 0x11
 	{LD_DE_A,    0,  8, "LD_DE_A"},		// 0x12
 	{tempfunction,0},		// 0x13
-	{tempfunction,0},		// 0x14
+	{INC_D,     0,  4, "INC_D"},		// 0x14
 	{DEC_D,     0,  4, "DEC_D"},		// 0x15
 	{LD_D_n,	1,	8, "LD_D_n"},		// 0x16
 	{tempfunction,0},		// 0x17
@@ -45,7 +45,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x19
 	{LD_A_DE,   0,  8, "LD_A_DE"},		// 0x1A
 	{tempfunction,0},		// 0x1B
-	{tempfunction,0},		// 0x1C
+	{INC_E,     0,  4, "INC_E"},		// 0x1C
 	{DEC_E,     0,  4, "DEC_E"},		// 0x1D
 	{LD_E_n,	1,	8, "LD_E_n"},		// 0x1E
 	{tempfunction,0},		// 0x1F
@@ -53,7 +53,7 @@ const struct opCode opCodes[256] = {
 	{LD_HL_nn,  2,  12, "LD_HL_nn"},	// 0x21
 	{LDI_HL_A,  0,  8,  "LDI_HL_A"},	// 0x22
 	{tempfunction,0},		// 0x23
-	{tempfunction,0},		// 0x24
+	{INC_H,     0,  4, "INC_H"},		// 0x24
 	{DEC_H,     0,  4, "DEC_H"},		// 0x25
 	{LD_H_n,	1,	8, "LD_H_n"},		// 0x26
 	{tempfunction,0},		// 0x27
@@ -61,23 +61,23 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x29
 	{LDI_A_HL,  0,  8,  "LDI_A_HL"},	// 0x22
 	{tempfunction,0},		// 0x2B
-	{tempfunction,0},		// 0x2C
+	{INC_L,     0,  4, "INC_L"},		// 0x2C
 	{DEC_L,     0,  4, "DEC_L"},		// 0x2D
 	{LD_L_n,	1,	8, "LD_L_n"},		// 0x2E
 	{tempfunction,0},		// 0x2F
-	{JR_NC_n,	1,	8, "JR_NC_n"},		// 0x30
+	{JR_NC_n,	1,	8,  "JR_NC_n"},		// 0x30
 	{LD_SP_nn,  2,  12, "LD_SP_nn"},	// 0x31
-	{LDD_HL_A,  0,  8, "LDD_HL_A"},	    // 0x32
+	{LDD_HL_A,  0,  8,  "LDD_HL_A"},	// 0x32
 	{tempfunction,0},		// 0x33
-	{tempfunction,0},		// 0x34
+	{INC_HL,    0,  12, "INC_C"},		// 0x34
 	{DEC_HL,    0,  12, "DEC_HL"},	    // 0x35
-	{LD_HL_n,    1,  12, "LD_HL_n"},	// 0x36
+	{LD_HL_n,    1, 12, "LD_HL_n"},	    // 0x36
 	{tempfunction,0},		// 0x37
-	{JR_C_n,	1,	8, "JR_C_n"},		// 0x38
+	{JR_C_n,	1,	8,  "JR_C_n"},		// 0x38
 	{tempfunction,0},		// 0x39
 	{tempfunction,0},		// 0x3A
 	{tempfunction,0},		// 0x3B
-	{tempfunction,0},		// 0x3C
+	{INC_A,     0,  4, "INC_A"},		// 0x3C
 	{DEC_A,     0,  4, "DEC_A"},		// 0x3D
 	{LD_A_n,    1,  8, "LD_A_n"},		// 0x3E
 	{tempfunction,0},		// 0x3F
@@ -218,11 +218,12 @@ const struct opCode opCodes[256] = {
 	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
 	{tempfunction,0},		// 0xC7
 	{RET_Z,     0,   8, "RET_Z"},       // 0xC8
-	{RET,       0,   8, "RET"},	        // 0xC9
-	{JP_Z_nn,	2,	12, "JP_Z_nn"},	    // 0xCA
+//	{RET,       0,   8, "RET"},	        // 0xC9
+	{RET,       0,   16, "RET"},	    // 0xC9
+	{JP_Z_nn,	2,	 12, "JP_Z_nn"},	// 0xCA
 	{tempfunction,0},		// 0xCB
 	{tempfunction,0},		// 0xCC
-	{tempfunction,0},		// 0xCD
+	{CALL_nn,   2,   24, "CALL_nn"},	// 0xCD
 	{ADC_A_n,   1,   8, "ADC_A_n"},	    // 0xCE
 	{tempfunction,0},		// 0xCF
 	{RET_NC,     0,  8, "RET_NC"},	    // 0xD0
@@ -243,7 +244,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xDF
 	{LDH_n_A,   1,  12, "LDH_n_A"},		// 0xE0
 	{tempfunction,0},		// 0xE1
-	{tempfunction,0},		// 0xE2
+	{LD_MC_A,   0,  8,  "LD_MC_A"},		// 0xE2
 	{tempfunction,0},		// 0xE3
 	{tempfunction,0},		// 0xE4
 	{tempfunction,0},		// 0xE5
@@ -320,7 +321,7 @@ int execute (void){
 	
 void tempfunction(void) {
 	
-	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 65\%\n[*************=======]\n",instruction);
+	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 69\%\n[*************=======]\n",instruction);
 	exit(1);
 
 }
@@ -435,6 +436,12 @@ void LD_A_n  (void){registers.A = operand8;}
  void LD_HL_A (void){memory[registers.HL] = registers.A;}
  void LD_nn_A (void){memory[operand16] = registers.A;}
  
+ /*
+  * LD (C),A
+  * Description: Put A into address $FF00 + register C.
+  */
+  void LD_MC_A (void) {memory[0xFF00+registers.C] = registers.A;}
+  
 /*
  * LDD (HL),A
  * Description:
@@ -611,6 +618,26 @@ void XOR_n (void) { xor (operand8); }
  void CP_L (void) {comp (registers.L);}
  void CP_HL (void) {comp (memory[registers.HL]);}
  void CP_n (void) {comp (operand8);}
+ 
+/*
+ * INC n
+ * Description: Increment register n.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set if carry from bit 3.
+ * C - Not affected.
+ */
+ 
+ void INC_A (void) {inc (&registers.A);}
+ void INC_B (void) {inc (&registers.B);}
+ void INC_C (void) {inc (&registers.C);}
+ void INC_D (void) {inc (&registers.D);}
+ void INC_E (void) {inc (&registers.E);}
+ void INC_H (void) {inc (&registers.H);}
+ void INC_L (void) {inc (&registers.L);}
+ void INC_HL (void) {inc (&memory[registers.HL]);}
 /*
  * DEC n
  * Description: Decrement register n.
@@ -688,6 +715,17 @@ void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + 
 /********************
  * Calls            *
  ********************/
+/*
+ * CALL nn
+ * Description: Push address of next instruction onto stack and then
+ *              jump to address nn.
+ * Use with: nn = two byte immediate value. (LS byte first.)
+ */
+ 
+ void CALL_nn (void) { 
+     stackPush16(registers.PC);
+     registers.PC = operand16;
+ }
 /********************
  * Restarts         *
  ********************/

@@ -91,6 +91,8 @@ void LD_BC_A (void);
 void LD_DE_A (void);
 void LD_HL_A (void);
 void LD_nn_A (void);
+//LD (C),A
+void LD_MC_A (void);
 //LDI A,(HL)
 void LDI_A_HL (void);
 //LDI (HL),A
@@ -163,6 +165,15 @@ void CP_H (void);
 void CP_L (void);
 void CP_HL (void);
 void CP_n (void);
+//INC n
+void INC_A (void);
+void INC_B (void);
+void INC_C (void);
+void INC_D (void);
+void INC_E (void);
+void INC_H (void);
+void INC_L (void);
+void INC_HL (void);
 //DEC n
 void DEC_A (void);
 void DEC_B (void);
@@ -207,6 +218,7 @@ void JR_C_n (void);
 /********************
  * Calls            *
  ********************/
+void CALL_nn (void); 
 /********************
  * Restarts         *
  ********************/

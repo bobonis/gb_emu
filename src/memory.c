@@ -229,6 +229,23 @@ void sub (unsigned char value){
     
 }
 
+void inc (unsigned char *value1){
+    
+    if ((*value1 & 0x0F) == 0x0F)
+        setFlag(HALF_CARRY_F);
+    else 
+        resetFlag(HALF_CARRY_F);
+        
+    *value1 = *value1 + 1;
+    
+    if (*value1 == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+
+    resetFlag(SUBSTRACT_F);
+
+}
 
 void dec (unsigned char *value1){
     
@@ -340,6 +357,17 @@ void stackPush16 (unsigned short value){
 
 unsigned short stackPop16 (void){
     unsigned short value = 0;
-    value = (memory[registers.SP - 1] | (memory[registers.SP - 2] << 8));
+/*
+Imagine a stack which can store 4 elements
+At the beginning SP will have an invalid value 5 (memory[5])
+When you push two bytes you will decrement SP by 2 in order to point to memory[3]
+and you will add the values in memory[3] and memory[4].
+The below code will read from memory[2] and memory[1] and will set SP to 5.
+Please check my assumption and provide your feedback
+*/
+
+//    value = (memory[registers.SP - 1] | (memory[registers.SP - 2] << 8));
+//proposed
+    value = (memory[registers.SP] | (memory[registers.SP+1] << 8));
     registers.SP += 2;
 }
