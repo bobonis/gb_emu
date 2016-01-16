@@ -80,6 +80,21 @@ void LD_A_BC (void);
 void LD_A_DE (void);
 void LD_A_HL (void);
 void LD_A_nn (void);
+//LD n,A
+void LD_B_A (void);
+void LD_C_A (void);
+void LD_D_A (void);
+void LD_E_A (void);
+void LD_H_A (void);
+void LD_L_A (void);
+void LD_BC_A (void);
+void LD_DE_A (void);
+void LD_HL_A (void);
+void LD_nn_A (void);
+//LDI A,(HL)
+void LDI_A_HL (void);
+//LDI (HL),A
+void LDI_HL_A (void);
 //LDH (n),A
 void LDH_n_A (void);
 //LDH A,(n)

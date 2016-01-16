@@ -19,7 +19,7 @@ unsigned char cpuCycles = 0;        //count internal cpu cycles
 const struct opCode opCodes[256] = {
 	{NOP,		0,	4,  "NOP"},		    // 0x00
 	{LD_BC_nn,  2,  12, "LD_BC_nn" },	// 0x01
-	{tempfunction,0},		// 0x02
+	{LD_BC_A,    0,  8, "LD_BC_A"},		// 0x02
 	{tempfunction,0},		// 0x03
 	{tempfunction,0},		// 0x04
 	{DEC_B,     0,  4,  "DEC_B"},		// 0x05
@@ -35,7 +35,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x0F
 	{tempfunction,0},		// 0x10
 	{LD_DE_nn,  2,  12, "LD_DE_nn"},	// 0x11
-	{tempfunction,0},		// 0x12
+	{LD_DE_A,    0,  8, "LD_DE_A"},		// 0x12
 	{tempfunction,0},		// 0x13
 	{tempfunction,0},		// 0x14
 	{DEC_D,     0,  4, "DEC_D"},		// 0x15
@@ -49,9 +49,9 @@ const struct opCode opCodes[256] = {
 	{DEC_E,     0,  4, "DEC_E"},		// 0x1D
 	{LD_E_n,	1,	8, "LD_E_n"},		// 0x1E
 	{tempfunction,0},		// 0x1F
-	{JR_NZ_n,	1,	8, "JR_NZ_n"},		// 0x20
+	{JR_NZ_n,	1,	8,  "JR_NZ_n"},		// 0x20
 	{LD_HL_nn,  2,  12, "LD_HL_nn"},	// 0x21
-	{tempfunction,0},		// 0x22
+	{LDI_HL_A,  0,  8,  "LDI_HL_A"},	// 0x22
 	{tempfunction,0},		// 0x23
 	{tempfunction,0},		// 0x24
 	{DEC_H,     0,  4, "DEC_H"},		// 0x25
@@ -59,7 +59,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x27
 	{JR_Z_n,	1,	8, "JR_Z_n"},		// 0x28
 	{tempfunction,0},		// 0x29
-	{tempfunction,0},		// 0x2A
+	{LDI_A_HL,  0,  8,  "LDI_A_HL"},	// 0x22
 	{tempfunction,0},		// 0x2B
 	{tempfunction,0},		// 0x2C
 	{DEC_L,     0,  4, "DEC_L"},		// 0x2D
@@ -88,7 +88,7 @@ const struct opCode opCodes[256] = {
 	{LD_B_H,    0,  4, "LD_B_H"},		// 0x44
 	{LD_B_L,    0,  4, "LD_B_L"},		// 0x45
 	{LD_B_HL,   0,  8, "LD_B_HL"},		// 0x46
-	{tempfunction,0},		// 0x47
+	{LD_B_A,    0,  4, "LD_B_A"},		// 0x47
 	{LD_C_B,    0,  4, "LD_C_B"},		// 0x48
 	{LD_C_C,    0,  4, "LD_C_C"},		// 0x49
 	{LD_C_D,    0,  4, "LD_C_D"},		// 0x4A
@@ -96,7 +96,7 @@ const struct opCode opCodes[256] = {
 	{LD_C_H,    0,  4, "LD_C_H"},		// 0x4C
 	{LD_C_L,    0,  4, "LD_C_L"},		// 0x4D
 	{LD_C_HL,   0,  8, "LD_C_HL"},		// 0x4E
-	{tempfunction,0},		// 0x4F
+	{LD_C_A,    0,  4, "LD_C_A"},		// 0x4F
 	{LD_D_B,    0,  4, "LD_D_B"},		// 0x50
 	{LD_D_C,    0,  4, "LD_D_C"},		// 0x51
 	{LD_D_D,    0,  4, "LD_D_D"},		// 0x52
@@ -104,7 +104,7 @@ const struct opCode opCodes[256] = {
 	{LD_D_H,    0,  4, "LD_D_H"},		// 0x54
 	{LD_D_L,    0,  4, "LD_D_L"},		// 0x55
 	{LD_D_HL,   0,  8, "LD_D_HL"},		// 0x56
-	{tempfunction,0},		// 0x57
+	{LD_D_A,    0,  4, "LD_D_A"},		// 0x47
 	{LD_E_B,    0,  4, "LD_E_B"},		// 0x58
 	{LD_E_C,    0,  4, "LD_E_C"},		// 0x59
 	{LD_E_D,    0,  4, "LD_E_D"},		// 0x5A
@@ -112,7 +112,7 @@ const struct opCode opCodes[256] = {
 	{LD_E_H,    0,  4, "LD_E_H"},		// 0x5C
 	{LD_E_L,    0,  4, "LD_E_L"},		// 0x5D
 	{LD_E_HL,   0,  8, "LD_E_HL"},		// 0x5E
-	{tempfunction,0},		// 0x5F
+	{LD_E_A,    0,  4, "LD_E_A"},		// 0x5F
 	{LD_H_B,    0,  4, "LD_H_B"},		// 0x60
 	{LD_H_C,    0,  4, "LD_H_C"},		// 0x61
 	{LD_H_D,    0,  4, "LD_H_D"},		// 0x62
@@ -120,7 +120,7 @@ const struct opCode opCodes[256] = {
 	{LD_H_H,    0,  4, "LD_H_H"},		// 0x64
 	{LD_H_L,    0,  4, "LD_H_L"},		// 0x65
 	{LD_H_HL,   0,  8, "LD_H_HL"},		// 0x66
-	{tempfunction,0},		// 0x67
+	{LD_H_A,    0,  4, "LD_H_A"},		// 0x67
 	{LD_L_B,    0,  4, "LD_L_B"},		// 0x68
 	{LD_L_C,    0,  4, "LD_L_C"},		// 0x69
 	{LD_L_D,    0,  4, "LD_L_D"},		// 0x6A
@@ -128,7 +128,7 @@ const struct opCode opCodes[256] = {
 	{LD_L_H,    0,  4, "LD_L_H"},		// 0x6C
 	{LD_L_L,    0,  4, "LD_L_L"},		// 0x6D
 	{LD_L_HL,   0,  8, "LD_L_HL"},		// 0x6E
-	{tempfunction,0},		// 0x6F
+	{LD_L_A,    0,  4, "LD_L_A"},		// 0x6F
     {LD_HL_B,    0,  8, "LD_HL_B"},		// 0x70
 	{LD_HL_C,    0,  8, "LD_HL_C"},		// 0x71
 	{LD_HL_D,    0,  8, "LD_HL_D"},		// 0x72
@@ -136,7 +136,7 @@ const struct opCode opCodes[256] = {
 	{LD_HL_H,    0,  8, "LD_HL_H"},		// 0x74
 	{LD_HL_L,    0,  8, "LD_HL_L"},		// 0x75
 	{tempfunction,0},		// 0x76
-	{tempfunction,0},		// 0x77
+	{LD_HL_A,    0,  8, "LD_HL_A"},		// 0x77
 	{LD_A_B,    0,  4, "LD_A_B"},		// 0x78
 	{LD_A_C,    0,  4, "LD_A_C"},		// 0x79
 	{LD_A_D,    0,  4, "LD_A_D"},		// 0x7A
@@ -251,7 +251,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xE7
 	{tempfunction,0},		// 0xE8
 	{JP_HL,		0,	4, "JP_HL"},		// 0xE9
-	{tempfunction,0},		// 0xEA
+	{LD_nn_A,   2,  16, "LD_nn_A"},		// 0xEA
 	{tempfunction,0},		// 0xEB
 	{tempfunction,0},		// 0xEC
 	{tempfunction,0},		// 0xED
@@ -320,7 +320,7 @@ int execute (void){
 	
 void tempfunction(void) {
 	
-	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 60\%\n[************========]\n",instruction);
+	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 65\%\n[*************=======]\n",instruction);
 	exit(1);
 
 }
@@ -417,6 +417,24 @@ void LD_A_DE (void){registers.A = memory[registers.DE];}
 void LD_A_HL (void){registers.A = memory[registers.HL];}
 void LD_A_nn (void){registers.A = memory[operand16];}
 void LD_A_n  (void){registers.A = operand8;}
+
+/*
+ * LD n,A
+ * Description: Put value A into n.
+ * Use with: n = A,B,C,D,E,H,L,(BC),(DE),(HL),(nn)
+ *           nn = two byte immediate value. (LS byte first.)
+ */
+ void LD_B_A (void){registers.B = registers.A;}
+ void LD_C_A (void){registers.C = registers.A;}
+ void LD_D_A (void){registers.D = registers.A;}
+ void LD_E_A (void){registers.E = registers.A;}
+ void LD_H_A (void){registers.H = registers.A;}
+ void LD_L_A (void){registers.L = registers.A;}
+ void LD_BC_A (void){memory[registers.HL] = registers.A;}
+ void LD_DE_A (void){memory[registers.HL] = registers.A;}
+ void LD_HL_A (void){memory[registers.HL] = registers.A;}
+ void LD_nn_A (void){memory[operand16] = registers.A;}
+ 
 /*
  * LDD (HL),A
  * Description:
@@ -444,6 +462,27 @@ question alam:
 //        resetFlag(ZERO_F);
 //    setFlag(SUBSTRACT_F);
 }
+
+/*
+ * LDI A,(HL)
+ * Description: Put value at address HL into A. Increment HL.
+ * Same as: LD A,(HL) - INC HL
+ */
+ void LDI_A_HL (void){
+     registers.A = memory[registers.HL];
+     registers.HL++;
+}
+
+/*
+ * LDI (HL),A
+ * Description: Put A into memory address HL. Increment HL.
+ * Same as: LD (HL),A - INC HL
+ */
+ void LDI_HL_A (void){
+     memory[registers.HL] = registers.A;
+     registers.HL++;
+ }
+ 
 /*
  * LDH (n),A
  * Description: Put A into memory address $FF00+n.
