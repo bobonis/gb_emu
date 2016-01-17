@@ -11,6 +11,7 @@ void add (unsigned short value1, unsigned short value2);
 void adc (unsigned short value1, unsigned short value2);
 void xor (unsigned short value1);
 void and (unsigned char value1);
+void add16 (unsigned short value1);
 void or (unsigned char value);
 void comp (unsigned char value1);
 void sub (unsigned char value1);

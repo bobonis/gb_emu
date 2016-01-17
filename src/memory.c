@@ -153,6 +153,27 @@ void add (unsigned short value1, unsigned short value2){
     registers.A = value1 + value2;
 }
 
+void add16 (unsigned short value1){
+    unsigned long HL_long = registers.HL + value1;
+    
+    if ((HL_long&0xffff0000) == 0)
+        resetFlag(CARRY_F);
+    else
+        setFlag(CARRY_F);
+    
+    registers.HL = (unsigned short)(HL_long&0xffff);
+
+    if (((registers.HL&0x0F)+(value1&0x0F)) > 0x0F)
+         setFlag(HALF_CARRY_F);
+    else
+         resetFlag(HALF_CARRY_F);
+
+    resetFlag(SUBSTRACT_F);
+
+}
+
+
+
 void adc (unsigned short value1, unsigned short value2){
     if ((value1 + value2 + testFlag(CARRY_F)) > 255) 
         setFlag(CARRY_F);
