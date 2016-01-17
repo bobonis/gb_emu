@@ -10,6 +10,7 @@
 #define H_BLANK   0 //Horizontal blank
 #define V_BLANK   1 //Vertical blank
 
+#define OAM     0xFE00 //Sprite attribute memory
 
 #define LCDC    0xFF40 //LCD control
 #define STAT    0xFF41 //LCDC status
@@ -171,8 +172,7 @@ void gpuChangeMode(int mode){
  * 9800-9BFF	Tile map #0
  * 9C00-9FFF	Tile map #1
  */
- 
- void gpuDrawScanline(void){
+  void gpuDrawScanline(void){
      
      int using_signed = FALSE;
      int using_window = FALSE;
@@ -189,6 +189,8 @@ void gpuChangeMode(int mode){
      
      unsigned char posX = readMemory8(SCX);
      unsigned char posY = readMemory8(SCY) + readMemory8(LY);
+     unsigned char windowX = readMemory8(WX) - 7;
+     unsigned char windowY = readMemory8(WY);
  
      unsigned short tileset_start_addr;    //Tile Set start address in memory
      unsigned short tilemap_start_addr;    //Tile Map start address in memory
@@ -197,10 +199,15 @@ void gpuChangeMode(int mode){
      unsigned short tileset_offset;
      unsigned short tilemap_offset;    
 
+     /*
+      * RENDER BACKROUND 
+      */
+
      //Initialize flags and memory addresses
      if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
         if (readMemory8(LY) >= readMemory8(WY)){//Current scanline is after window position
             using_window = TRUE;
+            posY = readMemory8(LY) - windowY;
             if (testBit(LCDC,6) == TRUE){  //Window Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
                 window_start_addr = 0x9C00;
             }
@@ -210,12 +217,23 @@ void gpuChangeMode(int mode){
         }
      }
 
-     if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
-        tilemap_start_addr = 0x9800;
-        using_signed = TRUE;            //tilemap number is signed number
+     if (using_window == TRUE){
+        if (testBit(LCDC,6) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+            tilemap_start_addr = 0x9800;
+            using_signed = TRUE;            //tilemap number is signed number
+        }
+        else{
+            tilemap_start_addr = 0x9C00;
+        }
      }
      else{
-        tilemap_start_addr = 0x9C00;
+        if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+            tilemap_start_addr = 0x9800;
+            using_signed = TRUE;            //tilemap number is signed number
+        }
+        else{
+            tilemap_start_addr = 0x9C00;
+        }         
      }
      
      if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
@@ -227,7 +245,17 @@ void gpuChangeMode(int mode){
      
      //Loop for every pixel in the scanline
      for (pixel=0;pixel<160;pixel++){
-        posX += pixel;
+
+        
+        //should read tile for every pixel??
+        posX +=pixel;
+        if (using_window){
+            if (pixel >= windowX){
+                posX = pixel - windowX;
+            }
+        }
+        
+        
         tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
         
         if (using_signed == TRUE)   //find tileset number
@@ -291,16 +319,54 @@ void gpuChangeMode(int mode){
         framebuffer[readMemory8(LY)][pixel][2] = blue;
         
      }
-          
-     
 
-     
-     
-
-
-     
-
-
-     
-     //read tile
+     /*
+      * RENDER SPRITES 
+      */          
+      if (testBit(LCDC,1)){
+          //gpuRenderSprites();
+      }
  }
+/* 4 bytes for each sprite starting at 0xFE00
+ * byte 0 - sprite Y position
+ * byte 1 - sprite X position 
+ * byte 2 - pattern number 
+ * byte 3 - attributes
+ *   Bit7: Sprite to Background Priority
+ *   Bit6: Y flip
+ *   Bit5: X flip
+ *   Bit4: Palette number
+ *   Bit3: Not used in standard gameboy
+ *   Bit2-0: Not used in standard gameboy 
+ */
+void gpuRenderSprites(void){
+    
+    int using_8x16_sprites = FALSE;
+    unsigned char sprite_size = 8;
+    int sprite;
+    int scanline = readMemory8(LY);
+    unsigned char posY;
+    unsigned char posX;
+
+    
+    if (testBit(LCDC,2) == TRUE){
+        using_8x16_sprites = TRUE;
+        sprite_size = 16;
+    }
+    
+    for (sprite = 0; sprite < 40; sprite++){
+        
+        posY = readMemory8(OAM + (sprite * 4));
+        
+        /*for accurate emulation we have to check sprite priorites
+         *we will start checking from the last pixel in each scanline
+         */
+        
+        //Check if current scanline displays the sprite
+        if ((scanline >= posY) && (scanline < (posY + sprite_size))){
+            
+            
+        }
+        
+    }
+}
