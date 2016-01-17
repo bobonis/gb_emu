@@ -42,8 +42,6 @@ void gpu (int cycles){
         return;
     }    
     
-    gpu_cycles += cycles;
-
     switch (gpu_state){
         
         case SCAN_OAM:
@@ -245,6 +243,19 @@ void gpuChangeMode(int mode){
      
      //Loop for every pixel in the scanline
      for (pixel=0;pixel<160;pixel++){
+<<<<<<< HEAD
+
+=======
+>>>>>>> bd8401911e56ff848a9c83407af6f48b2b27c496
+        
+        //should read tile for every pixel??
+        posX +=pixel;
+        if (using_window){
+            if (pixel >= windowX){
+                posX = pixel - windowX;
+            }
+        }
+        
         
         //should read tile for every pixel??
         posX +=pixel;
