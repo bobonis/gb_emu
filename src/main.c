@@ -34,7 +34,7 @@ int main(int argc, char **argv){
 		gpu(cycles);
 		//input();
 		handleInterrupts();
-        //display();
+        display();
 	}
 	
 	

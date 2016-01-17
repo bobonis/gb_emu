@@ -80,7 +80,7 @@ void gpu (int cycles){
                 
                 if (memory[LY] > 153){
                     memory[LY] = 0;
-                    gpuChangeMode(SCAN_OAM);            
+                    gpuChangeMode(SCAN_OAM);           
                 }
             }
             break;
