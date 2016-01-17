@@ -21,7 +21,7 @@
 #define WY      0xFF4A //Window Y position
 #define WX      0xFF4B //Window X position
  
-unsigned char framebuffer[160][144][3];
+unsigned char framebuffer[144][160][3];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles = 0;
@@ -80,7 +80,7 @@ void gpu (int cycles){
                 
                 if (memory[LY] > 153){
                     memory[LY] = 0;
-                    gpuChangeMode(SCAN_OAM);            
+                    gpuChangeMode(SCAN_OAM);           
                 }
             }
             break;
@@ -281,10 +281,15 @@ void gpuChangeMode(int mode){
                 break;
         }
         //Finaly...
-        
+        /*
         framebuffer[pixel][readMemory8(LY)][0] = red;
         framebuffer[pixel][readMemory8(LY)][1] = green;
         framebuffer[pixel][readMemory8(LY)][2] = blue;
+        */
+        framebuffer[readMemory8(LY)][pixel][0] = red;
+        framebuffer[readMemory8(LY)][pixel][1] = green;
+        framebuffer[readMemory8(LY)][pixel][2] = blue;
+        
      }
           
      

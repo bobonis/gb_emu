@@ -25,7 +25,7 @@ int main(int argc, char **argv){
 	
 	reset();
 	printf("[INFO] System reset done\n");
-
+    display();
     int cycles;
     
 	while (1) {

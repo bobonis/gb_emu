@@ -15,30 +15,6 @@ SDL_Event event;                   //Event handler
 SDL_GLContext context;
 
 
-//SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-    //SDL_Init(SDL_INIT_VIDEO);              // Initialize SDL2
-    // Create an application window with the following settings:
-    /*
-    window = SDL_CreateWindow(
-        "gb_emu",                          // window title
-        SDL_WINDOWPOS_UNDEFINED,           // initial x position
-        SDL_WINDOWPOS_UNDEFINED,           // initial y position
-        160,                               // width, in pixels
-        144,                               // height, in pixels
-        SDL_WINDOW_OPENGL                  // flags - see below
-    );
-
-    if (window == NULL) {
-        // In the case that the window could not be made...
-        printf("Could not create window: %s\n", SDL_GetError());
-        return 1;
-    }
-    //initGL(window);
-    renderer = SDL_CreateRenderer(window, -1, 0);
-	*/
-
 void display (void){
     
     SDL_PollEvent( &event );
@@ -52,7 +28,7 @@ void display (void){
     //setupTexture();
     //SDL_UpdateWindowSurface( window );
     SDL_GL_SwapWindow(window);
-    //SDL_Delay(2000);
+    //SDL_Delay(50);
 }
 
 
@@ -122,7 +98,7 @@ void setupTexture()
 	// Clear screen
 	for(y = 0; y < SCREEN_HEIGHT; ++y)		
 		for(x = 0; x < SCREEN_WIDTH; ++x)
-			framebuffer[y][x][0] = framebuffer[y][x][1] = framebuffer[y][x][2] = 0;
+			framebuffer[y][x][0] = framebuffer[y][x][1] = framebuffer[y][x][2] = 100;
 
 	// Create a texture 
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)framebuffer);
