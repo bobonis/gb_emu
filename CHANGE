@@ -1,4 +1,8 @@
 alam
+   - stackPop16 bugb
+   - more Opcodes
+   
+alam
     - RET bug
     - stackPop16 possible bug
     - some Opcodes

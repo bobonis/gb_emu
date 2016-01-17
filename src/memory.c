@@ -185,6 +185,30 @@ void xor (unsigned short value1){
     resetFlag(CARRY_F);
 }
 
+void and (unsigned char value1){
+    registers.A &= value1;
+    if (registers.A == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+    resetFlag(SUBSTRACT_F);
+    setFlag(HALF_CARRY_F);
+    resetFlag(CARRY_F);
+}
+
+void or (unsigned char value){
+    registers.A |= value;
+    if (registers.A == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    resetFlag(CARRY_F);
+    
+}
+
 void comp (unsigned char value){
     if (registers.A == value)
         setFlag(ZERO_F);
@@ -368,6 +392,7 @@ Please check my assumption and provide your feedback
 
 //    value = (memory[registers.SP - 1] | (memory[registers.SP - 2] << 8));
 //proposed
-    value = (memory[registers.SP] | (memory[registers.SP+1] << 8));
+    value = (memory[registers.SP+1] | (memory[registers.SP] << 8));
     registers.SP += 2;
+    return value;
 }
