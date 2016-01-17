@@ -41,8 +41,6 @@ void gpu (int cycles){
         return;
     }    
     
-    gpu_cycles += cycles;
-
     switch (gpu_state){
         
         case SCAN_OAM:
