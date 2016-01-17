@@ -5,6 +5,13 @@ const struct opCode{
     char *function_name;
 }extern const opCodes[256];
 
+const struct extendedopCode{
+	void *function;
+	unsigned char opLength;
+	unsigned char cycles;
+    char *function_name;
+}extern const extendedopCodes[256];
+
 int execute (void);
 void tempfunction (void);
  /********************
@@ -203,7 +210,7 @@ void INC_D (void);
 void INC_E (void);
 void INC_H (void);
 void INC_L (void);
-void INC_HL (void);
+void INC_MHL (void);
 //DEC n
 void DEC_A (void);
 void DEC_B (void);
@@ -216,11 +223,21 @@ void DEC_MHL (void);
 /********************
  * 16-Bit ALU       *
  ********************/
-//
+//DEC nn
 void DEC_BC (void);
 void DEC_DE (void);
 void DEC_HL (void);
 void DEC_SP (void);
+//INC nn
+void INC_BC (void);
+void INC_DE (void);
+void INC_HL (void);
+void INC_SP (void);
+//ADD HL,n
+void ADD_HL_BC (void);
+void ADD_HL_DE (void);
+void ADD_HL_HL (void);
+void ADD_HL_SP (void);
  /*******************
  * ADD, INC, DEC    *
  ********************/
@@ -260,6 +277,14 @@ void CALL_nn (void);
 /********************
  * Restarts         *
  ********************/
+void RST00 (void);
+void RST08 (void);
+void RST10 (void);
+void RST18 (void);
+void RST20 (void);
+void RST28 (void);
+void RST30 (void);
+void RST38 (void);
 /********************
  * Returns          *
  ********************/
@@ -271,11 +296,11 @@ void RET_C (void);
 void RETI (void);
 
 
+//Extended OPcodes
+void CB (void);
 
-
-
-
-
+void SWAP_A (void);
+//void RES_0_A (void);
 
 
 
