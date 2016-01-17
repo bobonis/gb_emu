@@ -226,6 +226,15 @@ void gpuChangeMode(int mode){
      //Loop for every pixel in the scanline
      for (pixel=0;pixel<160;pixel++){
         
+        //should read tile for every pixel??
+        posX +=pixel;
+        if (using_window){
+            if (pixel >= windowX){
+                posX = pixel - windowX;
+            }
+        }
+        
+        
         tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
         
         if (using_signed == TRUE)   //find tileset number
