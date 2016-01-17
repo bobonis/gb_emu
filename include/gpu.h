@@ -3,4 +3,4 @@ void gpuChangeMode(int mode);
 int gpuCheckStatus(void);
 void gpuDrawScanline(void);
 
-extern unsigned char framebuffer[160][144][3];
+extern unsigned char framebuffer[144][160][3];

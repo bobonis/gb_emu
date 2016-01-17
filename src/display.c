@@ -98,7 +98,7 @@ void setupTexture()
 	// Clear screen
 	for(y = 0; y < SCREEN_HEIGHT; ++y)		
 		for(x = 0; x < SCREEN_WIDTH; ++x)
-			framebuffer[x][y][0] = framebuffer[x][y][1] = framebuffer[x][y][2] = 150;
+			framebuffer[y][x][0] = framebuffer[y][x][1] = framebuffer[y][x][2] = 100;
 
 	// Create a texture 
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)framebuffer);

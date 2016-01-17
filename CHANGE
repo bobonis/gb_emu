@@ -1,3 +1,7 @@
+bobonis
+    - Finally it clears correctly the screen, Drawing seems ok now!
+    - Changed framebuffer coordinates its [height][width][colour] now
+
 alam
    - stackPop16 bugb
    - more Opcodes
