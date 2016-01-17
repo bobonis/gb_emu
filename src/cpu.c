@@ -10,7 +10,6 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -28,7 +27,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x08
 	{tempfunction,0},		// 0x09
 	{LD_A_BC,   0,  8, "LD_A_BC"},		// 0x0A
-	{tempfunction,0},		// 0x0B
+	{DEC_BC,    0,  8, "DEC_BC"},		// 0x0B
 	{INC_C,     0,  4, "INC_C"},		// 0x0C
 	{DEC_C,     0,  4, "DEC_C"},		// 0x0D
 	{LD_C_n,	1,	8, "LD_C_n"},		// 0x0E
@@ -44,7 +43,7 @@ const struct opCode opCodes[256] = {
 	{JR_n,		1,	8, "JR_n"},		    // 0x18
 	{tempfunction,0},		// 0x19
 	{LD_A_DE,   0,  8, "LD_A_DE"},		// 0x1A
-	{tempfunction,0},		// 0x1B
+	{DEC_DE,    0,  8, "DEC_DE"},		// 0x1B
 	{INC_E,     0,  4, "INC_E"},		// 0x1C
 	{DEC_E,     0,  4, "DEC_E"},		// 0x1D
 	{LD_E_n,	1,	8, "LD_E_n"},		// 0x1E
@@ -60,27 +59,27 @@ const struct opCode opCodes[256] = {
 	{JR_Z_n,	1,	8, "JR_Z_n"},		// 0x28
 	{tempfunction,0},		// 0x29
 	{LDI_A_HL,  0,  8,  "LDI_A_HL"},	// 0x22
-	{tempfunction,0},		// 0x2B
+	{DEC_HL,    0,  8, "DEC_HL"},		// 0x2B
 	{INC_L,     0,  4, "INC_L"},		// 0x2C
 	{DEC_L,     0,  4, "DEC_L"},		// 0x2D
 	{LD_L_n,	1,	8, "LD_L_n"},		// 0x2E
-	{tempfunction,0},		// 0x2F
+	{CPL,       0,  4, "CPL"},	    	// 0x2F
 	{JR_NC_n,	1,	8,  "JR_NC_n"},		// 0x30
 	{LD_SP_nn,  2,  12, "LD_SP_nn"},	// 0x31
 	{LDD_HL_A,  0,  8,  "LDD_HL_A"},	// 0x32
 	{tempfunction,0},		// 0x33
 	{INC_HL,    0,  12, "INC_C"},		// 0x34
-	{DEC_HL,    0,  12, "DEC_HL"},	    // 0x35
+	{DEC_MHL,    0,  12, "DEC_MHL"},	// 0x35
 	{LD_HL_n,    1, 12, "LD_HL_n"},	    // 0x36
 	{tempfunction,0},		// 0x37
 	{JR_C_n,	1,	8,  "JR_C_n"},		// 0x38
 	{tempfunction,0},		// 0x39
 	{tempfunction,0},		// 0x3A
-	{tempfunction,0},		// 0x3B
+	{DEC_SP,    0,  8, "DEC_SP"},		// 0x3B
 	{INC_A,     0,  4, "INC_A"},		// 0x3C
 	{DEC_A,     0,  4, "DEC_A"},		// 0x3D
 	{LD_A_n,    1,  8, "LD_A_n"},		// 0x3E
-	{tempfunction,0},		// 0x3F
+	{CCF,       0,  4, "CCF"},  		// 0x3F
 	{LD_B_B,    0,  4, "LD_B_B"},		// 0x40
 	{LD_B_C,    0,  4, "LD_B_C"},		// 0x41
 	{LD_B_D,    0,  4, "LD_B_D"},		// 0x42
@@ -177,14 +176,14 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x9D
 	{tempfunction,0},		// 0x9E
 	{tempfunction,0},		// 0x9F
-	{tempfunction,0},		// 0xA0
-	{tempfunction,0},		// 0xA1
-	{tempfunction,0},		// 0xA2
-	{tempfunction,0},		// 0xA3
-	{tempfunction,0},		// 0xA4
-	{tempfunction,0},		// 0xA5
-	{tempfunction,0},		// 0xA6
-	{tempfunction,0},		// 0xA7
+	{AND_B,     0,  4, "AND_B"},		// 0xA0
+	{AND_C,     0,  4, "AND_C"},		// 0xA1
+	{AND_D,     0,  4, "AND_D"},		// 0xA2
+	{AND_E,     0,  4, "AND_E"},		// 0xA3
+	{AND_H,     0,  4, "AND_H"},		// 0xA4
+	{AND_L,     0,  4, "AND_L"},		// 0xA5
+	{AND_HL,    0,  8, "AND_HL"},		// 0xA6
+	{AND_A,     0,  4, "AND_A"},		// 0xA7
 	{XOR_B,     0,  4, "XOR_B"},		// 0xA8
 	{XOR_C,     0,  4, "XOR_C"},		// 0xA9
 	{XOR_D,     0,  4, "XOR_D"},		// 0xAA
@@ -193,14 +192,14 @@ const struct opCode opCodes[256] = {
 	{XOR_L,     0,  4, "XOR_L"},		// 0xAD
 	{XOR_HL,    0,  8, "XOR_HL"},		// 0xAE
 	{XOR_A,     0,  4, "XOR_A"},		// 0xAF
-	{tempfunction,0},		// 0xB0
-	{tempfunction,0},		// 0xB1
-	{tempfunction,0},		// 0xB2
-	{tempfunction,0},		// 0xB3
-	{tempfunction,0},		// 0xB4
-	{tempfunction,0},		// 0xB5
-	{tempfunction,0},		// 0xB6
-	{tempfunction,0},		// 0xB7
+	{OR_B,      0,  4, "OR_B"}, 		// 0xB0
+	{OR_C,      0,  4, "OR_C"}, 		// 0xB1
+	{OR_D,      0,  4, "OR_D"}, 		// 0xB2
+	{OR_E,      0,  4, "OR_E"}, 		// 0xB3
+	{OR_H,      0,  4, "OR_H"}, 		// 0xB4
+	{OR_L,      0,  4, "OR_L"}, 		// 0xB5
+	{OR_HL,      0,  8, "OR_HL"}, 		// 0xB6
+	{OR_A,       0,  4,  "OR_A"},		// 0xB7
 	{CP_B,       0,  4, "CP_B"},		// 0xB8
 	{CP_C,       0,  4, "CP_C"},		// 0xB9
 	{CP_D,       0,  4, "CP_D"},		// 0xBA
@@ -210,11 +209,11 @@ const struct opCode opCodes[256] = {
 	{CP_HL,      0,  4, "CP_HL"},		// 0xBE
 	{CP_A,       0,  4, "CP_A"},		// 0xBF
 	{RET_NZ,     0,  8, "RET_NZ"},	    // 0xC0
-	{tempfunction,0},		// 0xC1
+	{POP_BC,     0,  12, "POP_BC"},		// 0xC1
 	{JP_NZ_nn,	2,	12, "JP_NZ_nn"},	// 0xC2
 	{JP_nn,		2,	12, "JP_nn"},	    // 0xC3
 	{tempfunction,0},		// 0xC4
-	{tempfunction,0},		// 0xC5
+	{PUSH_BC,   0,  16, "PUSH_BC"},		// 0xC5
 	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
 	{tempfunction,0},		// 0xC7
 	{RET_Z,     0,   8, "RET_Z"},       // 0xC8
@@ -226,12 +225,12 @@ const struct opCode opCodes[256] = {
 	{CALL_nn,   2,   24, "CALL_nn"},	// 0xCD
 	{ADC_A_n,   1,   8, "ADC_A_n"},	    // 0xCE
 	{tempfunction,0},		// 0xCF
-	{RET_NC,     0,  8, "RET_NC"},	    // 0xD0
-	{tempfunction,0},		// 0xD1
+	{RET_NC,    0,  8,  "RET_NC"},	    // 0xD0
+	{POP_DE,    0,  12, "POP_DE"},		// 0xD1
 	{JP_NC_nn,	2,	12, "JP_NC_nn"},	// 0xD2
 	{tempfunction,0},		// 0xD3
 	{tempfunction,0},		// 0xD4
-	{tempfunction,0},		// 0xD5
+	{PUSH_DE,   0,  16, "PUSH_DE"},		// 0xD5
 	{SUB_n,     1,  8,  "SUB_n"},		// 0xD6
 	{tempfunction,0},		// 0xD7
 	{RET_C,     0,   8, "RET_C"},       // 0xD8
@@ -243,12 +242,12 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0xDE
 	{tempfunction,0},		// 0xDF
 	{LDH_n_A,   1,  12, "LDH_n_A"},		// 0xE0
-	{tempfunction,0},		// 0xE1
+	{POP_HL,    0,  12, "POP_HL"},		// 0xE1
 	{LD_MC_A,   0,  8,  "LD_MC_A"},		// 0xE2
 	{tempfunction,0},		// 0xE3
 	{tempfunction,0},		// 0xE4
-	{tempfunction,0},		// 0xE5
-	{tempfunction,0},		// 0xE6
+	{PUSH_HL,   0,  16, "PUSH_HL"},		// 0xE5
+	{AND_n,     1,  8, "AND_n"},		// 0xE6
 	{tempfunction,0},		// 0xE7
 	{tempfunction,0},		// 0xE8
 	{JP_HL,		0,	4, "JP_HL"},		// 0xE9
@@ -259,17 +258,17 @@ const struct opCode opCodes[256] = {
 	{XOR_n,     1,  8, "XOR_n"},		// 0xEE
 	{tempfunction,0},		// 0xEF
 	{LDH_A_n,   1,  12, "LDH_A_n"},		// 0xF0
-	{tempfunction,0},		// 0xF1
+	{POP_AF,    0,  12, "POP_AF"},		// 0xF1
 	{tempfunction,0},		// 0xF2
 	{DI,        0,  4, "DI"},		    // 0xF3
 	{tempfunction,0},		// 0xF4
-	{tempfunction,0},		// 0xF5
-	{tempfunction,0},		// 0xF6
+	{PUSH_AF,   0,  16, "PUSH_AF"},		// 0xF5
+	{OR_n,      1,  8, "OR_n"}, 		// 0xF6
 	{tempfunction,0},		// 0xF7
 	{tempfunction,0},		// 0xF8
 	{tempfunction,0},		// 0xF9
 	{LD_A_nn,   2, 16, "LD_A_nn"},		// 0xFA
-	{tempfunction,0},		// 0xFB
+	{EI,        0, 4,  "EI"},   		// 0xFB
 	{tempfunction,0},		// 0xFC
 	{tempfunction,0},		// 0xFD
 	{CP_n,       1,  4, "CP_n"},		// 0xFE
@@ -321,7 +320,7 @@ int execute (void){
 	
 void tempfunction(void) {
 	
-	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 69\%\n[*************=======]\n",instruction);
+	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 82\%\n[****************====]\n",instruction);
 	exit(1);
 
 }
@@ -516,6 +515,29 @@ void LD_BC_nn (void) { registers.BC = operand16; }
 void LD_DE_nn (void) { registers.DE = operand16; }
 void LD_HL_nn (void) { registers.HL = operand16; }
 void LD_SP_nn (void) { registers.SP = operand16; }
+
+/*
+ * PUSH nn
+ * Description: Push register pair nn onto stack.
+ * Decrement Stack Pointer (SP) twice.
+ * Use with: nn = AF,BC,DE,HL
+ */
+ void PUSH_AF (void){stackPush16(registers.AF);}
+ void PUSH_BC (void){stackPush16(registers.BC);}
+ void PUSH_DE (void){stackPush16(registers.DE);}
+ void PUSH_HL (void){stackPush16(registers.HL);}
+ 
+/*
+ * POP nn
+ * Description: Pop two bytes off stack into register pair nn.
+ * Increment Stack Pointer (SP) twice.
+ * Use with: nn = AF,BC,DE,HL
+ */
+ void POP_AF (void){registers.HL = stackPop16();}
+ void POP_BC (void){registers.HL = stackPop16();}
+ void POP_DE (void){registers.HL = stackPop16();}
+ void POP_HL (void){registers.HL = stackPop16();}
+
 /********************
  * 8-Bit ALU        *
  ********************/
@@ -599,6 +621,47 @@ void XOR_HL (void) { xor (memory[registers.HL]); }
 void XOR_n (void) { xor (operand8); }
 
 /*
+ * AND n
+ * Description: Logically AND n with A, result in A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set.
+ * C - Reset.
+ */
+ void AND_A (void) {and (registers.A);}
+ void AND_B (void) {and (registers.B);}
+ void AND_C (void) {and (registers.C);}
+ void AND_D (void) {and (registers.D);}
+ void AND_E (void) {and (registers.E);}
+ void AND_H (void) {and (registers.H);}
+ void AND_L (void) {and (registers.L);}
+ void AND_HL (void) {and (memory[registers.HL]);}
+ void AND_n (void) {and (operand8);}
+
+ 
+/*
+ * OR n
+ * Description: Logical OR n with register A, result in A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Reset.
+ */
+ void OR_A (void) {or (registers.A);}
+ void OR_B (void) {or (registers.B);}
+ void OR_C (void) {or (registers.C);}
+ void OR_D (void) {or (registers.D);}
+ void OR_E (void) {or (registers.E);}
+ void OR_H (void) {or (registers.H);}
+ void OR_L (void) {or (registers.L);}
+ void OR_HL (void) {or (memory[registers.HL]);}
+ void OR_n (void) {or (operand8);}
+ 
+/*
  * CP n
  * Description: Compare A with n. This is basically an A - n
  *              subtraction instruction but the results are thrown away.
@@ -655,7 +718,7 @@ void DEC_D (void) {dec (&registers.D);}
 void DEC_E (void) {dec (&registers.E);}
 void DEC_H (void) {dec (&registers.H);}
 void DEC_L (void) {dec (&registers.L);}
-void DEC_HL (void) {dec (&memory[registers.HL]);
+void DEC_MHL (void) {dec (&memory[registers.HL]);
 
 //    if (memory[registers.HL] == 0)
 //        setFlag(ZERO_F);
@@ -674,14 +737,62 @@ void DEC_HL (void) {dec (&memory[registers.HL]);
 //     setFlag(HALF_CARRY_F);
 }
 /********************
- * 16-Bit ALU       *
+ * 16-Bit Arithmetic*
  ********************/
+/*
+ * DEC nn
+ * Description: Decrement register nn.
+ * Use with: nn = BC,DE,HL,SP
+ * Flags affected: None.
+ */
+ 
+ void DEC_BC (void) {registers.BC--;}
+ void DEC_DE (void) {registers.DE--;}
+ void DEC_HL (void) {registers.HL--;}
+ void DEC_SP (void) {registers.SP--;}
+ 
  /*******************
  * ADD, INC, DEC    *
  ********************/
 /********************
  * Miscellaneous    *
  ********************/
+/*
+ * CPL
+ * Description: Complement A register. (Flip all bits.)
+ * Flags affected:
+ * Z - Not affected.
+ * N - Set.
+ * H - Set.
+ * C - Not affected. 
+ */
+ void CPL (void) {
+     registers.A = ~registers.A;
+     setFlag(SUBSTRACT_F);
+     setFlag(HALF_CARRY_F);
+}
+  
+/*
+ * CCF
+ * Description: Complement carry flag.
+ * If C flag is set, then reset it.
+ * If C flag is reset, then set it.
+ * Flags affected:
+ * Z - Not affected.
+ * N - Reset.
+ * H - Reset.
+ * C - Complemented.
+ */
+ void CCF (void){
+     resetFlag(SUBSTRACT_F);
+     resetFlag(HALF_CARRY_F);
+     registers.F = (registers.F)|((~(registers.F & 0x10)) & 0x10);
+ }
+
+/*
+ * NOP
+ * Description: No operation.
+ */
  void NOP (void){ };
 /*
  * DI
@@ -692,6 +803,13 @@ void DEC_HL (void) {dec (&memory[registers.HL]);
  *
 */
  void DI (void)     { interruptMaster = FALSE; }
+/*
+ * EI
+ * Description: Enable interrupts. This intruction enables interrupts
+ * but not immediately. Interrupts are enabled after instruction after EI is executed.
+ * Flags affected: None.
+ */
+ void EI (void) {interruptMaster = TRUE;}
 /********************
  * Rotates & Shifts *
  ********************/
@@ -729,6 +847,15 @@ void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + 
 /********************
  * Restarts         *
  ********************/
+ 
+/*
+ * RST n
+ * Description: Push present address onto stack.
+ * Jump to address $0000 + n.
+ * Use with: n = $00,$08,$10,$18,$20,$28,$30,$38
+ */
+ //void RST00 (void) {stackPush16}
+ 
 /********************
  * Returns          *
  ********************/
@@ -736,7 +863,7 @@ void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + 
  * RET
  * Description: Pop two bytes from stack & jump to that address.
  */
-void RET    (void){ registers.PC = stackPop16(); }
+void RET (void){registers.PC = stackPop16();}
 /*
  * RET cc
  * Description: Return if following condition is true:

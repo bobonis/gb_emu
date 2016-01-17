@@ -1,3 +1,6 @@
-Verify that decreasing a register when it's value is 0x00 the result is 0x00 or 0xFF
-Verify when to step timer (equal or greater or both)
-Implement divider timer (modulo?)
+1. Verify that decreasing a register when it's value is 0x00 the result is 0x00 or 0xFF
+2. Verify when to step timer (equal or greater or both)
+3. Implement divider timer (modulo?)
+4 .Hit on EXTENDED opcode... The cpu.debug from cinoop is too small now,
+    -->could you please run an extended version in order to understand if we are ok
+    -->and if extended are indeed mandatory, eg. for Tetris.
