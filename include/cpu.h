@@ -110,6 +110,16 @@ void LD_BC_nn (void);
 void LD_DE_nn (void);
 void LD_HL_nn (void);
 void LD_SP_nn (void);
+//PUSH nn
+void PUSH_AF (void);
+void PUSH_BC (void);
+void PUSH_DE (void);
+void PUSH_HL (void);
+//POP nn
+void POP_AF (void);
+void POP_BC (void);
+void POP_DE (void);
+void POP_HL (void);
 //LDD (HL),A
 void LDD_HL_A (void);
 /********************
@@ -145,6 +155,26 @@ void SUB_H (void);
 void SUB_L (void);
 void SUB_HL (void);
 void SUB_n (void);
+//AND n
+void AND_A (void);
+void AND_B (void);
+void AND_C (void);
+void AND_D (void);
+void AND_E (void);
+void AND_H (void);
+void AND_L (void);
+void AND_HL (void);
+void AND_n (void);
+//OR n
+void OR_A (void);
+void OR_B (void);
+void OR_C (void);
+void OR_D (void);
+void OR_E (void);
+void OR_H (void);
+void OR_L (void);
+void OR_HL (void);
+void OR_n (void);
 //XOR n
 void XOR_A (void);
 void XOR_B (void);
@@ -182,18 +212,26 @@ void DEC_D (void);
 void DEC_E (void);
 void DEC_H (void);
 void DEC_L (void);
-void DEC_HL (void);
+void DEC_MHL (void);
 /********************
  * 16-Bit ALU       *
  ********************/
+//
+void DEC_BC (void);
+void DEC_DE (void);
+void DEC_HL (void);
+void DEC_SP (void);
  /*******************
  * ADD, INC, DEC    *
  ********************/
 /********************
  * Miscellaneous    *
  ********************/
- void NOP (void);
- void DI (void);
+void CPL (void);
+void CCF (void);
+void NOP (void);
+void DI (void);
+void EI (void); 
 /********************
  * Rotates & Shifts *
  ********************/
