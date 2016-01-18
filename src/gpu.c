@@ -40,10 +40,8 @@ void gpu (int cycles){
 
     if (gpuCheckStatus() == FALSE){
         return;
-    }
-    
-    gpu_cycles += cycles; // Increase GPU internal timer
-    
+    }    
+    gpu_cycles += cycles;
     switch (gpu_state){
         
         case SCAN_OAM:
@@ -245,7 +243,7 @@ void gpuChangeMode(int mode){
      
      //Loop for every pixel in the scanline
      for (pixel=0;pixel<160;pixel++){
-
+        
         //should read tile for every pixel??
         posX +=pixel;
         if (using_window){
@@ -364,13 +362,14 @@ void gpuRenderSprites(void){
     
     for (sprite = 0; sprite < 40; sprite++){
         
-        posY = readMemory8(OAM + (sprite * 4));
+        posY = readMemory8(OAM + (sprite * 4)) - 16;
+        posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
         
         /*for accurate emulation we have to check sprite priorites
          *we will start checking from the last pixel in each scanline
          */
         
-        //Check if current scanline displays the sprite
+        //Check if part of sprite is visible in current scanline
         if ((scanline >= posY) && (scanline < (posY + sprite_size))){
             
             
