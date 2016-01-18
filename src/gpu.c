@@ -40,7 +40,9 @@ void gpu (int cycles){
 
     if (gpuCheckStatus() == FALSE){
         return;
-    }    
+    }
+    
+    gpu_cycles += cycles; // Increase GPU internal timer
     
     switch (gpu_state){
         
@@ -243,11 +245,7 @@ void gpuChangeMode(int mode){
      
      //Loop for every pixel in the scanline
      for (pixel=0;pixel<160;pixel++){
-<<<<<<< HEAD
 
-=======
->>>>>>> bd8401911e56ff848a9c83407af6f48b2b27c496
-        
         //should read tile for every pixel??
         posX +=pixel;
         if (using_window){
