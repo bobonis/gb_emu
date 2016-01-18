@@ -1,4 +1,8 @@
 bobonis
+    - Fixed backround bug
+    - Started woring with sprites..
+
+bobonis
     - Finally it clears correctly the screen, Drawing seems ok now!
     - Changed framebuffer coordinates its [height][width][colour] now
 
