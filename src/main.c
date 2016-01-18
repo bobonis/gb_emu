@@ -7,6 +7,7 @@
 #include "interrupts.h"
 #include "display.h"
 
+
 int main(int argc, char **argv){
 
 	if (argc < 2){
