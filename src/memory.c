@@ -102,7 +102,7 @@ void reset (void){
 }
 
 unsigned char readMemory8 (unsigned short address){
-    return memory[address];    
+    return memory[address];
 }
 
 unsigned short readMemory16 (unsigned short address){

@@ -11,6 +11,7 @@
 #define V_BLANK   1 //Vertical blank
 
 #define OAM     0xFE00 //Sprite attribute memory
+#define SPT     0x8000 //Sprite pattern table
 
 #define LCDC    0xFF40 //LCD control
 #define STAT    0xFF41 //LCDC status
@@ -60,7 +61,7 @@ void gpu (int cycles){
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
                 memory[LY] += 1;          //Scanning a line completed, move to next
-                display();              //temporary solution
+                //display();              //temporary solution
 
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      
@@ -347,19 +348,22 @@ void gpuChangeMode(int mode){
  */
 void gpuRenderSprites(void){
     
-    int using_8x16_sprites = FALSE;
-    unsigned char sprite_size = 8;
+    
+    
     int sprite;
     int scanline = readMemory8(LY);
     unsigned char posY;
     unsigned char posX;
+    int pixel;
+    int sprites_on_scanline = 0;
+    unsigned char sprite_size = 8;
 
-    
     if (testBit(LCDC,2) == TRUE){
-        using_8x16_sprites = TRUE;
+        //using_8x16_sprites = TRUE;
         sprite_size = 16;
     }
-    
+
+   
     for (sprite = 0; sprite < 40; sprite++){
         
         posY = readMemory8(OAM + (sprite * 4)) - 16;
@@ -371,9 +375,59 @@ void gpuRenderSprites(void){
         
         //Check if part of sprite is visible in current scanline
         if ((scanline >= posY) && (scanline < (posY + sprite_size))){
-            
-            
+            sprites_on_scanline++;  //Count total sprites visible in current scanline
         }
-        
     }
+
+    for (pixel = 159; pixel >=0; pixel--){
+        for (sprite = 39; sprite >= 0; sprite--){
+        
+            posY = readMemory8(OAM + (sprite * 4)) - 16;
+            posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
+            
+            if ((scanline >= posY) && (scanline < (posY + sprite_size))){ //if sprite is visible on current scanline
+                if (pixel = posX){   //if sprite starts on current pixel
+                    if (sprites_on_scanline > 10){
+                        //limit of sprites reached on current scanline
+                    }
+                    else{ 
+                        gpuDrawSprite(sprite);//Draw sprite
+                    }                  
+                }
+
+            }
+            sprites_on_scanline--;
+        }
+    }
+}
+
+
+void gpuDrawSprite (int sprite){
+    int using_8x16_sprites = FALSE;
+    unsigned char sprite_size = 8;
+    unsigned char sprite_number;
+    unsigned char sprite_Y;
+    unsigned char sprite_X;
+    unsigned char scanline = readMemory8(LY);
+    unsigned short sprite_start_address;
+    
+    //find sprite coordinates
+    sprite_Y = readMemory8(OAM + (sprite * 4));
+    sprite_X = readMemory8((OAM + (sprite * 4)) + 1 );    
+    //find sprite pattern number
+    sprite_number = readMemory8(OAM + (sprite * 4) + 2);
+
+    
+    //find sprite memory start adress    
+    if (testBit(LCDC,2) == TRUE){
+        using_8x16_sprites = TRUE;
+        sprite_size = 16;
+       // sprite_start_address = SPT + sprite_number *  
+    }
+    else{
+       // sprite_start_address = 
+    }
+
+
+
 }
