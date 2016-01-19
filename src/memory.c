@@ -65,9 +65,10 @@ void reset (void){
 	   registers.HL = 0x014D;
 	   registers.SP = 0xFFFE;
 	   registers.PC = 0x0100;
-
+memory[0xFF00] = 0xdf; //wtf
 	   memory[0xFF05] = 0x00;	// TIMA
 	   memory[0xFF06] = 0x00;	// TMA
+//       	   memory[0xFF07] = 0x00;	// TAC should it be 0x00?
 	   memory[0xFF07] = 0x04;	// TAC
 	   memory[0xFF10] = 0x80;	// NR10
 	   memory[0xFF11] = 0xBF;	// NR11
@@ -235,8 +236,8 @@ void xor (unsigned short value1){
     resetFlag(CARRY_F);
 }
 
-void and (unsigned char value1){
-    registers.A &= value1;
+void cpu_and (unsigned char value1){
+    registers.A = registers.A&value1;
     if (registers.A == 0)
         setFlag(ZERO_F);
     else

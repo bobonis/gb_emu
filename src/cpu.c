@@ -10,6 +10,8 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
+
+unsigned char help = 1;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -58,7 +60,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x27
 	{JR_Z_n,	1,	8, "JR_Z_n"},		// 0x28
 	{ADD_HL_HL, 0,  8, "ADD_HL_HL"},	// 0x29
-	{LDI_A_HL,  0,  8,  "LDI_A_HL"},	// 0x22
+	{LDI_A_HL,  0,  8,  "LDI_A_HL"},	// 0x2A
 	{DEC_HL,    0,  8, "DEC_HL"},		// 0x2B
 	{INC_L,     0,  4, "INC_L"},		// 0x2C
 	{DEC_L,     0,  4, "DEC_L"},		// 0x2D
@@ -275,265 +277,264 @@ const struct opCode opCodes[256] = {
 	{RST38,      0,   32, "RST38"},		// 0xFF
 };
 
-//structure has to be cleaned up
+
 const struct extendedopCode extendedopCodes[256] = {
-	{tempfunction,		0,	4,  "NOP"},		    // 0x00
-	{tempfunction,  2,  12, "LD_BC_nn" },	// 0x01
-	{tempfunction,    0,  8, "LD_BC_A"},		// 0x02
-	{tempfunction,0},		// 0x03
-	{tempfunction,     0,  4,  "INC_B"},		// 0x04
-	{tempfunction,     0,  4,  "DEC_B"},		// 0x05
-	{tempfunction,	1,	8,  "LD_B_n"},	    // 0x06
-	{tempfunction,0},		// 0x07
-	{tempfunction,0},		// 0x08
-	{tempfunction,0},		// 0x09
-	{tempfunction,   0,  8, "LD_A_BC"},		// 0x0A
-	{tempfunction,    0,  8, "DEC_BC"},		// 0x0B
-	{tempfunction,     0,  4, "INC_C"},		// 0x0C
-	{tempfunction,     0,  4, "DEC_C"},		// 0x0D
-	{tempfunction,	1,	8, "LD_C_n"},		// 0x0E
-	{tempfunction,0},		// 0x0F
-	{tempfunction,0},		// 0x10
-	{tempfunction,  2,  12, "LD_DE_nn"},	// 0x11
-	{tempfunction,    0,  8, "LD_DE_A"},		// 0x12
-	{tempfunction,0},		// 0x13
-	{tempfunction,     0,  4, "INC_D"},		// 0x14
-	{tempfunction,     0,  4, "DEC_D"},		// 0x15
-	{tempfunction,	1,	8, "LD_D_n"},		// 0x16
-	{tempfunction,0},		// 0x17
-	{tempfunction,		1,	8, "JR_n"},		    // 0x18
-	{tempfunction,0},		// 0x19
-	{tempfunction,   0,  8, "LD_A_DE"},		// 0x1A
-	{tempfunction,    0,  8, "DEC_DE"},		// 0x1B
-	{tempfunction,     0,  4, "INC_E"},		// 0x1C
-	{tempfunction,     0,  4, "DEC_E"},		// 0x1D
-	{tempfunction,	1,	8, "LD_E_n"},		// 0x1E
-	{tempfunction,0},		// 0x1F
-	{tempfunction,	1,	8,  "JR_NZ_n"},		// 0x20
-	{tempfunction,  2,  12, "LD_HL_nn"},	// 0x21
-	{tempfunction,  0,  8,  "LDI_HL_A"},	// 0x22
-	{tempfunction,0},		// 0x23
-	{tempfunction,     0,  4, "INC_H"},		// 0x24
-	{tempfunction,     0,  4, "DEC_H"},		// 0x25
-	{tempfunction,	1,	8, "LD_H_n"},		// 0x26
-	{tempfunction,0},		// 0x27
-	{tempfunction,	1,	8, "JR_Z_n"},		// 0x28
-	{tempfunction,0},		// 0x29
-	{tempfunction,  0,  8,  "LDI_A_HL"},	// 0x22
-	{tempfunction,    0,  8, "DEC_HL"},		// 0x2B
-	{tempfunction,     0,  4, "INC_L"},		// 0x2C
-	{tempfunction,     0,  4, "DEC_L"},		// 0x2D
-	{tempfunction,	1,	8, "LD_L_n"},		// 0x2E
-	{tempfunction,       0,  4, "CPL"},	    	// 0x2F
-	{tempfunction,	1,	8,  "JR_NC_n"},		// 0x30
-	{tempfunction,  2,  12, "LD_SP_nn"},	// 0x31
-	{tempfunction,  0,  8,  "LDD_HL_A"},	// 0x32
-	{tempfunction,0},		// 0x33
-	{tempfunction,    0,  12, "INC_C"},		// 0x34
-	{tempfunction,    0,  12, "DEC_MHL"},	// 0x35
-	{tempfunction,    1, 12, "LD_HL_n"},	    // 0x36
+	{tempfunction,0},		    // 0x00
+	{tempfunction,0},		    // 0x01
+	{tempfunction,0},		    // 0x02
+	{tempfunction,0},		    // 0x03
+	{tempfunction,0},		    // 0x04
+	{tempfunction,0},		    // 0x05
+	{tempfunction,0},		    // 0x06
+	{tempfunction,0},		    // 0x07
+	{tempfunction,0},		    // 0x08
+	{tempfunction,0},		    // 0x09
+	{tempfunction,0},		    // 0x0A
+	{tempfunction,0},		    // 0x0B
+	{tempfunction,0},		    // 0x0C
+	{tempfunction,0},		    // 0x0D
+	{tempfunction,0},		    // 0x0E
+	{tempfunction,0},		    // 0x0F
+	{tempfunction,0},		    // 0x10
+	{RL_C,        0, 8},		    // 0x11
+	{tempfunction,0},		    // 0x12
+	{tempfunction,0},		    // 0x13
+	{tempfunction,0},		    // 0x14
+	{tempfunction,0},		    // 0x15
+	{tempfunction,0},		    // 0x16
+	{tempfunction,0},		    // 0x17
+	{tempfunction,0},		    // 0x18
+	{tempfunction,0},		    // 0x19
+	{tempfunction,0},		    // 0x1A
+	{tempfunction,0},		    // 0x1B
+	{tempfunction,0},		    // 0x1C
+	{tempfunction,0},		    // 0x1D
+	{tempfunction,0},		    // 0x1E
+	{tempfunction,0},		    // 0x1F
+	{tempfunction,0},		    // 0x20
+	{tempfunction,0},		    // 0x21
+	{tempfunction,0},		    // 0x22
+	{tempfunction,0},		    // 0x23
+	{tempfunction,0},		    // 0x24
+	{tempfunction,0},		    // 0x25
+	{tempfunction,0},		    // 0x26
+	{tempfunction,0},		    // 0x27
+	{tempfunction,0},		    // 0x28
+	{tempfunction,0},		    // 0x29
+	{tempfunction,0},		    // 0x22
+	{tempfunction,0},		    // 0x2B
+	{tempfunction,0},		    // 0x2C
+	{tempfunction,0},		    // 0x2D
+	{tempfunction,0},		    // 0x2E
+	{tempfunction,0},		    // 0x2F
+	{tempfunction,0},		    // 0x30
+	{tempfunction,0},		    // 0x31
+	{tempfunction,0},		    // 0x32
+	{tempfunction,0},		    // 0x33
+	{tempfunction,0},		    // 0x34
+	{tempfunction,0},		    // 0x35
+	{tempfunction,0},		    // 0x36
 	{SWAP_A,          0,  8},		        // 0x37
-	{tempfunction,	1,	8,  "JR_C_n"},		// 0x38
-	{tempfunction,0},		// 0x39
-	{tempfunction,0},		// 0x3A
-	{tempfunction,    0,  8, "DEC_SP"},		// 0x3B
-	{tempfunction,     0,  4, "INC_A"},		// 0x3C
-	{tempfunction,     0,  4, "DEC_A"},		// 0x3D
-	{tempfunction,    1,  8, "LD_A_n"},		// 0x3E
-	{tempfunction,       0,  4, "CCF"},  		// 0x3F
-	{tempfunction,    0,  4, "LD_B_B"},		// 0x40
-	{tempfunction,    0,  4, "LD_B_C"},		// 0x41
-	{tempfunction,    0,  4, "LD_B_D"},		// 0x42
-	{tempfunction,    0,  4, "LD_B_E"},		// 0x43
-	{tempfunction,    0,  4, "LD_B_H"},		// 0x44
-	{tempfunction,    0,  4, "LD_B_L"},		// 0x45
-	{tempfunction,   0,  8, "LD_B_HL"},		// 0x46
-	{tempfunction,    0,  4, "LD_B_A"},		// 0x47
-	{tempfunction,    0,  4, "LD_C_B"},		// 0x48
-	{tempfunction,    0,  4, "LD_C_C"},		// 0x49
-	{tempfunction,    0,  4, "LD_C_D"},		// 0x4A
-	{tempfunction,    0,  4, "LD_C_E"},		// 0x4B
-	{tempfunction,    0,  4, "LD_C_H"},		// 0x4C
-	{tempfunction,    0,  4, "LD_C_L"},		// 0x4D
-	{tempfunction,   0,  8, "LD_C_HL"},		// 0x4E
-	{tempfunction,    0,  4, "LD_C_A"},		// 0x4F
-	{tempfunction,    0,  4, "LD_D_B"},		// 0x50
-	{tempfunction,    0,  4, "LD_D_C"},		// 0x51
-	{tempfunction,    0,  4, "LD_D_D"},		// 0x52
-	{tempfunction,    0,  4, "LD_D_E"},		// 0x53
-	{tempfunction,    0,  4, "LD_D_H"},		// 0x54
-	{tempfunction,    0,  4, "LD_D_L"},		// 0x55
-	{tempfunction,   0,  8, "LD_D_HL"},		// 0x56
-	{tempfunction,    0,  4, "LD_D_A"},		// 0x47
-	{tempfunction,    0,  4, "LD_E_B"},		// 0x58
-	{tempfunction,    0,  4, "LD_E_C"},		// 0x59
-	{tempfunction,    0,  4, "LD_E_D"},		// 0x5A
-	{tempfunction,    0,  4, "LD_E_E"},		// 0x5B
-	{tempfunction,    0,  4, "LD_E_H"},		// 0x5C
-	{tempfunction,    0,  4, "LD_E_L"},		// 0x5D
-	{tempfunction,   0,  8, "LD_E_HL"},		// 0x5E
-	{tempfunction,    0,  4, "LD_E_A"},		// 0x5F
-	{tempfunction,    0,  4, "LD_H_B"},		// 0x60
-	{tempfunction,    0,  4, "LD_H_C"},		// 0x61
-	{tempfunction,    0,  4, "LD_H_D"},		// 0x62
-	{tempfunction,    0,  4, "LD_H_E"},		// 0x63
-	{tempfunction,    0,  4, "LD_H_H"},		// 0x64
-	{tempfunction,    0,  4, "LD_H_L"},		// 0x65
-	{tempfunction,   0,  8, "LD_H_HL"},		// 0x66
-	{tempfunction,    0,  4, "LD_H_A"},		// 0x67
-	{tempfunction,    0,  4, "LD_L_B"},		// 0x68
-	{tempfunction,    0,  4, "LD_L_C"},		// 0x69
-	{tempfunction,    0,  4, "LD_L_D"},		// 0x6A
-	{tempfunction,    0,  4, "LD_L_E"},		// 0x6B
-	{tempfunction,    0,  4, "LD_L_H"},		// 0x6C
-	{tempfunction,    0,  4, "LD_L_L"},		// 0x6D
-	{tempfunction,   0,  8, "LD_L_HL"},		// 0x6E
-	{tempfunction,    0,  4, "LD_L_A"},		// 0x6F
-    {tempfunction,    0,  8, "LD_HL_B"},		// 0x70
-	{tempfunction,    0,  8, "LD_HL_C"},		// 0x71
-	{tempfunction,    0,  8, "LD_HL_D"},		// 0x72
-	{tempfunction,    0,  8, "LD_HL_E"},		// 0x73
-	{tempfunction,    0,  8, "LD_HL_H"},		// 0x74
-	{tempfunction,    0,  8, "LD_HL_L"},		// 0x75
-	{tempfunction,0},		// 0x76
-	{tempfunction,    0,  8, "LD_HL_A"},		// 0x77
-	{tempfunction,    0,  4, "LD_A_B"},		// 0x78
-	{tempfunction,    0,  4, "LD_A_C"},		// 0x79
-	{tempfunction,    0,  4, "LD_A_D"},		// 0x7A
-	{tempfunction,    0,  4, "LD_A_E"},		// 0x7B
-	{tempfunction,    0,  4, "LD_A_H"},		// 0x7C
-	{tempfunction,    0,  4, "LD_A_L"},		// 0x7D
-	{tempfunction,   0,  8, "LD_A_HL"},		// 0x7E
-	{tempfunction,    0,  4, "LD_A_A"},		// 0x7F
-	{tempfunction,   0,  4, "ADD_A_B"},		// 0x80
-	{tempfunction,   0,  4, "ADD_A_C"},		// 0x81
-	{tempfunction,   0,  4, "ADD_A_D"},		// 0x82
-	{tempfunction,   0,  4, "ADD_A_E"},		// 0x83
-	{tempfunction,   0,  4, "ADD_A_H"},		// 0x84
-	{tempfunction,   0,  4, "ADD_A_L"},		// 0x85
-	{tempfunction,  0,  8, "ADD_A_HL"},		// 0x86
-    {tempfunction,  0,  8, "ADD_A_HL"},		// 0x86
-//	{RES_0_A,       0,  8, "RES_0_A"},		// 0x87
-	{tempfunction,   0,  4, "ADC_A_B"},		// 0x88
-	{tempfunction,   0,  4, "ADC_A_C"},		// 0x89
-	{tempfunction,   0,  4, "ADC_A_D"},		// 0x8A
-	{tempfunction,   0,  4, "ADC_A_E"},		// 0x8B
-	{tempfunction,   0,  4, "ADC_A_H"},		// 0x8C
-	{tempfunction,   0,  4, "ADC_A_L"},		// 0x8D
-	{tempfunction,  0,  8, "ADC_A_HL"},		// 0x8E
-	{tempfunction,   0,  4, "ADC_A_A"},		// 0x8F
-	{tempfunction,     0,  4, "SUB_B"},		// 0x90
-	{tempfunction,     0,  4, "SUB_C"},		// 0x91
-	{tempfunction,     0,  4, "SUB_D"},		// 0x92
-	{tempfunction,     0,  4, "SUB_E"},		// 0x93
-	{tempfunction,     0,  4, "SUB_H"},		// 0x94
-	{tempfunction,     0,  4, "SUB_L"},		// 0x95
-	{tempfunction,    0,  8, "SUB_HL"},		// 0x96
-	{tempfunction,     0,  4, "SUB_A"},		// 0x97
-	{tempfunction,0},		// 0x98
-	{tempfunction,0},		// 0x99
-	{tempfunction,0},		// 0x9A
-	{tempfunction,0},		// 0x9B
-	{tempfunction,0},		// 0x9C
-	{tempfunction,0},		// 0x9D
-	{tempfunction,0},		// 0x9E
-	{tempfunction,0},		// 0x9F
-	{tempfunction,     0,  4, "AND_B"},		// 0xA0
-	{tempfunction,     0,  4, "AND_C"},		// 0xA1
-	{tempfunction,     0,  4, "AND_D"},		// 0xA2
-	{tempfunction,     0,  4, "AND_E"},		// 0xA3
-	{tempfunction,     0,  4, "AND_H"},		// 0xA4
-	{tempfunction,     0,  4, "AND_L"},		// 0xA5
-	{tempfunction,    0,  8, "AND_HL"},		// 0xA6
-	{tempfunction,     0,  4, "AND_A"},		// 0xA7
-	{tempfunction,     0,  4, "XOR_B"},		// 0xA8
-	{tempfunction,     0,  4, "XOR_C"},		// 0xA9
-	{tempfunction,     0,  4, "XOR_D"},		// 0xAA
-	{tempfunction,     0,  4, "XOR_E"},		// 0xAB
-	{tempfunction,     0,  4, "XOR_H"},		// 0xAC
-	{tempfunction,     0,  4, "XOR_L"},		// 0xAD
-	{tempfunction,    0,  8, "XOR_HL"},		// 0xAE
-	{tempfunction,     0,  4, "XOR_A"},		// 0xAF
-	{tempfunction,      0,  4, "OR_B"}, 		// 0xB0
-	{tempfunction,      0,  4, "OR_C"}, 		// 0xB1
-	{tempfunction,      0,  4, "OR_D"}, 		// 0xB2
-	{tempfunction,      0,  4, "OR_E"}, 		// 0xB3
-	{tempfunction,      0,  4, "OR_H"}, 		// 0xB4
-	{tempfunction,      0,  4, "OR_L"}, 		// 0xB5
-	{tempfunction,      0,  8, "OR_HL"}, 		// 0xB6
-	{tempfunction,       0,  4,  "OR_A"},		// 0xB7
-	{tempfunction,       0,  4, "CP_B"},		// 0xB8
-	{tempfunction,       0,  4, "CP_C"},		// 0xB9
-	{tempfunction,       0,  4, "CP_D"},		// 0xBA
-	{tempfunction,       0,  4, "CP_E"},		// 0xBB
-	{tempfunction,       0,  4, "CP_H"},		// 0xBC
-	{tempfunction,       0,  4, "CP_L"},		// 0xBD
-	{tempfunction,      0,  4, "CP_HL"},		// 0xBE
-	{tempfunction,       0,  4, "CP_A"},		// 0xBF
-	{tempfunction,     0,  8, "RET_NZ"},	    // 0xC0
-	{tempfunction,     0,  12, "POP_BC"},		// 0xC1
-	{tempfunction,	2,	12, "JP_NZ_nn"},	// 0xC2
-	{tempfunction,		2,	12, "JP_nn"},	    // 0xC3
-	{tempfunction,0},		// 0xC4
-	{tempfunction,   0,  16, "PUSH_BC"},		// 0xC5
-	{tempfunction,	1,	 8, "ADD_A_n"},	    // 0xC6
-	{tempfunction,0},		// 0xC7
-	{tempfunction,     0,   8, "RET_Z"},       // 0xC8
-	{tempfunction,       0,   16, "RET"},	    // 0xC9
-	{tempfunction,	2,	 12, "JP_Z_nn"},	// 0xCA
-	{tempfunction,        3,   4,  "CB"}, 		// 0xCB
-	{tempfunction,0},		// 0xCC
-	{tempfunction,   2,   24, "CALL_nn"},	// 0xCD
-	{tempfunction,   1,   8, "ADC_A_n"},	    // 0xCE
-	{tempfunction,0},		// 0xCF
-	{tempfunction,    0,  8,  "RET_NC"},	    // 0xD0
-	{tempfunction,    0,  12, "POP_DE"},		// 0xD1
-	{tempfunction,	2,	12, "JP_NC_nn"},	// 0xD2
-	{tempfunction,0},		// 0xD3
-	{tempfunction,0},		// 0xD4
-	{tempfunction,   0,  16, "PUSH_DE"},		// 0xD5
-	{tempfunction,     1,  8,  "SUB_n"},		// 0xD6
-	{tempfunction,0},		// 0xD7
-	{tempfunction,     0,   8, "RET_C"},       // 0xD8
-	{tempfunction,      0,   8, "RETI"},        // 0xD9
-	{tempfunction,	2,	12, "JP_C_nn"},	    // 0xDA
-	{tempfunction,0},		// 0xDB
-	{tempfunction,0},		// 0xDC
-	{tempfunction,0},		// 0xDD
-	{tempfunction,0},		// 0xDE
-	{tempfunction,0},		// 0xDF
-	{tempfunction,   1,  12, "LDH_n_A"},		// 0xE0
-	{tempfunction,    0,  12, "POP_HL"},		// 0xE1
-	{tempfunction,   0,  8,  "LD_MC_A"},		// 0xE2
-	{tempfunction,0},		// 0xE3
-	{tempfunction,0},		// 0xE4
-	{tempfunction,   0,  16, "PUSH_HL"},		// 0xE5
-	{tempfunction,     1,  8, "AND_n"},		// 0xE6
-	{tempfunction,0},		// 0xE7
-	{tempfunction,0},		// 0xE8
-	{tempfunction,		0,	4, "JP_HL"},		// 0xE9
-	{tempfunction,   2,  16, "LD_nn_A"},		// 0xEA
-	{tempfunction,0},		// 0xEB
-	{tempfunction,0},		// 0xEC
-	{tempfunction,0},		// 0xED
-	{tempfunction,     1,  8, "XOR_n"},		// 0xEE
-	{tempfunction,0},		// 0xEF
-	{tempfunction,   1,  12, "LDH_A_n"},		// 0xF0
-	{tempfunction,    0,  12, "POP_AF"},		// 0xF1
-	{tempfunction,0},		// 0xF2
-	{tempfunction,        0,  4, "DI"},		    // 0xF3
-	{tempfunction,0},		// 0xF4
-	{tempfunction,   0,  16, "PUSH_AF"},		// 0xF5
-	{tempfunction,      1,  8, "OR_n"}, 		// 0xF6
-	{tempfunction,0},		// 0xF7
-	{tempfunction,0},		// 0xF8
-	{tempfunction,0},		// 0xF9
-	{tempfunction,   2, 16, "LD_A_nn"},		// 0xFA
-	{tempfunction,        0, 4,  "EI"},   		// 0xFB
-	{tempfunction,0},		// 0xFC
-	{tempfunction,0},		// 0xFD
-	{tempfunction,       1,  4, "CP_n"},		// 0xFE
-	{tempfunction,0},		// 0xFF
+	{tempfunction,0},		    // 0x38
+	{tempfunction,0},		    // 0x39
+	{tempfunction,0},		    // 0x3A
+	{tempfunction,0},		    // 0x3B
+	{tempfunction,0},		    // 0x3C
+	{tempfunction,0},		    // 0x3D
+	{tempfunction,0},		    // 0x3E
+	{tempfunction,0},		    // 0x3F
+	{tempfunction,0},		    // 0x40
+	{tempfunction,0},		    // 0x41
+	{tempfunction,0},		    // 0x42
+	{tempfunction,0},		    // 0x43
+	{tempfunction,0},		    // 0x44
+	{tempfunction,0},		    // 0x45
+	{tempfunction,0},		    // 0x46
+	{tempfunction,0},		    // 0x47
+	{tempfunction,0},		    // 0x48
+	{tempfunction,0},		    // 0x49
+	{tempfunction,0},		    // 0x4A
+	{tempfunction,0},		    // 0x4B
+	{tempfunction,0},		    // 0x4C
+	{tempfunction,0},		    // 0x4D
+	{tempfunction,0},		    // 0x4E
+	{tempfunction,0},		    // 0x4F
+	{tempfunction,0},		    // 0x50
+	{tempfunction,0},		    // 0x51
+	{tempfunction,0},		    // 0x52
+	{tempfunction,0},		    // 0x53
+	{tempfunction,0},		    // 0x54
+	{tempfunction,0},		    // 0x55
+	{tempfunction,0},		    // 0x56
+	{tempfunction,0},		    // 0x47
+	{tempfunction,0},		    // 0x58
+	{tempfunction,0},		    // 0x59
+	{tempfunction,0},		    // 0x5A
+	{tempfunction,0},		    // 0x5B
+	{tempfunction,0},		    // 0x5C
+	{tempfunction,0},		    // 0x5D
+	{tempfunction,0},		    // 0x5E
+	{tempfunction,0},		    // 0x5F
+	{tempfunction,0},		    // 0x60
+	{tempfunction,0},		    // 0x61
+	{tempfunction,0},		    // 0x62
+	{tempfunction,0},		    // 0x63
+	{tempfunction,0},		    // 0x64
+	{tempfunction,0},		    // 0x65
+	{tempfunction,0},		    // 0x66
+	{tempfunction,0},		    // 0x67
+	{tempfunction,0},		    // 0x68
+	{tempfunction,0},		    // 0x69
+	{tempfunction,0},		    // 0x6A
+	{tempfunction,0},		    // 0x6B
+	{tempfunction,0},		    // 0x6C
+	{tempfunction,0},		    // 0x6D
+	{tempfunction,0},		    // 0x6E
+	{tempfunction,0},		    // 0x6F
+    {tempfunction,0},		    // 0x70
+	{tempfunction,0},		    // 0x71
+	{tempfunction,0},		    // 0x72
+	{tempfunction,0},		    // 0x73
+	{tempfunction,0},		    // 0x74
+	{tempfunction,0},		    // 0x75
+	{tempfunction,0},		    // 0x76
+	{tempfunction,0},		    // 0x77
+	{tempfunction,0},		    // 0x78
+	{tempfunction,0},		    // 0x79
+	{tempfunction,0},		    // 0x7A
+	{tempfunction,0},		    // 0x7B
+	{BIT_7_H,     0,   8, "BIT_7_H"},		// 0x7C
+	{tempfunction,0},		    // 0x7D
+	{tempfunction,0},		    // 0x7E
+	{tempfunction,0},		    // 0x7F
+	{tempfunction,0},		    // 0x80
+	{tempfunction,0},		    // 0x81
+	{tempfunction,0},		    // 0x82
+	{tempfunction,0},		    // 0x83
+	{tempfunction,0},		    // 0x84
+	{tempfunction,0},		    // 0x85
+	{tempfunction,0},		    // 0x86
+	{RES_0_A,       0,  8, "RES_0_A"},		// 0x87
+	{tempfunction,0},		    // 0x88
+	{tempfunction,0},		    // 0x89
+	{tempfunction,0},		    // 0x8A
+	{tempfunction,0},		    // 0x8B
+	{tempfunction,0},		    // 0x8C
+	{tempfunction,0},		    // 0x8D
+	{tempfunction,0},		    // 0x8E
+	{tempfunction,0},		    // 0x8F
+	{tempfunction,0},		    // 0x90
+	{tempfunction,0},		    // 0x91
+	{tempfunction,0},		    // 0x92
+	{tempfunction,0},		    // 0x93
+	{tempfunction,0},		    // 0x94
+	{tempfunction,0},		    // 0x95
+	{tempfunction,0},		    // 0x96
+	{tempfunction,0},		    // 0x97
+	{tempfunction,0},		    // 0x98
+	{tempfunction,0},		    // 0x99
+	{tempfunction,0},		    // 0x9A
+	{tempfunction,0},		    // 0x9B
+	{tempfunction,0},		    // 0x9C
+	{tempfunction,0},		    // 0x9D
+	{tempfunction,0},		    // 0x9E
+	{tempfunction,0},		    // 0x9F
+	{tempfunction,0},		    // 0xA0
+	{tempfunction,0},		    // 0xA1
+	{tempfunction,0},		    // 0xA2
+	{tempfunction,0},		    // 0xA3
+	{tempfunction,0},		    // 0xA4
+	{tempfunction,0},		    // 0xA5
+	{tempfunction,0},		    // 0xA6
+	{tempfunction,0},		    // 0xA7
+	{tempfunction,0},		    // 0xA8
+	{tempfunction,0},		    // 0xA9
+	{tempfunction,0},		    // 0xAA
+	{tempfunction,0},		    // 0xAB
+	{tempfunction,0},		    // 0xAC
+	{tempfunction,0},		    // 0xAD
+	{tempfunction,0},		    // 0xAE
+	{tempfunction,0},		    // 0xAF
+	{tempfunction,0},		    // 0xB0
+	{tempfunction,0},		    // 0xB1
+	{tempfunction,0},		    // 0xB2
+	{tempfunction,0},		    // 0xB3
+	{tempfunction,0},		    // 0xB4
+	{tempfunction,0},		    // 0xB5
+	{tempfunction,0},		    // 0xB6
+	{tempfunction,0},		    // 0xB7
+	{tempfunction,0},		    // 0xB8
+	{tempfunction,0},		    // 0xB9
+	{tempfunction,0},		    // 0xBA
+	{tempfunction,0},		    // 0xBB
+	{tempfunction,0},		    // 0xBC
+	{tempfunction,0},		    // 0xBD
+	{tempfunction,0},		    // 0xBE
+	{tempfunction,0},		    // 0xBF
+	{tempfunction,0},		    // 0xC0
+	{tempfunction,0},		    // 0xC1
+	{tempfunction,0},		    // 0xC2
+	{tempfunction,0},		    // 0xC3
+	{tempfunction,0},		    // 0xC4
+	{tempfunction,0},		    // 0xC5
+	{tempfunction,0},		    // 0xC6
+	{tempfunction,0},		    // 0xC7
+	{tempfunction,0},		    // 0xC8
+	{tempfunction,0},		    // 0xC9
+	{tempfunction,0},		    // 0xCA
+	{tempfunction,0},		    // 0xCB
+	{tempfunction,0},		    // 0xCC
+	{tempfunction,0},		    // 0xCD
+	{tempfunction,0},		    // 0xCE
+	{tempfunction,0},		    // 0xCF
+	{tempfunction,0},		    // 0xD0
+	{tempfunction,0},		    // 0xD1
+	{tempfunction,0},		    // 0xD2
+	{tempfunction,0},		    // 0xD3
+	{tempfunction,0},		    // 0xD4
+	{tempfunction,0},		    // 0xD5
+	{tempfunction,0},		    // 0xD6
+	{tempfunction,0},		    // 0xD7
+	{tempfunction,0},		    // 0xD8
+	{tempfunction,0},		    // 0xD9
+	{tempfunction,0},		    // 0xDA
+	{tempfunction,0},		    // 0xDB
+	{tempfunction,0},		    // 0xDC
+	{tempfunction,0},		    // 0xDD
+	{tempfunction,0},		    // 0xDE
+	{tempfunction,0},		    // 0xDF
+	{tempfunction,0},		    // 0xE0
+	{tempfunction,0},		    // 0xE1
+	{tempfunction,0},		    // 0xE2
+	{tempfunction,0},		    // 0xE3
+	{tempfunction,0},		    // 0xE4
+	{tempfunction,0},		    // 0xE5
+	{tempfunction,0},		    // 0xE6
+	{tempfunction,0},		    // 0xE7
+	{tempfunction,0},		    // 0xE8
+	{tempfunction,0},		    // 0xE9
+	{tempfunction,0},		    // 0xEA
+	{tempfunction,0},		    // 0xEB
+	{tempfunction,0},		    // 0xEC
+	{tempfunction,0},		    // 0xED
+	{tempfunction,0},		    // 0xEE
+	{tempfunction,0},		    // 0xEF
+	{tempfunction,0},		    // 0xF0
+	{tempfunction,0},		    // 0xF1
+	{tempfunction,0},		    // 0xF2
+	{tempfunction,0},		    // 0xF3
+	{tempfunction,0},		    // 0xF4
+	{tempfunction,0},		    // 0xF5
+	{tempfunction,0},		    // 0xF6
+	{tempfunction,0},		    // 0xF7
+	{tempfunction,0},		    // 0xF8
+	{tempfunction,0},		    // 0xF9
+	{tempfunction,0},		    // 0xFA
+	{tempfunction,0},		    // 0xFB
+	{tempfunction,0},		    // 0xFC
+	{tempfunction,0},		    // 0xFD
+	{tempfunction,0},		    // 0xFE
+	{tempfunction,0},		    // 0xFF
 };
 
 int execute (void){
@@ -567,8 +568,8 @@ int execute (void){
             instruction = memory[registers.PC+1];
             registers.PC += 2; 
             ((void (*)(void))extendedopCodes[instruction].function)();
-            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
+            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[HL]=0x%04x\n"
+            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xFF00]);
             return cpuCycles;
             break;
 	};
@@ -576,9 +577,10 @@ int execute (void){
 	//opCodes[memory[registers.PC]].function();
     ((void (*)(void))opCodes[instruction].function)();
 
-    printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-        ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-
+//    printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
+//        ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
+            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[ff00]=0x%04x\n"
+            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xFF00]);
 
 	return cpuCycles;
 	
@@ -762,7 +764,20 @@ question alam:
  * Description: Put A into memory address $FF00+n.
  * Use with: n = one byte immediate value.
  */
- void LDH_n_A (void) { memory[0xFF00+operand8] = registers.A; }
+ //void LDH_n_A (void) { memory[0xFF00+operand8] = registers.A; }
+void LDH_n_A (void) { 
+    if (help) {
+        if (registers.A == 0x20){
+        memory[0xFF00+operand8] = 0x00ef;
+        help = 0;
+        }
+        //exit(1);
+    }
+    else{
+        memory[0xFF00+operand8] = registers.A;
+       // exit(1);
+    }
+} //hardcoded
 /*
  * LDH A,(n)
  * Description: Put memory address $FF00+n into A.
@@ -899,15 +914,15 @@ void XOR_n (void) { xor (operand8); }
  * H - Set.
  * C - Reset.
  */
- void AND_A (void) {and (registers.A);}
- void AND_B (void) {and (registers.B);}
- void AND_C (void) {and (registers.C);}
- void AND_D (void) {and (registers.D);}
- void AND_E (void) {and (registers.E);}
- void AND_H (void) {and (registers.H);}
- void AND_L (void) {and (registers.L);}
- void AND_HL (void) {and (memory[registers.HL]);}
- void AND_n (void) {and (operand8);}
+ void AND_A (void) {cpu_and (registers.A);}
+ void AND_B (void) {cpu_and (registers.B);}
+ void AND_C (void) {cpu_and (registers.C);}
+ void AND_D (void) {cpu_and (registers.D);}
+ void AND_E (void) {cpu_and (registers.E);}
+ void AND_H (void) {cpu_and (registers.H);}
+ void AND_L (void) {cpu_and (registers.L);}
+ void AND_HL (void) {cpu_and (memory[registers.HL]);}
+ void AND_n (void) {cpu_and (operand8);}
 
  
 /*
@@ -1227,6 +1242,43 @@ void SWAP_A (void) {
     cpuCycles += 8;
 }
 
-//void RES_0_A (void) {
+void RES_0_A (void) {
+    //registers.A &= 0xFE;
+    registers.A &= ~(1 << 0);
+    cpuCycles += 8;
+}
 
-//}
+void BIT_7_H (void) {
+    
+    if((1 << 7)&registers.H)
+        resetFlag(ZERO_F);
+    else
+        setFlag(ZERO_F);
+    
+    
+    resetFlag(SUBSTRACT_F);
+    setFlag(HALF_CARRY_F);
+    cpuCycles += 8;
+}
+
+void  RL_C (void){
+    
+    	int carry = testFlag(CARRY_F) ? 1 : 0;
+        if (registers.C&0x80)
+           setFlag(CARRY_F);
+        else
+           resetFlag(CARRY_F);
+         
+        registers.C <<=1;
+        registers.C +=carry;
+        
+        if (registers.C)
+            resetFlag(ZERO_F);
+        else
+            setFlag(ZERO_F);
+            
+        resetFlag(SUBSTRACT_F);
+        resetFlag(HALF_CARRY_F);
+        cpuCycles += 8; 
+
+}
