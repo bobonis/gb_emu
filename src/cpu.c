@@ -539,9 +539,23 @@ const struct extendedopCode extendedopCodes[256] = {
 
 int execute (void){
 	
-    
-	instruction = memory[registers.PC];
-    cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
+    unsigned char operand_length;
+    int extended_opcode = FALSE;
+
+    instruction = readMemory8(registers.PC);
+
+    if (instruction == 0xCB){
+        instruction = readMemory8(++registers.PC);
+        cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
+        operand_length = extendedopCodes[instruction].opLength;
+        extended_opcode = TRUE;
+    }
+    else{
+        //instruction = memory[registers.PC];
+        cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
+        operand_length = opCodes[instruction].opLength;
+    }    
+
 	
 	//printf("[DEBUG] Opcode    - 0x%04x, P counter - 0x%04x, S pointer - 0x%04x\n",memory[registers.PC],registers.PC,registers.SP);
     // printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
@@ -549,22 +563,23 @@ int execute (void){
     //printf("[DEBUG] OPC-0x%04x-[%s],\tPC-0x%04x, SP-0x%04x, ",instruction,opCodes[instruction].function_name,registers.PC,registers.SP);
 
     printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
-	switch (opCodes[instruction].opLength){
+	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
 			printf("ARG-0x0000, ");
 			break;
 		case 1 :
-			operand8 = memory[registers.PC + 1];
+			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
 			printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
-			operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
+			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
+            operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
 			printf("ARG-0x%04x, ",operand16);
 			break;
-        case 3 :
+       /* case 3 :
             instruction = memory[registers.PC+1];
             registers.PC += 2; 
             ((void (*)(void))extendedopCodes[instruction].function)();
@@ -572,10 +587,17 @@ int execute (void){
             ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xFF00]);
             return cpuCycles;
             break;
+       */
 	};
     
 	//opCodes[memory[registers.PC]].function();
-    ((void (*)(void))opCodes[instruction].function)();
+    if (extended_opcode){
+        ((void (*)(void))extendedopCodes[instruction].function)();
+    }
+    else{
+        ((void (*)(void))opCodes[instruction].function)();
+    }
+    
 
 //    printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
 //        ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
@@ -625,49 +647,49 @@ void LD_L_n (void){ registers.L = operand8; }
  void LD_B_E (void) { registers.B = registers.E;}
  void LD_B_H (void) { registers.B = registers.H;}
  void LD_B_L (void) { registers.B = registers.L;}
- void LD_B_HL (void) { registers.B = memory[registers.HL];}
+ void LD_B_HL (void) { registers.B = readMemory8(registers.HL);}
  void LD_C_B (void) { registers.C = registers.B;}
  void LD_C_C (void) { registers.C = registers.C;}
  void LD_C_D (void) { registers.C = registers.D;}
  void LD_C_E (void) { registers.C = registers.E;}
  void LD_C_H (void) { registers.C = registers.H;}
  void LD_C_L (void) { registers.C = registers.L;}
- void LD_C_HL (void) { registers.C = memory[registers.HL];}
+ void LD_C_HL (void) { registers.C = readMemory8(registers.HL);}
  void LD_D_B (void) { registers.D = registers.B;} 
  void LD_D_C (void) { registers.D = registers.C;}
  void LD_D_D (void) { registers.D = registers.D;}
  void LD_D_E (void) { registers.D = registers.E;}
  void LD_D_H (void) { registers.D = registers.H;}
  void LD_D_L (void) { registers.D = registers.L;}
- void LD_D_HL (void) { registers.D = memory[registers.HL];}
+ void LD_D_HL (void) { registers.D = readMemory8(registers.HL);}
  void LD_E_B (void) { registers.E = registers.B;} 
  void LD_E_C (void) { registers.E = registers.C;}
  void LD_E_D (void) { registers.E = registers.D;}
  void LD_E_E (void) { registers.E = registers.E;}
  void LD_E_H (void) { registers.E = registers.H;}
  void LD_E_L (void) { registers.E = registers.L;}
- void LD_E_HL (void) { registers.E = memory[registers.HL];}
+ void LD_E_HL (void) { registers.E = readMemory8(registers.HL);}
  void LD_H_B (void) { registers.H = registers.B;} 
  void LD_H_C (void) { registers.H = registers.C;}
  void LD_H_D (void) { registers.H = registers.D;}
  void LD_H_E (void) { registers.H = registers.E;}
  void LD_H_H (void) { registers.H = registers.H;}
  void LD_H_L (void) { registers.H = registers.L;}
- void LD_H_HL (void) { registers.H = memory[registers.HL];}
+ void LD_H_HL (void) { registers.H = readMemory8(registers.HL);}
  void LD_L_B (void) { registers.L = registers.B;} 
  void LD_L_C (void) { registers.L = registers.C;}
  void LD_L_D (void) { registers.L = registers.D;}
  void LD_L_E (void) { registers.L = registers.E;}
  void LD_L_H (void) { registers.L = registers.H;}
  void LD_L_L (void) { registers.L = registers.L;}
- void LD_L_HL (void) { registers.L = memory[registers.HL];}
- void LD_HL_B (void) { memory[registers.HL] = registers.B;} 
- void LD_HL_C (void) { memory[registers.HL] = registers.C;}
- void LD_HL_D (void) { memory[registers.HL] = registers.D;}
- void LD_HL_E (void) { memory[registers.HL] = registers.E;}
- void LD_HL_H (void) { memory[registers.HL] = registers.H;}
- void LD_HL_L (void) { memory[registers.HL] = registers.L;}
- void LD_HL_n (void) { memory[registers.HL] = operand8;}
+ void LD_L_HL (void) { registers.L = readMemory8(registers.HL);}
+ void LD_HL_B (void) { writeMemory(registers.HL, registers.B);} 
+ void LD_HL_C (void) { writeMemory(registers.HL, registers.C);}
+ void LD_HL_D (void) { writeMemory(registers.HL, registers.D);}
+ void LD_HL_E (void) { writeMemory(registers.HL, registers.E);}
+ void LD_HL_H (void) { writeMemory(registers.HL, registers.H);}
+ void LD_HL_L (void) { writeMemory(registers.HL, registers.L);}
+ void LD_HL_n (void) { writeMemory(registers.HL, operand8);}
  
 /*
  * LD A,n
@@ -682,10 +704,10 @@ void LD_A_D  (void){registers.A = registers.D;}
 void LD_A_E  (void){registers.A = registers.E;}
 void LD_A_H  (void){registers.A = registers.H;}
 void LD_A_L  (void){registers.A = registers.L;}
-void LD_A_BC (void){registers.A = memory[registers.BC];}
-void LD_A_DE (void){registers.A = memory[registers.DE];}
-void LD_A_HL (void){registers.A = memory[registers.HL];}
-void LD_A_nn (void){registers.A = memory[operand16];}
+void LD_A_BC (void){registers.A = readMemory8(registers.BC);}
+void LD_A_DE (void){registers.A = readMemory8(registers.DE);}
+void LD_A_HL (void){registers.A = readMemory8(registers.HL);}
+void LD_A_nn (void){registers.A = readMemory8(operand16);}
 void LD_A_n  (void){registers.A = operand8;}
 
 /*
@@ -700,16 +722,16 @@ void LD_A_n  (void){registers.A = operand8;}
  void LD_E_A (void){registers.E = registers.A;}
  void LD_H_A (void){registers.H = registers.A;}
  void LD_L_A (void){registers.L = registers.A;}
- void LD_BC_A (void){memory[registers.HL] = registers.A;}
- void LD_DE_A (void){memory[registers.HL] = registers.A;}
- void LD_HL_A (void){memory[registers.HL] = registers.A;}
- void LD_nn_A (void){memory[operand16] = registers.A;}
+ void LD_BC_A (void){writeMemory(registers.BC, registers.A);}
+ void LD_DE_A (void){writeMemory(registers.DE, registers.A);}
+ void LD_HL_A (void){writeMemory(registers.HL, registers.A);}
+ void LD_nn_A (void){writeMemory(operand16, registers.A);}
  
  /*
   * LD (C),A
   * Description: Put A into address $FF00 + register C.
   */
-  void LD_MC_A (void) {memory[0xFF00+registers.C] = registers.A;}
+  void LD_MC_A (void) {writeMemory(0xFF00 + registers.C, registers.A);}
   
 /*
  * LDD (HL),A
@@ -718,7 +740,7 @@ void LD_A_n  (void){registers.A = operand8;}
  * Same as: LD (HL),A - DEC HL
  */
 void LDD_HL_A (void) {    
-    memory[registers.HL] = registers.A;
+    writeMemory(registers.HL, registers.A);
 // flags are not affected according to cinoop    
 //    if (memory[registers.HL] & 0x0F)
 //        resetFlag(HALF_CARRY_F);
@@ -745,7 +767,7 @@ question alam:
  * Same as: LD A,(HL) - INC HL
  */
  void LDI_A_HL (void){
-     registers.A = memory[registers.HL];
+     registers.A = readMemory8(registers.HL);
      registers.HL++;
 }
 
@@ -755,7 +777,7 @@ question alam:
  * Same as: LD (HL),A - INC HL
  */
  void LDI_HL_A (void){
-     memory[registers.HL] = registers.A;
+     writeMemory(registers.HL, registers.A);
      registers.HL++;
  }
  
@@ -766,7 +788,7 @@ question alam:
  */
  //void LDH_n_A (void) { memory[0xFF00+operand8] = registers.A; }
 void LDH_n_A (void) { 
-    if (help) {
+/*    if (help) {
         if (registers.A == 0x20){
         memory[0xFF00+operand8] = 0x00ef;
         help = 0;
@@ -777,13 +799,15 @@ void LDH_n_A (void) {
         memory[0xFF00+operand8] = registers.A;
        // exit(1);
     }
+*/
+    writeMemory(0xFF00 + operand8, registers.A);
 } //hardcoded
 /*
  * LDH A,(n)
  * Description: Put memory address $FF00+n into A.
  * Use with: n = one byte immediate value.
  */
-  void LDH_A_n (void) { registers.A = memory[0xFF00+operand8]; 
+  void LDH_A_n (void) { registers.A = readMemory8(0xFF00 + operand8); 
   }
  
 /********************
@@ -842,7 +866,7 @@ void ADD_A_D (void){ add (registers.A, registers.D); }
 void ADD_A_E (void){ add (registers.A, registers.E); }
 void ADD_A_H (void){ add (registers.A, registers.H); }
 void ADD_A_L (void){ add (registers.A, registers.L); }
-void ADD_A_HL (void){ add (registers.A, memory[registers.HL]); }
+void ADD_A_HL (void){ add (registers.A, readMemory8(registers.HL)); }
 void ADD_A_n (void){ add (registers.A, operand8); }
 /*
  * ADC A,n
@@ -861,7 +885,7 @@ void ADC_A_D (void){ adc (registers.A, registers.D); }
 void ADC_A_E (void){ adc (registers.A, registers.E); }
 void ADC_A_H (void){ adc (registers.A, registers.H); }
 void ADC_A_L (void){ adc (registers.A, registers.L); }
-void ADC_A_HL (void){ adc (registers.A, memory[registers.HL]); }
+void ADC_A_HL (void){ adc (registers.A, readMemory8(registers.HL)); }
 void ADC_A_n (void){ adc (registers.A, operand8); }
 /*
  * SUB n
@@ -881,7 +905,7 @@ void ADC_A_n (void){ adc (registers.A, operand8); }
  void SUB_E (void) { sub (registers.E);}
  void SUB_H (void) { sub (registers.H);}
  void SUB_L (void) { sub (registers.L);}
- void SUB_HL (void) { sub (memory[registers.HL]);}
+ void SUB_HL (void) { sub (readMemory8(registers.HL));}
  void SUB_n (void) { sub (operand8);}
  
 /*
@@ -901,7 +925,7 @@ void XOR_D (void) { xor (registers.D); }
 void XOR_E (void) { xor (registers.E); }
 void XOR_H (void) { xor (registers.H); }
 void XOR_L (void) { xor (registers.L); }
-void XOR_HL (void) { xor (memory[registers.HL]); }
+void XOR_HL (void) { xor (readMemory8(registers.HL)); }
 void XOR_n (void) { xor (operand8); }
 
 /*
@@ -921,7 +945,7 @@ void XOR_n (void) { xor (operand8); }
  void AND_E (void) {cpu_and (registers.E);}
  void AND_H (void) {cpu_and (registers.H);}
  void AND_L (void) {cpu_and (registers.L);}
- void AND_HL (void) {cpu_and (memory[registers.HL]);}
+ void AND_HL (void) {cpu_and (readMemory8(registers.HL));}
  void AND_n (void) {cpu_and (operand8);}
 
  
@@ -942,7 +966,7 @@ void XOR_n (void) { xor (operand8); }
  void OR_E (void) {or (registers.E);}
  void OR_H (void) {or (registers.H);}
  void OR_L (void) {or (registers.L);}
- void OR_HL (void) {or (memory[registers.HL]);}
+ void OR_HL (void) {or (readMemory8(registers.HL));}
  void OR_n (void) {or (operand8);}
  
 /*
@@ -963,7 +987,7 @@ void XOR_n (void) { xor (operand8); }
  void CP_E (void) {comp (registers.E);}
  void CP_H (void) {comp (registers.H);}
  void CP_L (void) {comp (registers.L);}
- void CP_HL (void) {comp (memory[registers.HL]);}
+ void CP_HL (void) {comp (readMemory8(registers.HL));}
  void CP_n (void) {comp (operand8);}
  
 /*

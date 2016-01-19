@@ -103,7 +103,7 @@ memory[0xFF00] = 0xdf; //wtf
 }
 
 unsigned char readMemory8 (unsigned short address){
-    return memory[address];    
+    return memory[address];
 }
 
 unsigned short readMemory16 (unsigned short address){
