@@ -1,4 +1,7 @@
 bobonis
+    - Hardcoded FF00 at DF. It's at writememory. We should implement INPUT
+
+bobonis
     - Global use of readMemory and writeMemory in cpu.c
 
 bobonis
