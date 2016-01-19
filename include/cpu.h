@@ -300,15 +300,9 @@ void RETI (void);
 void CB (void);
 
 void SWAP_A (void);
-//void RES_0_A (void);
-
-
-
-
-//SET
-//void SET_0_E (void);
-
-
+void RES_0_A (void);
+void BIT_7_H (void);
+void  RL_C (void);
 
 
 	
