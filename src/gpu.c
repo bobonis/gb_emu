@@ -39,9 +39,9 @@ int gpu_cycles = 0;
  */
 void gpu (int cycles){
 
-    if (gpuCheckStatus() == FALSE){
-        return;
-    }    
+    //if (gpuCheckStatus() == FALSE){
+    //    return;
+    //}    
     gpu_cycles += cycles;
     switch (gpu_state){
         
@@ -60,9 +60,9 @@ void gpu (int cycles){
         case H_BLANK:
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
-                printf("\n SCANLINE = %d \n",memory[LY]);                
+                //printf("\n SCANLINE = %d \n",memory[LY]);                
                 memory[LY] += 1;          //Scanning a line completed, move to next
-                display();              //temporary solution
+                //display();              //temporary solution
 
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      
@@ -82,7 +82,7 @@ void gpu (int cycles){
                 if (memory[LY] > 153){
                     memory[LY] = 0;
                     gpuChangeMode(SCAN_OAM);
-   //                 display();           
+                    display();           
                 }
             }
             break;
@@ -178,8 +178,8 @@ void gpuChangeMode(int mode){
      int using_signed = FALSE;
      int using_window = FALSE;
      int tileset_number;
-     int bit_1;
-     int bit_2;
+     unsigned char bit_1;
+     unsigned char bit_2;
      int pixel;
      
      
@@ -277,45 +277,51 @@ void gpuChangeMode(int mode){
         else
             tileset_offset = tileset_start_addr + (tileset_number * 16);
             
-        bit_1 = (readMemory8(tileset_offset + ((posY % 8) * 2)) >> (posX % 8)) & 0x01; //do some magic
-        bit_2 = (readMemory8(tileset_offset + ((posY % 8) * 2) + 1) >> (posX % 8)) & 0x01; //do some more magic   
+        bit_1 = (readMemory8(tileset_offset + ((posY % 8) * 2)) >> (posX % 8)) & 0x1; //do some magic
+        bit_2 = (readMemory8(tileset_offset + ((posY % 8) * 2) + 1) >> (posX % 8)) & 0x1; //do some more magic
         colour = (bit_2 << 1) | bit_1;
 
         //Pass colour through the palette
         switch (colour){
-            case 00:
+            case 0b00:
                 colour = testBit(BGP,0) | (testBit(BGP,1) << 1);
                 break;
             
-            case 01:
+            case 0b01:
                 colour = testBit(BGP,2) | (testBit(BGP,3) << 1);
                 break;
                 
-            case 10:
+            case 0b10:
                 colour = testBit(BGP,4) | (testBit(BGP,5) << 1);
                 break;
 
-            case 11:
+            case 0b11:
                 colour = testBit(BGP,6) | (testBit(BGP,7) << 1);          
                 break;
+            default:
+                printf("COLOUR1 = %d\n",colour);
+                exit(1);
         }
         //Set actuall dot colour
         switch (colour){
-            case 00:
+            case 0b00:
                 red = 0xFF; green = 0xFF; blue = 0xFF;
                 break;
             
-            case 01:
+            case 0b01:
                 red = 0xCC; green = 0xCC; blue = 0xCC;
                 break;
                 
-            case 10:
+            case 0b10:
                 red = 0x77; green = 0x77; blue = 0x77;
                 break;
 
-            case 11:
+            case 0b11:
                 red = 0x00; green = 0x00; blue = 0x00;         
                 break;
+            default:
+                printf("COLOUR2 = %d\n",colour);            
+                exit(1);                
         }
         //Finaly...
         /*

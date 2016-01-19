@@ -9,6 +9,7 @@
 
 #define LY      0xFF44 //Vertical line counter
 
+
 unsigned short test;
 
 struct registers registers;
@@ -108,6 +109,35 @@ unsigned char readMemory8 (unsigned short address){
 
 unsigned short readMemory16 (unsigned short address){
     return (memory[address] | (memory[address + 1] << 8));
+}
+
+void writeMemory (unsigned short pos, unsigned char value){
+    
+   
+    if (pos == 0xFF07){
+        updateFrequency();
+    }
+    else if (pos == 0xFF46){    //DMA
+        directMemoryAccess(value);
+    }
+    else if (pos == LY){        // Writing will reset the counter
+        memory[LY] = 0;
+    }
+    else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
+        memory[pos] = value ;
+        writeMemory(pos - 0x2000, value) ;
+    }
+    else if ( pos < 0x8000 ){  // dont allow any writing to the read only memory
+    }
+    else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
+    }
+    else if (pos == 0xFF00){
+        
+    }
+    else{ //default
+        memory[pos] = value;
+    }
+
 }
 
 void setFlag (unsigned char flag){
@@ -340,19 +370,6 @@ void dec (unsigned char *value1){
 
 }
 
-
-void writeMemory (unsigned short pos, unsigned char value){
-    memory[pos] = value;
-    
-    switch (pos){
-        case 0xFF07:
-            updateFrequency();
-            break;
-        case LY:    // Writing will reset the counter
-            memory[LY] = 0;
-    }
-}
-
 unsigned char readMemory (unsigned short pos){
     return memory[pos];
 }
@@ -447,3 +464,12 @@ Please check my assumption and provide your feedback
     registers.SP += 2;
     return value;
 }
+
+
+void directMemoryAccess(unsigned char value){
+    int i;
+    unsigned short address = value << 8 ; // source address is data * 100
+    for (i = 0 ; i < 0xA0; i++){
+        writeMemory(0xFE00+i, readMemory8(address+i)) ;
+    }
+} 
