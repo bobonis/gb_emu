@@ -60,8 +60,9 @@ void gpu (int cycles){
         case H_BLANK:
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
+                printf("\n SCANLINE = %d \n",memory[LY]);                
                 memory[LY] += 1;          //Scanning a line completed, move to next
-                //display();              //temporary solution
+                display();              //temporary solution
 
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      

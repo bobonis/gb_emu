@@ -1,15 +1,33 @@
-1. Verify that decreasing a register when it's value is 0x00 the result is 0x00 or 0xFF
-    -bobonis: I think thats the correct handling. We can close this issue
-2. Verify when to step timer (equal or greater or both)
-3. Implement divider timer (modulo?)
-4 .Hit on EXTENDED opcode... The cpu.debug from cinoop is too small now,
-    -->could you please run an extended version in order to understand if we are ok
-    -->and if extended are indeed mandatory, eg. for Tetris.
-    -bobonis Bingo!!!!
-        [DEBUG] OPC-0x002f, PC-0x29b2, SP-0xcffd, ARG-0x0000, A=0x10, B=0x00, C=0x00, D=0x00, E=0xd8, F=0xe0, H=0x97, L=0xff
-        [DEBUG] OPC-0x00e6, PC-0x29b3, SP-0xcffd, ARG-0x000f, A=0x00, B=0x00, C=0x00, D=0x00, E=0xd8, F=0xa0, H=0x97, L=0xff
-    --> [DEBUG] OPC-0x00cb, PC-0x29b5, SP-0xcffd, ARG-0x0037, A=0x00, B=0x00, C=0x00, D=0x00, E=0xd8, F=0x80, H=0x97, L=0xff
-        [DEBUG] OPC-0x0047, PC-0x29b7, SP-0xcffd, ARG-0x0000, A=0x00, B=0x00, C=0x00, D=0x00, E=0xd8, F=0x80, H=0x97, L=0xff
-        [DEBUG] OPC-0x003e, PC-0x29b8, SP-0xcffd, ARG-0x0010, A=0x10, B=0x00, C=0x00, D=0x00, E=0xd8, F=0x80, H=0x97, L=0xff
-        [DEBUG] OPC-0x00e0, PC-0x29ba, SP-0xcffd, ARG-0x0000, A=0x10, B=0x00, C=0x00, D=0x00, E=0xd8, F=0x80, H=0x97, L=0xff
-        [DEBUG] OPC-0x00f0, PC-0x29bc, SP-0xcffd, ARG-0x0000, A=0xdf, B=0x00, C=0x00, D=0x00, E=0xd8, F=0x80, H=0x97, L=0xff
+CPU 
+- Implement all opcodes 
+- Implement all extended opcodes 
+- Execute the test roms to check accuracy 
+-  
+
+MEMORY 
+- Handle MBC
+
+TIMERS
+- Implement divider timer (modulo?)
+- Verify when to step timer (equal or greater or both)
+
+GPU 
+- Handle sprites 
+
+DISPLAY 
+- Use correct colors 
+- Support Full screen 
+- Support resize 
+
+INPUT 
+- Everything 
+
+SOUND 
+- Everything 
+
+PRINTOUTS 
+- Code correct debug routines 
+
+GUI 
+- Everything 
+

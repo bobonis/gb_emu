@@ -1,4 +1,7 @@
 bobonis
+    - Global use of readMemory and writeMemory in cpu.c
+
+bobonis
     - Bios boot is now switchable via USINGBIOS flag in memory.h
 
 bobonis
