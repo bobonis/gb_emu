@@ -27,6 +27,7 @@ unsigned short stackPop16 (void);
 unsigned char readMemory8 (unsigned short address);
 unsigned short readMemory16 (unsigned short address);
 void directMemoryAccess(unsigned char value);
+unsigned char sla (unsigned char value);
 /* The GameBoy has eight 8-bit registers A,B,C,D,E,F,H,L 
  * and two 16-bit registers SP & PC.
  * Some instructions, however, allow you to use the 

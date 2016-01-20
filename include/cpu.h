@@ -244,6 +244,7 @@ void ADD_HL_SP (void);
 /********************
  * Miscellaneous    *
  ********************/
+void DAA (void); 
 void CPL (void);
 void CCF (void);
 void NOP (void);
@@ -252,6 +253,13 @@ void EI (void);
 /********************
  * Rotates & Shifts *
  ********************/
+void SLA_A (void);
+void SLA_B (void);
+void SLA_C (void);
+void SLA_D (void);
+void SLA_E (void);
+void SLA_H (void);
+void SLA_L (void); 
 /********************
  * Bit Opcodes      *
  ********************/
