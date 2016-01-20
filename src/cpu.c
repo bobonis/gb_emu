@@ -558,23 +558,23 @@ int execute (void){
     }    
 
 
-    //printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+    printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
-			//printf("ARG-0x0000, ");
+			printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
-			//printf("ARG-0x%04x, ",operand8);
+			printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
 			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
-			//printf("ARG-0x%04x, ",operand16);
+			printf("ARG-0x%04x, ",operand16);
 			break;
        /* case 3 :
             instruction = memory[registers.PC+1];
@@ -595,8 +595,8 @@ int execute (void){
     }
     
 
-//            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[SP]=0x%04x\n"
-//            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[registers.SP + 1]);
+            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
+            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
 
 	return cpuCycles;
 	
