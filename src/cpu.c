@@ -41,7 +41,7 @@ const struct opCode opCodes[256] = {
 	{INC_D,     0,  4, "INC_D"},		// 0x14
 	{DEC_D,     0,  4, "DEC_D"},		// 0x15
 	{LD_D_n,	1,	8, "LD_D_n"},		// 0x16
-	{tempfunction,0},		// 0x17
+	{RLA,       0,  4, "RLA"},  		// 0x17
 	{JR_n,		1,	8, "JR_n"},		    // 0x18
 	{ADD_HL_DE, 0,  8, "ADD_HL_DE"},	// 0x19
 	{LD_A_DE,   0,  8, "LD_A_DE"},		// 0x1A
@@ -558,23 +558,23 @@ int execute (void){
     }    
 
 
-    //printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+//    printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
-			//printf("ARG-0x0000, ");
+//			printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
-			//printf("ARG-0x%04x, ",operand8);
+//			printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
 			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
-			//printf("ARG-0x%04x, ",operand16);
+//			printf("ARG-0x%04x, ",operand16);
 			break;
        /* case 3 :
             instruction = memory[registers.PC+1];
@@ -596,7 +596,7 @@ int execute (void){
     
 
 //            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[SP]=0x%04x\n"
-//            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[registers.SP + 1]);
+//           ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[registers.SP + 1]);
 
 	return cpuCycles;
 	
@@ -782,18 +782,6 @@ question alam:
  */
  //void LDH_n_A (void) { memory[0xFF00+operand8] = registers.A; }
 void LDH_n_A (void) { 
-/*    if (help) {
-        if (registers.A == 0x20){
-        memory[0xFF00+operand8] = 0x00ef;
-        help = 0;
-        }
-        //exit(1);
-    }
-    else{
-        memory[0xFF00+operand8] = registers.A;
-       // exit(1);
-    }
-*/
     writeMemory(0xFF00 + operand8, registers.A);
 } //hardcoded
 /*
@@ -1213,7 +1201,31 @@ void SLA_D (void) {registers.D = sla(registers.D);}
 void SLA_E (void) {registers.E = sla(registers.E);}
 void SLA_H (void) {registers.H = sla(registers.H);}
 void SLA_L (void) {registers.L = sla(registers.L);}
-
+/*
+ * RLA
+ * Description: Rotate A left through Carry flag.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
+ 
+ void RLA (void) {
+//     cinoop sucks
+//     int carry = testFlag(CARRY_F) ? 1 : 0;
+	int carry = testFlag(CARRY_F);
+	if (registers.A & 0x80) 
+       setFlag(CARRY_F);
+	else 
+       resetFlag(CARRY_F);
+	
+	registers.A <<= 1;
+	registers.A += carry;
+	
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+ }
 /********************
  * Bit Opcodes      *
  ********************/
@@ -1334,8 +1346,9 @@ void SWAP_A (void) {
 }
 
 void RES_0_A (void) {
-    //registers.A &= 0xFE;
-    registers.A &= ~(1 << 0);
+    registers.A &= 0xFE;
+//    cinoop sucks
+//    registers.A &= ~(1 << 0);
     cpuCycles += 8;
 }
 
@@ -1345,7 +1358,7 @@ void BIT_7_H (void) {
         resetFlag(ZERO_F);
     else
         setFlag(ZERO_F);
-    
+   
     
     resetFlag(SUBSTRACT_F);
     setFlag(HALF_CARRY_F);
@@ -1353,8 +1366,9 @@ void BIT_7_H (void) {
 }
 
 void  RL_C (void){
-    
-    	int carry = testFlag(CARRY_F) ? 1 : 0;
+//cinoop sucks    
+//    	int carry = testFlag(CARRY_F) ? 1 : 0;
+    	int carry = testFlag(CARRY_F);
         if (registers.C&0x80)
            setFlag(CARRY_F);
         else

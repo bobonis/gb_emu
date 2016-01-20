@@ -253,13 +253,16 @@ void EI (void);
 /********************
  * Rotates & Shifts *
  ********************/
+//SLA,n
 void SLA_A (void);
 void SLA_B (void);
 void SLA_C (void);
 void SLA_D (void);
 void SLA_E (void);
 void SLA_H (void);
-void SLA_L (void); 
+void SLA_L (void);
+//RLA 
+void RLA (void);
 /********************
  * Bit Opcodes      *
  ********************/
