@@ -1,6 +1,7 @@
 #include "memory.h"
 #include <stdio.h>
 #include "timers.h"
+#include "input.h"
 
 #define ZERO_F 			7
 #define SUBSTRACT_F		6
@@ -104,7 +105,13 @@ memory[0xFF00] = 0xdf; //wtf
 }
 
 unsigned char readMemory8 (unsigned short address){
-    return memory[address];
+    
+    if (address == 0xFF00){ //Read Joypad
+        return inputReadKeys();
+    }
+    else {
+        return memory[address];
+    }
 }
 
 unsigned short readMemory16 (unsigned short address){
@@ -131,9 +138,9 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
     }
-    else if (pos == 0xFF00){
+    //else if (pos == 0xFF00){
         
-    }
+    //}
     else{ //default
         memory[pos] = value;
     }
@@ -368,6 +375,29 @@ void dec (unsigned char *value1){
 
     setFlag(SUBSTRACT_F);
 
+}
+
+unsigned char sla (unsigned char value){
+    
+    if (value & 0x80){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    value = value << 1;
+    
+    if (value){
+        resetFlag(ZERO_F);
+    }
+    else{
+        setFlag(ZERO_F);
+    }
+    return value;
 }
 
 unsigned char readMemory (unsigned short pos){

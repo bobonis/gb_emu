@@ -57,7 +57,7 @@ const struct opCode opCodes[256] = {
 	{INC_H,     0,  4, "INC_H"},		// 0x24
 	{DEC_H,     0,  4, "DEC_H"},		// 0x25
 	{LD_H_n,	1,	8, "LD_H_n"},		// 0x26
-	{tempfunction,0},		// 0x27
+	{DAA,       0,  4,  "DAA"},   		// 0x27
 	{JR_Z_n,	1,	8, "JR_Z_n"},		// 0x28
 	{ADD_HL_HL, 0,  8, "ADD_HL_HL"},	// 0x29
 	{LDI_A_HL,  0,  8,  "LDI_A_HL"},	// 0x2A
@@ -311,14 +311,14 @@ const struct extendedopCode extendedopCodes[256] = {
 	{tempfunction,0},		    // 0x1D
 	{tempfunction,0},		    // 0x1E
 	{tempfunction,0},		    // 0x1F
-	{tempfunction,0},		    // 0x20
-	{tempfunction,0},		    // 0x21
-	{tempfunction,0},		    // 0x22
-	{tempfunction,0},		    // 0x23
-	{tempfunction,0},		    // 0x24
-	{tempfunction,0},		    // 0x25
-	{tempfunction,0},		    // 0x26
-	{tempfunction,0},		    // 0x27
+	{SLA_B,       0,     8},    // 0x20
+	{SLA_C,       0,     8},    // 0x21
+	{SLA_D,       0,     8},    // 0x22
+	{SLA_E,       0,     8},    // 0x23
+	{SLA_H,       0,     8},    // 0x24
+	{SLA_L,       0,     8},    // 0x25
+	{tempfunction,0},           // 0x26
+	{SLA_A,       0,     8},    // 0x27
 	{tempfunction,0},		    // 0x28
 	{tempfunction,0},		    // 0x29
 	{tempfunction,0},		    // 0x22
@@ -545,6 +545,7 @@ int execute (void){
     instruction = readMemory8(registers.PC);
 
     if (instruction == 0xCB){
+        //printf("[DEBUG] CB \n");
         instruction = readMemory8(++registers.PC);
         cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
@@ -556,28 +557,24 @@ int execute (void){
         operand_length = opCodes[instruction].opLength;
     }    
 
-	
-	//printf("[DEBUG] Opcode    - 0x%04x, P counter - 0x%04x, S pointer - 0x%04x\n",memory[registers.PC],registers.PC,registers.SP);
-    // printf("[DEBUG] Registers - A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-    //             ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-    //printf("[DEBUG] OPC-0x%04x-[%s],\tPC-0x%04x, SP-0x%04x, ",instruction,opCodes[instruction].function_name,registers.PC,registers.SP);
 
-    printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+    //printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
-			printf("ARG-0x0000, ");
+			//printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
-			printf("ARG-0x%04x, ",operand8);
+			//printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
 			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
-			printf("ARG-0x%04x, ",operand16);
+			//printf("ARG-0x%04x, ",operand16);
 			break;
        /* case 3 :
             instruction = memory[registers.PC+1];
@@ -589,8 +586,7 @@ int execute (void){
             break;
        */
 	};
-    
-	//opCodes[memory[registers.PC]].function();
+
     if (extended_opcode){
         ((void (*)(void))extendedopCodes[instruction].function)();
     }
@@ -599,10 +595,8 @@ int execute (void){
     }
     
 
-//    printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-//        ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[ff00]=0x%04x\n"
-            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xFF00]);
+//            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[SP]=0x%04x\n"
+//            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[registers.SP + 1]);
 
 	return cpuCycles;
 	
@@ -1092,6 +1086,62 @@ void DEC_MHL (void) {dec (&memory[registers.HL]);
  * Miscellaneous    *
  ********************/
 /*
+ * Description: Decimal adjust register A.
+ * This instruction adjusts register A so that the
+ * correct representation of Binary Coded Decimal (BCD)
+ * is obtained.
+ * Flags affected:
+ * Z - Set if register A is zero.
+ * N - Not affected.
+ * H - Reset.
+ * C - Set or reset according to operation.
+ */
+/*  When this instruction is executed, the A register 
+    is BCD corrected using the contents of the flags. 
+    The exact process is the following: if the least 
+    significant four bits of A contain a non-BCD digit 
+    (i. e. it is greater than 9) or the H flag is set, 
+    then $06 is added to the register. Then the four 
+    most significant bits are checked. If this more 
+    significant digit also happens to be greater than 9 
+    or the C flag is set, then $60 is added.
+*/
+
+void DAA (void){
+    unsigned char H0,H1;
+    unsigned short value = registers.A;
+   
+    H0 = registers.A & 0x0F;
+    H1 = (registers.A & 0xF0) >> 4;
+    // if the lower 4 bits form a number greater than 9 or H is set, add $06 to the accumulator
+    if ( (H0 > 0x09) || ( testFlag( HALF_CARRY_F ) == TRUE )){
+        value += 0x06;
+    }
+    // if the upper 4 bits form a number greater than 9 or C is set, add $60 to the accumulator
+    if ( (H1 > 0x09) || ( testFlag( CARRY_F ) == TRUE )){
+        value += 0x60;
+    }
+    
+    if (value >= 0x100){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    resetFlag(HALF_CARRY_F);
+    
+    if (registers.A){
+        resetFlag(ZERO_F);
+    }
+    else{
+        setFlag(ZERO_F);
+    }
+    
+    registers.A = value & 0xFF;
+}
+
+/*
  * CPL
  * Description: Complement A register. (Flip all bits.)
  * Flags affected:
@@ -1147,6 +1197,23 @@ void DEC_MHL (void) {dec (&memory[registers.HL]);
 /********************
  * Rotates & Shifts *
  ********************/
+/*
+ * SLA n
+ * Description: Shift n left into Carry. LSB of n set to 0.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
+void SLA_A (void) {registers.A = sla(registers.A);}
+void SLA_B (void) {registers.B = sla(registers.B);}
+void SLA_C (void) {registers.C = sla(registers.C);}
+void SLA_D (void) {registers.D = sla(registers.D);}
+void SLA_E (void) {registers.E = sla(registers.E);}
+void SLA_H (void) {registers.H = sla(registers.H);}
+void SLA_L (void) {registers.L = sla(registers.L);}
+
 /********************
  * Bit Opcodes      *
  ********************/

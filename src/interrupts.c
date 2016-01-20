@@ -1,5 +1,6 @@
 #include "interrupts.h"
 #include "memory.h"
+#include <stdio.h>
 
 unsigned char interruptMaster;
 
@@ -10,6 +11,7 @@ unsigned char interruptMaster;
  */
 void triggerInterrupt(int interrupt){
     setBit(IFR, interrupt, TRUE);
+    printf ("[DEBUG] INTERRUPT TRIGGERED - %d\n",interrupt);
 }
 
 
