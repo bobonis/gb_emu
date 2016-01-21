@@ -39,10 +39,12 @@ int gpu_cycles = 0;
  */
 void gpu (int cycles){
 
-    //if (gpuCheckStatus() == FALSE){
-    //    return;
-    //}    
+    if (gpuCheckStatus() == FALSE){
+        return;
+    }    
+    
     gpu_cycles += cycles;
+    
     switch (gpu_state){
         
         case SCAN_OAM:
@@ -60,7 +62,7 @@ void gpu (int cycles){
         case H_BLANK:
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
-                //printf("\n SCANLINE = %d \n",memory[LY]);                
+
                 memory[LY] += 1;          //Scanning a line completed, move to next
                 //display();              //temporary solution
 
@@ -70,7 +72,6 @@ void gpu (int cycles){
                 else {
                     gpuChangeMode(SCAN_OAM);
                 }
-
             } 
             break;
             
@@ -87,7 +88,7 @@ void gpu (int cycles){
             }
             break;
     }
-};
+}
 
 /*
  * Check if LCD has been turned off.
@@ -103,7 +104,6 @@ int gpuCheckStatus(void){
         setBit(STAT,1,FALSE);
         return FALSE;
     }
-    
     return TRUE;
 }
 
@@ -160,9 +160,22 @@ void gpuChangeMode(int mode){
     else{
         setBit(STAT,2,FALSE);
     }
-    
 }
 
+/* Check LCDC register
+ * Decide to render the background
+ * and the sprites on current scanline
+ */
+void gpuDrawScanline(void){
+
+    if (testBit(LCDC,0)){
+        gpuRenderBackground();
+    }
+
+    if (testBit(LCDC,0)){
+        gpuRenderSprites();
+    }
+}
 /*
  * Region	    Usage
  * ---------    -----------------------------
@@ -173,75 +186,71 @@ void gpuChangeMode(int mode){
  * 9800-9BFF	Tile map #0
  * 9C00-9FFF	Tile map #1
  */
-  void gpuDrawScanline(void){
+void gpuRenderBackground(void){
      
-     int using_signed = FALSE;
-     int using_window = FALSE;
-     int tileset_number;
-     unsigned char bit_1;
-     unsigned char bit_2;
-     int pixel;
+    int using_signed = FALSE;
+    int using_window = FALSE;
+    int tileset_number;
+    unsigned char bit_1;
+    unsigned char bit_2;
+    int pixel;
      
      
-     unsigned char colour;
-     unsigned char red;
-     unsigned char green;
-     unsigned char blue;
+    unsigned char colour;
+    unsigned char red;
+    unsigned char green;
+    unsigned char blue;
      
-     unsigned char posX = readMemory8(SCX);
-     unsigned char posY = readMemory8(SCY) + readMemory8(LY);
-     unsigned char windowX = readMemory8(WX) - 7;
-     unsigned char windowY = readMemory8(WY);
+    unsigned char posX = readMemory8(SCX);
+    unsigned char posY = readMemory8(SCY) + readMemory8(LY);
+    unsigned char windowX = readMemory8(WX) - 7;
+    unsigned char windowY = readMemory8(WY);
  
-     unsigned short tileset_start_addr;    //Tile Set start address in memory
-     unsigned short tilemap_start_addr;    //Tile Map start address in memory
-     unsigned short window_start_addr;     //Window start address in memory
+    unsigned short tileset_start_addr;    //Tile Set start address in memory
+    unsigned short tilemap_start_addr;    //Tile Map start address in memory
+    unsigned short window_start_addr;     //Window start address in memory
      
-     unsigned short tileset_offset;
-     unsigned short tilemap_offset;    
+    unsigned short tileset_offset;
+    unsigned short tilemap_offset;    
 
-     /*
-      * RENDER BACKROUND 
-      */
-
-     //Initialize flags and memory addresses
-     if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
+    //Initialize flags and memory addresses
+    if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
         if (readMemory8(LY) >= readMemory8(WY)){//Current scanline is after window position
             using_window = TRUE;
             posY = readMemory8(LY) - windowY;
         }
-     }
+    }
 
-     if (using_window == TRUE){
+    if (using_window == TRUE){
         if (testBit(LCDC,6) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
             tilemap_start_addr = 0x9800;
-           // using_signed = TRUE;            //tilemap number is signed number
-        }
-        else{
+            // using_signed = TRUE;            //tilemap number is signed number
+       }
+       else{
             tilemap_start_addr = 0x9C00;
-        }
-     }
-     else{
-        if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
-            tilemap_start_addr = 0x9800;
-           // using_signed = TRUE;            //tilemap number is signed number
-        }
-        else{
-            tilemap_start_addr = 0x9C00;
-        }         
-     }
+       }
+    }
+    else{
+       if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+           tilemap_start_addr = 0x9800;
+          // using_signed = TRUE;            //tilemap number is signed number
+       }
+       else{
+           tilemap_start_addr = 0x9C00;
+       }         
+    }
      
-     if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
+    if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
         tileset_start_addr = 0x8800;
         using_signed = TRUE;
-     }
-     else{
+    }
+    else{
         tileset_start_addr = 0x8000;
         using_signed = FALSE;
-     }
+    }
      
-     //Loop for every pixel in the scanline
-     for (pixel=0;pixel<160;pixel++){
+    //Loop for every pixel in the scanline
+    for (pixel=0;pixel<160;pixel++){
         
         //should read tile for every pixel??
         posX = pixel + readMemory8(SCX);
@@ -251,33 +260,25 @@ void gpuChangeMode(int mode){
             }
         }
         
-        //printf("[DEBUG] posX - %d, posY - %d\n",posX,posY);
         tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
-        
-        //printf("[DEBUG] Tilemap offset - %d\n",tilemap_offset);
         
         if (using_signed == TRUE)   //find tileset number
             tileset_number = (signed)readMemory8(tilemap_start_addr + tilemap_offset);
         else
             tileset_number = readMemory8(tilemap_start_addr + tilemap_offset);
-        
-        //printf("[DEBUG] Tileset number - %d\n",tileset_number);
             
         if (using_signed == TRUE)   //find tile
             tileset_offset = tileset_start_addr + ((tileset_number + 128) * 16);
         else
             tileset_offset = tileset_start_addr + (tileset_number * 16);
         
-       // printf("[DEBUG] Tileset offset - %d\n",tileset_offset);
-        
+                
         //read tile row contents
         unsigned char tile_1 = readMemory8( tileset_offset + ( ( posY % 8 ) * 2 ) );
         unsigned char tile_2 = readMemory8( tileset_offset + ( ( posY % 8 ) * 2) + 1);
         //read pixel from tile row
         bit_1 = ((tile_1 << ( posX % 8 )) & 0x80 ) >> 7;
         bit_2 = ((tile_2 << ( posX % 8 )) & 0x80 ) >> 7;
-        //bit_1 = ( readMemory8(tileset_offset + ((posY % 8) * 2)) >> ((posX % 8)) & 0x80); //do some magic
-        //bit_2 = ( readMemory8(tileset_offset + ((posY % 8) * 2) + 1) >> ((posX % 8)) & 0x80); //do some more magic
         colour = (bit_2 << 1) | bit_1;
 
         //Pass colour through the palette
@@ -322,26 +323,11 @@ void gpuChangeMode(int mode){
                 printf("COLOUR2 = %d\n",colour);            
                 exit(1);                
         }
-        //Finaly...
-        /*
-        framebuffer[pixel][readMemory8(LY)][0] = red;
-        framebuffer[pixel][readMemory8(LY)][1] = green;
-        framebuffer[pixel][readMemory8(LY)][2] = blue;
-        */
+
         framebuffer[readMemory8(LY)][pixel][0] = red;
         framebuffer[readMemory8(LY)][pixel][1] = green;
         framebuffer[readMemory8(LY)][pixel][2] = blue;
-        
-        //printf("[DEBUG] Next Tile\n\n");
-        
      }
-
-     /*
-      * RENDER SPRITES 
-      */          
-      if (testBit(LCDC,1)){
-          //gpuRenderSprites();
-      }
  }
 /* 4 bytes for each sprite starting at 0xFE00
  * byte 0 - sprite Y position
@@ -371,7 +357,9 @@ void gpuRenderSprites(void){
         //using_8x16_sprites = TRUE;
         sprite_size = 16;
     }
-
+     /*
+      * RENDER SPRITES 
+      */   
    
     for (sprite = 0; sprite < 40; sprite++){
         

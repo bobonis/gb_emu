@@ -205,19 +205,19 @@ void add (unsigned short value1, unsigned short value2){
         setFlag(CARRY_F);
     else
         resetFlag(CARRY_F);
-    if ((value1 + value2) > 15)  
+    if (((value1 & 0xF) + (value2 & 0xF)) > 15)  //bobonis needs deskcheck
         setFlag(HALF_CARRY_F);
     else
         resetFlag(HALF_CARRY_F);
     
-    if ((value1 + value2) == 0)  
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-    
     resetFlag(SUBSTRACT_F);
     
     registers.A = value1 + value2;
+
+    if (registers.A == 0x00)  
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);    
 }
 
 void add16 (unsigned short value1){
