@@ -209,19 +209,13 @@ void gpuChangeMode(int mode){
         if (readMemory8(LY) >= readMemory8(WY)){//Current scanline is after window position
             using_window = TRUE;
             posY = readMemory8(LY) - windowY;
-            if (testBit(LCDC,6) == TRUE){  //Window Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
-                window_start_addr = 0x9C00;
-            }
-            else{
-                window_start_addr = 0x9888;
-            }
         }
      }
 
      if (using_window == TRUE){
         if (testBit(LCDC,6) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
             tilemap_start_addr = 0x9800;
-            using_signed = TRUE;            //tilemap number is signed number
+           // using_signed = TRUE;            //tilemap number is signed number
         }
         else{
             tilemap_start_addr = 0x9C00;
@@ -230,7 +224,7 @@ void gpuChangeMode(int mode){
      else{
         if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
             tilemap_start_addr = 0x9800;
-            using_signed = TRUE;            //tilemap number is signed number
+           // using_signed = TRUE;            //tilemap number is signed number
         }
         else{
             tilemap_start_addr = 0x9C00;
@@ -239,46 +233,51 @@ void gpuChangeMode(int mode){
      
      if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
         tileset_start_addr = 0x8800;
+        using_signed = TRUE;
      }
      else{
         tileset_start_addr = 0x8000;
+        using_signed = FALSE;
      }
      
      //Loop for every pixel in the scanline
      for (pixel=0;pixel<160;pixel++){
         
         //should read tile for every pixel??
-        posX +=pixel;
+        posX = pixel + readMemory8(SCX);
         if (using_window){
             if (pixel >= windowX){
                 posX = pixel - windowX;
             }
         }
         
-        
-        //should read tile for every pixel??
-        posX +=pixel;
-        if (using_window){
-            if (pixel >= windowX){
-                posX = pixel - windowX;
-            }
-        }
-        
-        
+        //printf("[DEBUG] posX - %d, posY - %d\n",posX,posY);
         tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
+        
+        //printf("[DEBUG] Tilemap offset - %d\n",tilemap_offset);
         
         if (using_signed == TRUE)   //find tileset number
             tileset_number = (signed)readMemory8(tilemap_start_addr + tilemap_offset);
         else
             tileset_number = readMemory8(tilemap_start_addr + tilemap_offset);
+        
+        //printf("[DEBUG] Tileset number - %d\n",tileset_number);
             
         if (using_signed == TRUE)   //find tile
             tileset_offset = tileset_start_addr + ((tileset_number + 128) * 16);
         else
             tileset_offset = tileset_start_addr + (tileset_number * 16);
-            
-        bit_1 = (readMemory8(tileset_offset + ((posY % 8) * 2)) >> (posX % 8)) & 0x1; //do some magic
-        bit_2 = (readMemory8(tileset_offset + ((posY % 8) * 2) + 1) >> (posX % 8)) & 0x1; //do some more magic
+        
+       // printf("[DEBUG] Tileset offset - %d\n",tileset_offset);
+        
+        //read tile row contents
+        unsigned char tile_1 = readMemory8( tileset_offset + ( ( posY % 8 ) * 2 ) );
+        unsigned char tile_2 = readMemory8( tileset_offset + ( ( posY % 8 ) * 2) + 1);
+        //read pixel from tile row
+        bit_1 = ((tile_1 << ( posX % 8 )) & 0x80 ) >> 7;
+        bit_2 = ((tile_2 << ( posX % 8 )) & 0x80 ) >> 7;
+        //bit_1 = ( readMemory8(tileset_offset + ((posY % 8) * 2)) >> ((posX % 8)) & 0x80); //do some magic
+        //bit_2 = ( readMemory8(tileset_offset + ((posY % 8) * 2) + 1) >> ((posX % 8)) & 0x80); //do some more magic
         colour = (bit_2 << 1) | bit_1;
 
         //Pass colour through the palette
@@ -332,6 +331,8 @@ void gpuChangeMode(int mode){
         framebuffer[readMemory8(LY)][pixel][0] = red;
         framebuffer[readMemory8(LY)][pixel][1] = green;
         framebuffer[readMemory8(LY)][pixel][2] = blue;
+        
+        //printf("[DEBUG] Next Tile\n\n");
         
      }
 

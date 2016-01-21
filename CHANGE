@@ -1,3 +1,6 @@
+Bobonis
+    - Many changes from both bakg and alam Finally some progress!
+
 bobonis
     - Hardcoded FF00 at DF. It's at writememory. We should implement INPUT
 

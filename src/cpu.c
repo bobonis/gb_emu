@@ -545,7 +545,7 @@ int execute (void){
     instruction = readMemory8(registers.PC);
 
     if (instruction == 0xCB){
-        //printf("[DEBUG] CB \n");
+        printf("[DEBUG] CB \n");
         instruction = readMemory8(++registers.PC);
         cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
@@ -595,8 +595,8 @@ int execute (void){
     }
     
 
-            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
+            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[SP]=0x%04x\n"
+           ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[registers.SP + 1]);
 
 	return cpuCycles;
 	
