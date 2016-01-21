@@ -11,7 +11,7 @@ unsigned char interruptMaster;
  */
 void triggerInterrupt(int interrupt){
     setBit(IFR, interrupt, TRUE);
-    //printf ("[DEBUG] INTERRUPT TRIGGERED - %d\n",interrupt);
+    printf ("[DEBUG] INTERRUPT TRIGGERED - %d\n",interrupt);
 }
 
 
