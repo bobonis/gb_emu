@@ -14,6 +14,7 @@ const struct extendedopCode{
 
 int execute (void);
 void tempfunction (void);
+void bit (unsigned char pos, unsigned char value);
  /********************
  * 8-Bit Loads       *
  *********************/
@@ -100,6 +101,8 @@ void LD_HL_A (void);
 void LD_nn_A (void);
 //LD (C),A
 void LD_MC_A (void);
+//LDD A,(HL)
+void LDD_A_HL (void);
 //LDI A,(HL)
 void LDI_A_HL (void);
 //LDI (HL),A
@@ -266,6 +269,77 @@ void RLA (void);
 /********************
  * Bit Opcodes      *
  ********************/
+void BIT_0_A (void);
+void BIT_1_A (void);
+void BIT_2_A (void);
+void BIT_3_A (void);
+void BIT_4_A (void);
+void BIT_5_A (void);
+void BIT_6_A (void);
+void BIT_7_A (void);
+
+void BIT_0_B (void);
+void BIT_1_B (void);
+void BIT_2_B (void);
+void BIT_3_B (void);
+void BIT_4_B (void);
+void BIT_5_B (void);
+void BIT_6_B (void);
+void BIT_7_B (void);
+
+void BIT_0_C (void);
+void BIT_1_C (void);
+void BIT_2_C (void);
+void BIT_3_C (void);
+void BIT_4_C (void);
+void BIT_5_C (void);
+void BIT_6_C (void);
+void BIT_7_C (void);
+
+void BIT_0_D (void);
+void BIT_1_D (void);
+void BIT_2_D (void);
+void BIT_3_D (void);
+void BIT_4_D (void);
+void BIT_5_D (void);
+void BIT_6_D (void);
+void BIT_7_D (void);
+
+void BIT_0_E (void);
+void BIT_1_E (void);
+void BIT_2_E (void);
+void BIT_3_E (void);
+void BIT_4_E (void);
+void BIT_5_E (void);
+void BIT_6_E (void);
+void BIT_7_E (void);
+
+void BIT_0_H (void);
+void BIT_1_H (void);
+void BIT_2_H (void);
+void BIT_3_H (void);
+void BIT_4_H (void);
+void BIT_5_H (void);
+void BIT_6_H (void);
+void BIT_7_H (void);
+
+void BIT_0_L (void);
+void BIT_1_L (void);
+void BIT_2_L (void);
+void BIT_3_L (void);
+void BIT_4_L (void);
+void BIT_5_L (void);
+void BIT_6_L (void);
+void BIT_7_L (void);
+
+void BIT_0_HL (void);
+void BIT_1_HL (void);
+void BIT_2_HL (void);
+void BIT_3_HL (void);
+void BIT_4_HL (void);
+void BIT_5_HL (void);
+void BIT_6_HL (void);
+void BIT_7_HL (void);
 /********************
  * Jumps            *
  ********************/
@@ -312,7 +386,6 @@ void CB (void);
 
 void SWAP_A (void);
 void RES_0_A (void);
-void BIT_7_H (void);
 void  RL_C (void);
 
 

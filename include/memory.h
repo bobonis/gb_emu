@@ -1,16 +1,16 @@
 typedef int bool;
 #define TRUE 1
 #define FALSE 0
-#define USINGBIOS FALSE
+#define USINGBIOS TRUE
 
 void memCopy(unsigned char *memory, unsigned short start, unsigned char *buffer, unsigned short length);
 void reset (void);
 void setFlag (unsigned char flag);
 void resetFlag (unsigned char flag);
 int testFlag (unsigned char flag);
-void add (unsigned short value1, unsigned short value2);
-void adc (unsigned short value1, unsigned short value2);
-void xor (unsigned short value1);
+void add (unsigned char value1, unsigned char value2);
+void adc (unsigned char value1, unsigned char value2);
+void xor (unsigned char value1);
 void cpu_and (unsigned char value1);
 void add16 (unsigned short value1);
 void or (unsigned char value);

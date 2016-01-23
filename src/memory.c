@@ -15,7 +15,7 @@ unsigned short test;
 
 struct registers registers;
 unsigned char memory[0xFFFF];
-
+unsigned char memory_backup[256];
 
 const unsigned char bios[256] = {
 //0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
@@ -55,6 +55,7 @@ void reset (void){
         int i;
         registers.PC = 0x0000;
         for (i=0;i<=255;i++){
+            memory_backup[i] = memory[i];   // backup address space that is overwitten from bios
             memory[i] = bios[i];
         }
         
@@ -67,7 +68,7 @@ void reset (void){
 	   registers.HL = 0x014D;
 	   registers.SP = 0xFFFE;
 	   registers.PC = 0x0100;
-memory[0xFF00] = 0xdf; //wtf
+//memory[0xFF00] = 0xdf; //wtf
 	   memory[0xFF05] = 0x00;	// TIMA
 	   memory[0xFF06] = 0x00;	// TMA
 //       	   memory[0xFF07] = 0x00;	// TAC should it be 0x00?
@@ -124,6 +125,13 @@ void writeMemory (unsigned short pos, unsigned char value){
     if (pos == 0xFF07){
         updateFrequency();
     }
+    /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
+     * and the first 256 bytes of the address space, where it effectively 
+     * was mapped, now gets mapped to the beginning of the cartridge’s ROM.
+     */
+    else if ((pos == 0xFF50) && (value == 0x01)){
+        memCopy(memory, 0x0000, memory_backup, 0xFF);
+    } 
     else if (pos == 0xFF46){    //DMA
         directMemoryAccess(value);
     }
@@ -135,6 +143,8 @@ void writeMemory (unsigned short pos, unsigned char value){
         writeMemory(pos - 0x2000, value) ;
     }
     else if ( pos < 0x8000 ){  // dont allow any writing to the read only memory
+        //printf("\nmemory at 0x%4x\n",pos);
+        //memory[pos] = value;
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
     }
@@ -200,12 +210,12 @@ int testFlag (unsigned char flag){
     return 0;
 }
 
-void add (unsigned short value1, unsigned short value2){
+void add (unsigned char value1, unsigned char value2){
     if ((value1 + value2) > 255) 
         setFlag(CARRY_F);
     else
         resetFlag(CARRY_F);
-    if (((value1 & 0xF) + (value2 & 0xF)) > 15)  //bobonis needs deskcheck
+    if (((value1 & 0x0F) + (value2 & 0x0F)) > 0x0F)  //bobonis needs deskcheck
         setFlag(HALF_CARRY_F);
     else
         resetFlag(HALF_CARRY_F);
@@ -230,7 +240,7 @@ void add16 (unsigned short value1){
     
     registers.HL = (unsigned short)(HL_long&0xffff);
 
-    if (((registers.HL&0x0F)+(value1&0x0F)) > 0x0F)
+    if (((registers.HL & 0x0F) + (value1 & 0x0F)) > 0x0F)
          setFlag(HALF_CARRY_F);
     else
          resetFlag(HALF_CARRY_F);
@@ -241,28 +251,30 @@ void add16 (unsigned short value1){
 
 
 
-void adc (unsigned short value1, unsigned short value2){
+void adc (unsigned char value1, unsigned char value2){
     if ((value1 + value2 + testFlag(CARRY_F)) > 255) 
         setFlag(CARRY_F);
     else
         resetFlag(CARRY_F);
     
-    if ((value1 + value2 + testFlag(CARRY_F)) > 15)  
+    if (((value1 & 0x0F) + (value2 & 0x0F) + testFlag(CARRY_F)) > 0x0F)  
         setFlag(HALF_CARRY_F);
     else
         resetFlag(HALF_CARRY_F);
     
-    if ((value1 + value2 + testFlag(CARRY_F)) == 0)  
+    registers.A = value1 + value2 + testFlag(CARRY_F);
+    
+    if (registers.A == 0)  
         setFlag(ZERO_F);
     else
         resetFlag(ZERO_F);
 
     resetFlag(SUBSTRACT_F);
 
-    registers.A = value1 + value2 + testFlag(CARRY_F);
+    
 }
 
-void xor (unsigned short value1){
+void xor (unsigned char value1){
     registers.A = registers.A ^ value1;
     if (registers.A == 0)
         setFlag(ZERO_F);
@@ -274,7 +286,7 @@ void xor (unsigned short value1){
 }
 
 void cpu_and (unsigned char value1){
-    registers.A = registers.A&value1;
+    registers.A = registers.A & value1;
     if (registers.A == 0)
         setFlag(ZERO_F);
     else
