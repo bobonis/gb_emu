@@ -15,6 +15,7 @@ const struct extendedopCode{
 int execute (void);
 void tempfunction (void);
 void bit (unsigned char pos, unsigned char value);
+unsigned char res(unsigned char pos, unsigned char value);
  /********************
  * 8-Bit Loads       *
  *********************/
@@ -269,6 +270,79 @@ void RLA (void);
 /********************
  * Bit Opcodes      *
  ********************/
+ //RES
+void RES_0_A (void);
+void RES_1_A (void);
+void RES_2_A (void);
+void RES_3_A (void);
+void RES_4_A (void);
+void RES_5_A (void);
+void RES_6_A (void);
+void RES_7_A (void);
+
+void RES_0_B (void);
+void RES_1_B (void);
+void RES_2_B (void);
+void RES_3_B (void);
+void RES_4_B (void);
+void RES_5_B (void);
+void RES_6_B (void);
+void RES_7_B (void);
+
+void RES_0_C (void);
+void RES_1_C (void);
+void RES_2_C (void);
+void RES_3_C (void);
+void RES_4_C (void);
+void RES_5_C (void);
+void RES_6_C (void);
+void RES_7_C (void);
+
+void RES_0_D (void);
+void RES_1_D (void);
+void RES_2_D (void);
+void RES_3_D (void);
+void RES_4_D (void);
+void RES_5_D (void);
+void RES_6_D (void);
+void RES_7_D (void);
+
+void RES_0_E (void);
+void RES_1_E (void);
+void RES_2_E (void);
+void RES_3_E (void);
+void RES_4_E (void);
+void RES_5_E (void);
+void RES_6_E (void);
+void RES_7_E (void);
+
+void RES_0_H (void);
+void RES_1_H (void);
+void RES_2_H (void);
+void RES_3_H (void);
+void RES_4_H (void);
+void RES_5_H (void);
+void RES_6_H (void);
+void RES_7_H (void);
+
+void RES_0_L (void);
+void RES_1_L (void);
+void RES_2_L (void);
+void RES_3_L (void);
+void RES_4_L (void);
+void RES_5_L (void);
+void RES_6_L (void);
+void RES_7_L (void);
+
+void RES_0_HL (void);
+void RES_1_HL (void);
+void RES_2_HL (void);
+void RES_3_HL (void);
+void RES_4_HL (void);
+void RES_5_HL (void);
+void RES_6_HL (void);
+void RES_7_HL (void); 
+//BIT
 void BIT_0_A (void);
 void BIT_1_A (void);
 void BIT_2_A (void);
@@ -385,7 +459,6 @@ void RETI (void);
 void CB (void);
 
 void SWAP_A (void);
-void RES_0_A (void);
 void  RL_C (void);
 
 
