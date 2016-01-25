@@ -470,72 +470,6 @@ const struct extendedopCode extendedopCodes[256] = {
 	{RES_7_L,      0,      8},  // 0xBD
 	{RES_7_HL,     0,     16},  // 0xBE
 	{RES_7_A,      0,      8},  // 0xBF
-=======
-	{tempfunction,0},		    // 0x80
-	{tempfunction,0},		    // 0x81
-	{tempfunction,0},		    // 0x82
-	{tempfunction,0},		    // 0x83
-	{tempfunction,0},		    // 0x84
-	{tempfunction,0},		    // 0x85
-	{tempfunction,0},		    // 0x86
-	{RES_0_A,       0,  8, "RES_0_A"},		// 0x87
-	{tempfunction,0},		    // 0x88
-	{tempfunction,0},		    // 0x89
-	{tempfunction,0},		    // 0x8A
-	{tempfunction,0},		    // 0x8B
-	{tempfunction,0},		    // 0x8C
-	{tempfunction,0},		    // 0x8D
-	{tempfunction,0},		    // 0x8E
-	{tempfunction,0},		    // 0x8F
-	{tempfunction,0},		    // 0x90
-	{tempfunction,0},		    // 0x91
-	{tempfunction,0},		    // 0x92
-	{tempfunction,0},		    // 0x93
-	{tempfunction,0},		    // 0x94
-	{tempfunction,0},		    // 0x95
-	{tempfunction,0},		    // 0x96
-	{tempfunction,0},		    // 0x97
-	{tempfunction,0},		    // 0x98
-	{tempfunction,0},		    // 0x99
-	{tempfunction,0},		    // 0x9A
-	{tempfunction,0},		    // 0x9B
-	{tempfunction,0},		    // 0x9C
-	{tempfunction,0},		    // 0x9D
-	{tempfunction,0},		    // 0x9E
-	{tempfunction,0},		    // 0x9F
-	{tempfunction,0},		    // 0xA0
-	{tempfunction,0},		    // 0xA1
-	{tempfunction,0},		    // 0xA2
-	{tempfunction,0},		    // 0xA3
-	{tempfunction,0},		    // 0xA4
-	{tempfunction,0},		    // 0xA5
-	{tempfunction,0},		    // 0xA6
-	{tempfunction,0},		    // 0xA7
-	{tempfunction,0},		    // 0xA8
-	{tempfunction,0},		    // 0xA9
-	{tempfunction,0},		    // 0xAA
-	{tempfunction,0},		    // 0xAB
-	{tempfunction,0},		    // 0xAC
-	{tempfunction,0},		    // 0xAD
-	{tempfunction,0},		    // 0xAE
-	{tempfunction,0},		    // 0xAF
-	{tempfunction,0},		    // 0xB0
-	{tempfunction,0},		    // 0xB1
-	{tempfunction,0},		    // 0xB2
-	{tempfunction,0},		    // 0xB3
-	{tempfunction,0},		    // 0xB4
-	{tempfunction,0},		    // 0xB5
-	{tempfunction,0},		    // 0xB6
-	{tempfunction,0},		    // 0xB7
-	{tempfunction,0},		    // 0xB8
-	{tempfunction,0},		    // 0xB9
-	{tempfunction,0},		    // 0xBA
-	{tempfunction,0},		    // 0xBB
-	{tempfunction,0},		    // 0xBC
-	{tempfunction,0},		    // 0xBD
-	{tempfunction,0},		    // 0xBE
-	{tempfunction,0},		    // 0xBF
->>>>>>> master
 	{tempfunction,0},		    // 0xC0
 	{tempfunction,0},		    // 0xC1
 	{tempfunction,0},		    // 0xC2
@@ -1597,96 +1531,6 @@ void BIT_6_HL (void) { bit(6,readMemory8(registers.HL)); }
 void BIT_7_HL (void) { bit(7,readMemory8(registers.HL)); }
 
 
-void RES_0_A (void) {
-    registers.A &= 0xFE;
-//    cinoop sucks
-//    registers.A &= ~(1 << 0);
-    cpuCycles += 8;
-}
-/*
- * BIT b,r
- * Description: Test bit b in register r.
- * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
- * Flags affected:
- * Z - Set if bit b of register r is 0.
- * N - Reset.
- * H - Set.
- * C - Not affected.
- */
-void BIT_0_A (void) { bit(0,registers.A); }
-void BIT_1_A (void) { bit(1,registers.A); }
-void BIT_2_A (void) { bit(2,registers.A); }
-void BIT_3_A (void) { bit(3,registers.A); }
-void BIT_4_A (void) { bit(4,registers.A); }
-void BIT_5_A (void) { bit(5,registers.A); }
-void BIT_6_A (void) { bit(6,registers.A); }
-void BIT_7_A (void) { bit(7,registers.A); }
-
-void BIT_0_B (void) { bit(0,registers.B); }
-void BIT_1_B (void) { bit(1,registers.B); }
-void BIT_2_B (void) { bit(2,registers.B); }
-void BIT_3_B (void) { bit(3,registers.B); }
-void BIT_4_B (void) { bit(4,registers.B); }
-void BIT_5_B (void) { bit(5,registers.B); }
-void BIT_6_B (void) { bit(6,registers.B); }
-void BIT_7_B (void) { bit(7,registers.B); }
-
-void BIT_0_C (void) { bit(0,registers.C); }
-void BIT_1_C (void) { bit(1,registers.C); }
-void BIT_2_C (void) { bit(2,registers.C); }
-void BIT_3_C (void) { bit(3,registers.C); }
-void BIT_4_C (void) { bit(4,registers.C); }
-void BIT_5_C (void) { bit(5,registers.C); }
-void BIT_6_C (void) { bit(6,registers.C); }
-void BIT_7_C (void) { bit(7,registers.C); }
-
-void BIT_0_D (void) { bit(0,registers.D); }
-void BIT_1_D (void) { bit(1,registers.D); }
-void BIT_2_D (void) { bit(2,registers.D); }
-void BIT_3_D (void) { bit(3,registers.D); }
-void BIT_4_D (void) { bit(4,registers.D); }
-void BIT_5_D (void) { bit(5,registers.D); }
-void BIT_6_D (void) { bit(6,registers.D); }
-void BIT_7_D (void) { bit(7,registers.D); }
-
-void BIT_0_E (void) { bit(0,registers.E); }
-void BIT_1_E (void) { bit(1,registers.E); }
-void BIT_2_E (void) { bit(2,registers.E); }
-void BIT_3_E (void) { bit(3,registers.E); }
-void BIT_4_E (void) { bit(4,registers.E); }
-void BIT_5_E (void) { bit(5,registers.E); }
-void BIT_6_E (void) { bit(6,registers.E); }
-void BIT_7_E (void) { bit(7,registers.E); }
-
-void BIT_0_H (void) { bit(0,registers.H); }
-void BIT_1_H (void) { bit(1,registers.H); }
-void BIT_2_H (void) { bit(2,registers.H); }
-void BIT_3_H (void) { bit(3,registers.H); }
-void BIT_4_H (void) { bit(4,registers.H); }
-void BIT_5_H (void) { bit(5,registers.H); }
-void BIT_6_H (void) { bit(6,registers.H); }
-void BIT_7_H (void) { bit(7,registers.H); }
-
-void BIT_0_L (void) { bit(0,registers.L); }
-void BIT_1_L (void) { bit(1,registers.L); }
-void BIT_2_L (void) { bit(2,registers.L); }
-void BIT_3_L (void) { bit(3,registers.L); }
-void BIT_4_L (void) { bit(4,registers.L); }
-void BIT_5_L (void) { bit(5,registers.L); }
-void BIT_6_L (void) { bit(6,registers.L); }
-void BIT_7_L (void) { bit(7,registers.L); }
-
-void BIT_0_HL (void) { bit(0,readMemory8(registers.HL)); }
-void BIT_1_HL (void) { bit(1,readMemory8(registers.HL)); }
-void BIT_2_HL (void) { bit(2,readMemory8(registers.HL)); }
-void BIT_3_HL (void) { bit(3,readMemory8(registers.HL)); }
-void BIT_4_HL (void) { bit(4,readMemory8(registers.HL)); }
-void BIT_5_HL (void) { bit(5,readMemory8(registers.HL)); }
-void BIT_6_HL (void) { bit(6,readMemory8(registers.HL)); }
-void BIT_7_HL (void) { bit(7,readMemory8(registers.HL)); }
-
->>>>>>> master
-
 
 void  RL_C (void){
 //cinoop sucks    
@@ -1771,6 +1615,4 @@ unsigned char res(unsigned char pos, unsigned char value){
     
     }
     return value;
-=======
->>>>>>> master
 }
