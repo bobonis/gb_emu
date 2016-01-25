@@ -219,7 +219,6 @@ const struct opCode opCodes[256] = {
 	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
 	{RST00,     0,   32, "RST00"},		// 0xC7
 	{RET_Z,     0,   8, "RET_Z"},       // 0xC8
-//	{RET,       0,   8, "RET"},	        // 0xC9
 	{RET,       0,   16, "RET"},	    // 0xC9
 	{JP_Z_nn,	2,	 12, "JP_Z_nn"},	// 0xCA
 	{CB,        3,   4,  "CB"}, 		// 0xCB
@@ -407,6 +406,71 @@ const struct extendedopCode extendedopCodes[256] = {
 	{BIT_7_L,      0,      8},  // 0x7D
 	{BIT_7_HL,     0,     16},  // 0x7E
 	{BIT_7_A,      0,      8},  // 0x7F
+	{RES_0_B,      0,      8},  // 0x80
+	{RES_0_C,      0,      8},  // 0x81
+	{RES_0_D,      0,      8},  // 0x82
+	{RES_0_E,      0,      8},  // 0x83
+	{RES_0_H,      0,      8},  // 0x84
+	{RES_0_L,      0,      8},  // 0x85
+	{RES_0_HL,     0,     16},  // 0x86
+	{RES_0_A,      0,      8},  // 0x87
+	{RES_1_B,      0,      8},  // 0x88
+	{RES_1_C,      0,      8},  // 0x89
+	{RES_1_D,      0,      8},  // 0x8A
+	{RES_1_E,      0,      8},  // 0x8B
+	{RES_1_H,      0,      8},  // 0x8C
+	{RES_1_L,      0,      8},  // 0x8D
+	{RES_1_HL,     0,     16},  // 0x8E
+	{RES_1_A,      0,      8},  // 0x8F
+	{RES_2_B,      0,      8},  // 0x90
+	{RES_2_C,      0,      8},  // 0x91
+	{RES_2_D,      0,      8},  // 0x92
+	{RES_2_E,      0,      8},  // 0x93
+	{RES_2_H,      0,      8},  // 0x94
+	{RES_2_L,      0,      8},  // 0x95
+	{RES_2_HL,     0,     16},  // 0x96
+	{RES_2_A,      0,      8},  // 0x97
+	{RES_3_B,      0,      8},  // 0x98
+	{RES_3_C,      0,      8},  // 0x99
+	{RES_3_D,      0,      8},  // 0x9A
+	{RES_3_E,      0,      8},  // 0x9B
+	{RES_3_H,      0,      8},  // 0x9C
+	{RES_3_L,      0,      8},  // 0x9D
+	{RES_3_HL,     0,     16},  // 0x9E
+	{RES_3_A,      0,      8},  // 0x9F
+	{RES_4_B,      0,      8},  // 0xA0
+	{RES_4_C,      0,      8},  // 0xA1
+	{RES_4_D,      0,      8},  // 0xA2
+	{RES_4_E,      0,      8},  // 0xA3
+	{RES_4_H,      0,      8},  // 0xA4
+	{RES_4_L,      0,      8},  // 0xA5
+	{RES_4_HL,     0,     16},  // 0xA6
+	{RES_4_A,      0,      8},  // 0xA7
+	{RES_5_B,      0,      8},  // 0xA8
+	{RES_5_C,      0,      8},  // 0xA9
+	{RES_5_D,      0,      8},  // 0xAA
+	{RES_5_E,      0,      8},  // 0xAB
+	{RES_5_H,      0,      8},  // 0xAC
+	{RES_5_L,      0,      8},  // 0xAD
+	{RES_5_HL,     0,     16},  // 0xAE
+	{RES_5_A,      0,      8},  // 0xAF
+	{RES_6_B,      0,      8},  // 0xB0
+	{RES_6_C,      0,      8},  // 0xB1
+	{RES_6_D,      0,      8},  // 0xB2
+	{RES_6_E,      0,      8},  // 0xB3
+	{RES_6_H,      0,      8},  // 0xB4
+	{RES_6_L,      0,      8},  // 0xB5
+	{RES_6_HL,     0,     16},  // 0xB6
+	{RES_6_A,      0,      8},  // 0xB7
+	{RES_7_B,      0,      8},  // 0xB8
+	{RES_7_C,      0,      8},  // 0xB9
+	{RES_7_D,      0,      8},  // 0xBA
+	{RES_7_E,      0,      8},  // 0xBB
+	{RES_7_H,      0,      8},  // 0xBC
+	{RES_7_L,      0,      8},  // 0xBD
+	{RES_7_HL,     0,     16},  // 0xBE
+	{RES_7_A,      0,      8},  // 0xBF
+=======
 	{tempfunction,0},		    // 0x80
 	{tempfunction,0},		    // 0x81
 	{tempfunction,0},		    // 0x82
@@ -471,6 +535,7 @@ const struct extendedopCode extendedopCodes[256] = {
 	{tempfunction,0},		    // 0xBD
 	{tempfunction,0},		    // 0xBE
 	{tempfunction,0},		    // 0xBF
+>>>>>>> master
 	{tempfunction,0},		    // 0xC0
 	{tempfunction,0},		    // 0xC1
 	{tempfunction,0},		    // 0xC2
@@ -561,7 +626,7 @@ int execute (void){
         if (debug)
             printf("[DEBUG] CB \n");
         instruction = readMemory8(++registers.PC);
-        cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
+        cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
     }
@@ -1371,6 +1436,166 @@ void SWAP_A (void) {
     resetFlag(CARRY_F);
     cpuCycles += 8;
 }
+/*
+ * SET b,r
+ * Description: Set bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * None.
+ */
+void RES_0_A (void) { registers.A = res(0,registers.A); }
+void RES_1_A (void) { registers.A = res(1,registers.A); }
+void RES_2_A (void) { registers.A = res(2,registers.A); }
+void RES_3_A (void) { registers.A = res(3,registers.A); }
+void RES_4_A (void) { registers.A = res(4,registers.A); }
+void RES_5_A (void) { registers.A = res(5,registers.A); }
+void RES_6_A (void) { registers.A = res(6,registers.A); }
+void RES_7_A (void) { registers.A = res(7,registers.A); }
+
+void RES_0_B (void) { registers.B = res(0,registers.B); }
+void RES_1_B (void) { registers.B = res(1,registers.B); }
+void RES_2_B (void) { registers.B = res(2,registers.B); }
+void RES_3_B (void) { registers.B = res(3,registers.B); }
+void RES_4_B (void) { registers.B = res(4,registers.B); }
+void RES_5_B (void) { registers.B = res(5,registers.B); }
+void RES_6_B (void) { registers.B = res(6,registers.B); }
+void RES_7_B (void) { registers.B = res(7,registers.B); }
+
+void RES_0_C (void) { registers.C = res(0,registers.C); }
+void RES_1_C (void) { registers.C = res(1,registers.C); }
+void RES_2_C (void) { registers.C = res(2,registers.C); }
+void RES_3_C (void) { registers.C = res(3,registers.C); }
+void RES_4_C (void) { registers.C = res(4,registers.C); }
+void RES_5_C (void) { registers.C = res(5,registers.C); }
+void RES_6_C (void) { registers.C = res(6,registers.C); }
+void RES_7_C (void) { registers.C = res(7,registers.C); }
+
+void RES_0_D (void) { registers.D = res(0,registers.D); }
+void RES_1_D (void) { registers.D = res(1,registers.D); }
+void RES_2_D (void) { registers.D = res(2,registers.D); }
+void RES_3_D (void) { registers.D = res(3,registers.D); }
+void RES_4_D (void) { registers.D = res(4,registers.D); }
+void RES_5_D (void) { registers.D = res(5,registers.D); }
+void RES_6_D (void) { registers.D = res(6,registers.D); }
+void RES_7_D (void) { registers.D = res(7,registers.D); }
+
+void RES_0_E (void) { registers.E = res(0,registers.E); }
+void RES_1_E (void) { registers.E = res(1,registers.E); }
+void RES_2_E (void) { registers.E = res(2,registers.E); }
+void RES_3_E (void) { registers.E = res(3,registers.E); }
+void RES_4_E (void) { registers.E = res(4,registers.E); }
+void RES_5_E (void) { registers.E = res(5,registers.E); }
+void RES_6_E (void) { registers.E = res(6,registers.E); }
+void RES_7_E (void) { registers.E = res(7,registers.E); }
+
+void RES_0_H (void) { registers.H = res(0,registers.H); }
+void RES_1_H (void) { registers.H = res(1,registers.H); }
+void RES_2_H (void) { registers.H = res(2,registers.H); }
+void RES_3_H (void) { registers.H = res(3,registers.H); }
+void RES_4_H (void) { registers.H = res(4,registers.H); }
+void RES_5_H (void) { registers.H = res(5,registers.H); }
+void RES_6_H (void) { registers.H = res(6,registers.H); }
+void RES_7_H (void) { registers.H = res(7,registers.H); }
+
+void RES_0_L (void) { registers.L = res(0,registers.L); }
+void RES_1_L (void) { registers.L = res(1,registers.L); }
+void RES_2_L (void) { registers.L = res(2,registers.L); }
+void RES_3_L (void) { registers.L = res(3,registers.L); }
+void RES_4_L (void) { registers.L = res(4,registers.L); }
+void RES_5_L (void) { registers.L = res(5,registers.L); }
+void RES_6_L (void) { registers.L = res(6,registers.L); }
+void RES_7_L (void) { registers.L = res(7,registers.L); }
+
+void RES_0_HL (void) { writeMemory (registers.HL, res(0,readMemory8(registers.HL))); }
+void RES_1_HL (void) { writeMemory (registers.HL, res(1,readMemory8(registers.HL))); }
+void RES_2_HL (void) { writeMemory (registers.HL, res(2,readMemory8(registers.HL))); }
+void RES_3_HL (void) { writeMemory (registers.HL, res(3,readMemory8(registers.HL))); }
+void RES_4_HL (void) { writeMemory (registers.HL, res(4,readMemory8(registers.HL))); }
+void RES_5_HL (void) { writeMemory (registers.HL, res(5,readMemory8(registers.HL))); }
+void RES_6_HL (void) { writeMemory (registers.HL, res(6,readMemory8(registers.HL))); }
+void RES_7_HL (void) { writeMemory (registers.HL, res(7,readMemory8(registers.HL))); }
+/*
+ * BIT b,r
+ * Description: Test bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if bit b of register r is 0.
+ * N - Reset.
+ * H - Set.
+ * C - Not affected.
+ */
+void BIT_0_A (void) { bit(0,registers.A); }
+void BIT_1_A (void) { bit(1,registers.A); }
+void BIT_2_A (void) { bit(2,registers.A); }
+void BIT_3_A (void) { bit(3,registers.A); }
+void BIT_4_A (void) { bit(4,registers.A); }
+void BIT_5_A (void) { bit(5,registers.A); }
+void BIT_6_A (void) { bit(6,registers.A); }
+void BIT_7_A (void) { bit(7,registers.A); }
+
+void BIT_0_B (void) { bit(0,registers.B); }
+void BIT_1_B (void) { bit(1,registers.B); }
+void BIT_2_B (void) { bit(2,registers.B); }
+void BIT_3_B (void) { bit(3,registers.B); }
+void BIT_4_B (void) { bit(4,registers.B); }
+void BIT_5_B (void) { bit(5,registers.B); }
+void BIT_6_B (void) { bit(6,registers.B); }
+void BIT_7_B (void) { bit(7,registers.B); }
+
+void BIT_0_C (void) { bit(0,registers.C); }
+void BIT_1_C (void) { bit(1,registers.C); }
+void BIT_2_C (void) { bit(2,registers.C); }
+void BIT_3_C (void) { bit(3,registers.C); }
+void BIT_4_C (void) { bit(4,registers.C); }
+void BIT_5_C (void) { bit(5,registers.C); }
+void BIT_6_C (void) { bit(6,registers.C); }
+void BIT_7_C (void) { bit(7,registers.C); }
+
+void BIT_0_D (void) { bit(0,registers.D); }
+void BIT_1_D (void) { bit(1,registers.D); }
+void BIT_2_D (void) { bit(2,registers.D); }
+void BIT_3_D (void) { bit(3,registers.D); }
+void BIT_4_D (void) { bit(4,registers.D); }
+void BIT_5_D (void) { bit(5,registers.D); }
+void BIT_6_D (void) { bit(6,registers.D); }
+void BIT_7_D (void) { bit(7,registers.D); }
+
+void BIT_0_E (void) { bit(0,registers.E); }
+void BIT_1_E (void) { bit(1,registers.E); }
+void BIT_2_E (void) { bit(2,registers.E); }
+void BIT_3_E (void) { bit(3,registers.E); }
+void BIT_4_E (void) { bit(4,registers.E); }
+void BIT_5_E (void) { bit(5,registers.E); }
+void BIT_6_E (void) { bit(6,registers.E); }
+void BIT_7_E (void) { bit(7,registers.E); }
+
+void BIT_0_H (void) { bit(0,registers.H); }
+void BIT_1_H (void) { bit(1,registers.H); }
+void BIT_2_H (void) { bit(2,registers.H); }
+void BIT_3_H (void) { bit(3,registers.H); }
+void BIT_4_H (void) { bit(4,registers.H); }
+void BIT_5_H (void) { bit(5,registers.H); }
+void BIT_6_H (void) { bit(6,registers.H); }
+void BIT_7_H (void) { bit(7,registers.H); }
+
+void BIT_0_L (void) { bit(0,registers.L); }
+void BIT_1_L (void) { bit(1,registers.L); }
+void BIT_2_L (void) { bit(2,registers.L); }
+void BIT_3_L (void) { bit(3,registers.L); }
+void BIT_4_L (void) { bit(4,registers.L); }
+void BIT_5_L (void) { bit(5,registers.L); }
+void BIT_6_L (void) { bit(6,registers.L); }
+void BIT_7_L (void) { bit(7,registers.L); }
+
+void BIT_0_HL (void) { bit(0,readMemory8(registers.HL)); }
+void BIT_1_HL (void) { bit(1,readMemory8(registers.HL)); }
+void BIT_2_HL (void) { bit(2,readMemory8(registers.HL)); }
+void BIT_3_HL (void) { bit(3,readMemory8(registers.HL)); }
+void BIT_4_HL (void) { bit(4,readMemory8(registers.HL)); }
+void BIT_5_HL (void) { bit(5,readMemory8(registers.HL)); }
+void BIT_6_HL (void) { bit(6,readMemory8(registers.HL)); }
+void BIT_7_HL (void) { bit(7,readMemory8(registers.HL)); }
+
 
 void RES_0_A (void) {
     registers.A &= 0xFE;
@@ -1460,6 +1685,7 @@ void BIT_5_HL (void) { bit(5,readMemory8(registers.HL)); }
 void BIT_6_HL (void) { bit(6,readMemory8(registers.HL)); }
 void BIT_7_HL (void) { bit(7,readMemory8(registers.HL)); }
 
+>>>>>>> master
 
 
 void  RL_C (void){
@@ -1511,4 +1737,40 @@ void bit(unsigned char pos, unsigned char value){
            
     resetFlag(SUBSTRACT_F);
     setFlag(HALF_CARRY_F);
+}
+
+
+unsigned char res(unsigned char pos, unsigned char value){
+    
+    switch (pos){
+        case 0:
+            value &= 0xFE;
+            break;
+        case 1:
+            value &= 0xFD;
+            break;
+        case 2:
+            value &= 0xFB;
+            break;
+        case 3:
+            value &= 0xF7;
+            break;
+        case 4:
+            value &= 0xEF;
+            break;
+        case 5:
+            value &= 0xDF;
+            break;
+        case 6:
+            value &= 0xBF;
+            break;
+        case 7:
+            value &= 0x7F;
+            break;
+            
+    
+    }
+    return value;
+=======
+>>>>>>> master
 }
