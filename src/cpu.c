@@ -10,7 +10,7 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-
+unsigned char debug = FALSE;
 unsigned char help = 1;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
@@ -76,7 +76,7 @@ const struct opCode opCodes[256] = {
 	{tempfunction,0},		// 0x37
 	{JR_C_n,	1,	8,  "JR_C_n"},		// 0x38
 	{ADD_HL_SP, 0,  8, "ADD_HL_SP"},	// 0x39
-	{tempfunction,0},		// 0x3A
+	{LDD_A_HL,  0,  8, "LDD_A_HL"},		// 0x3A
 	{DEC_SP,    0,  8, "DEC_SP"},		// 0x3B
 	{INC_A,     0,  4, "INC_A"},		// 0x3C
 	{DEC_A,     0,  4, "DEC_A"},		// 0x3D
@@ -219,7 +219,6 @@ const struct opCode opCodes[256] = {
 	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
 	{RST00,     0,   32, "RST00"},		// 0xC7
 	{RET_Z,     0,   8, "RET_Z"},       // 0xC8
-//	{RET,       0,   8, "RET"},	        // 0xC9
 	{RET,       0,   16, "RET"},	    // 0xC9
 	{JP_Z_nn,	2,	 12, "JP_Z_nn"},	// 0xCA
 	{CB,        3,   4,  "CB"}, 		// 0xCB
@@ -343,134 +342,134 @@ const struct extendedopCode extendedopCodes[256] = {
 	{tempfunction,0},		    // 0x3D
 	{tempfunction,0},		    // 0x3E
 	{tempfunction,0},		    // 0x3F
-	{tempfunction,0},		    // 0x40
-	{tempfunction,0},		    // 0x41
-	{tempfunction,0},		    // 0x42
-	{tempfunction,0},		    // 0x43
-	{tempfunction,0},		    // 0x44
-	{tempfunction,0},		    // 0x45
-	{tempfunction,0},		    // 0x46
-	{tempfunction,0},		    // 0x47
-	{tempfunction,0},		    // 0x48
-	{tempfunction,0},		    // 0x49
-	{tempfunction,0},		    // 0x4A
-	{tempfunction,0},		    // 0x4B
-	{tempfunction,0},		    // 0x4C
-	{tempfunction,0},		    // 0x4D
-	{tempfunction,0},		    // 0x4E
-	{tempfunction,0},		    // 0x4F
-	{tempfunction,0},		    // 0x50
-	{tempfunction,0},		    // 0x51
-	{tempfunction,0},		    // 0x52
-	{tempfunction,0},		    // 0x53
-	{tempfunction,0},		    // 0x54
-	{tempfunction,0},		    // 0x55
-	{tempfunction,0},		    // 0x56
-	{tempfunction,0},		    // 0x47
-	{tempfunction,0},		    // 0x58
-	{tempfunction,0},		    // 0x59
-	{tempfunction,0},		    // 0x5A
-	{tempfunction,0},		    // 0x5B
-	{tempfunction,0},		    // 0x5C
-	{tempfunction,0},		    // 0x5D
-	{tempfunction,0},		    // 0x5E
-	{tempfunction,0},		    // 0x5F
-	{tempfunction,0},		    // 0x60
-	{tempfunction,0},		    // 0x61
-	{tempfunction,0},		    // 0x62
-	{tempfunction,0},		    // 0x63
-	{tempfunction,0},		    // 0x64
-	{tempfunction,0},		    // 0x65
-	{tempfunction,0},		    // 0x66
-	{tempfunction,0},		    // 0x67
-	{tempfunction,0},		    // 0x68
-	{tempfunction,0},		    // 0x69
-	{tempfunction,0},		    // 0x6A
-	{tempfunction,0},		    // 0x6B
-	{tempfunction,0},		    // 0x6C
-	{tempfunction,0},		    // 0x6D
-	{tempfunction,0},		    // 0x6E
-	{tempfunction,0},		    // 0x6F
-    {tempfunction,0},		    // 0x70
-	{tempfunction,0},		    // 0x71
-	{tempfunction,0},		    // 0x72
-	{tempfunction,0},		    // 0x73
-	{tempfunction,0},		    // 0x74
-	{tempfunction,0},		    // 0x75
-	{tempfunction,0},		    // 0x76
-	{tempfunction,0},		    // 0x77
-	{tempfunction,0},		    // 0x78
-	{tempfunction,0},		    // 0x79
-	{tempfunction,0},		    // 0x7A
-	{tempfunction,0},		    // 0x7B
-	{BIT_7_H,     0,   8, "BIT_7_H"},		// 0x7C
-	{tempfunction,0},		    // 0x7D
-	{tempfunction,0},		    // 0x7E
-	{tempfunction,0},		    // 0x7F
-	{tempfunction,0},		    // 0x80
-	{tempfunction,0},		    // 0x81
-	{tempfunction,0},		    // 0x82
-	{tempfunction,0},		    // 0x83
-	{tempfunction,0},		    // 0x84
-	{tempfunction,0},		    // 0x85
-	{tempfunction,0},		    // 0x86
-	{RES_0_A,       0,  8, "RES_0_A"},		// 0x87
-	{tempfunction,0},		    // 0x88
-	{tempfunction,0},		    // 0x89
-	{tempfunction,0},		    // 0x8A
-	{tempfunction,0},		    // 0x8B
-	{tempfunction,0},		    // 0x8C
-	{tempfunction,0},		    // 0x8D
-	{tempfunction,0},		    // 0x8E
-	{tempfunction,0},		    // 0x8F
-	{tempfunction,0},		    // 0x90
-	{tempfunction,0},		    // 0x91
-	{tempfunction,0},		    // 0x92
-	{tempfunction,0},		    // 0x93
-	{tempfunction,0},		    // 0x94
-	{tempfunction,0},		    // 0x95
-	{tempfunction,0},		    // 0x96
-	{tempfunction,0},		    // 0x97
-	{tempfunction,0},		    // 0x98
-	{tempfunction,0},		    // 0x99
-	{tempfunction,0},		    // 0x9A
-	{tempfunction,0},		    // 0x9B
-	{tempfunction,0},		    // 0x9C
-	{tempfunction,0},		    // 0x9D
-	{tempfunction,0},		    // 0x9E
-	{tempfunction,0},		    // 0x9F
-	{tempfunction,0},		    // 0xA0
-	{tempfunction,0},		    // 0xA1
-	{tempfunction,0},		    // 0xA2
-	{tempfunction,0},		    // 0xA3
-	{tempfunction,0},		    // 0xA4
-	{tempfunction,0},		    // 0xA5
-	{tempfunction,0},		    // 0xA6
-	{tempfunction,0},		    // 0xA7
-	{tempfunction,0},		    // 0xA8
-	{tempfunction,0},		    // 0xA9
-	{tempfunction,0},		    // 0xAA
-	{tempfunction,0},		    // 0xAB
-	{tempfunction,0},		    // 0xAC
-	{tempfunction,0},		    // 0xAD
-	{tempfunction,0},		    // 0xAE
-	{tempfunction,0},		    // 0xAF
-	{tempfunction,0},		    // 0xB0
-	{tempfunction,0},		    // 0xB1
-	{tempfunction,0},		    // 0xB2
-	{tempfunction,0},		    // 0xB3
-	{tempfunction,0},		    // 0xB4
-	{tempfunction,0},		    // 0xB5
-	{tempfunction,0},		    // 0xB6
-	{tempfunction,0},		    // 0xB7
-	{tempfunction,0},		    // 0xB8
-	{tempfunction,0},		    // 0xB9
-	{tempfunction,0},		    // 0xBA
-	{tempfunction,0},		    // 0xBB
-	{tempfunction,0},		    // 0xBC
-	{tempfunction,0},		    // 0xBD
-	{tempfunction,0},		    // 0xBE
-	{tempfunction,0},		    // 0xBF
+	{BIT_0_B,      0,      8},  // 0x40
+	{BIT_0_C,      0,      8},  // 0x41
+	{BIT_0_D,      0,      8},  // 0x42
+	{BIT_0_E,      0,      8},  // 0x43
+	{BIT_0_H,      0,      8},  // 0x44
+	{BIT_0_L,      0,      8},  // 0x45
+	{BIT_0_HL,     0,     16},  // 0x46
+	{BIT_0_A,      0,      8},  // 0x47
+	{BIT_1_B,      0,      8},  // 0x48
+	{BIT_1_C,      0,      8},  // 0x49
+	{BIT_1_D,      0,      8},  // 0x4A
+	{BIT_1_E,      0,      8},  // 0x4B
+	{BIT_1_H,      0,      8},  // 0x4C
+	{BIT_1_L,      0,      8},  // 0x4D
+	{BIT_1_HL,     0,     16},  // 0x4E
+	{BIT_1_A,      0,      8},  // 0x4F
+	{BIT_2_B,      0,      8},  // 0x50
+	{BIT_2_C,      0,      8},  // 0x51
+	{BIT_2_D,      0,      8},  // 0x52
+	{BIT_2_E,      0,      8},  // 0x53
+	{BIT_2_H,      0,      8},  // 0x54
+	{BIT_2_L,      0,      8},  // 0x55
+	{BIT_2_HL,     0,     16},  // 0x56
+	{BIT_2_A,      0,      8},  // 0x57
+	{BIT_3_B,      0,      8},  // 0x58
+	{BIT_3_C,      0,      8},  // 0x59
+	{BIT_3_D,      0,      8},  // 0x5A
+	{BIT_3_E,      0,      8},  // 0x5B
+	{BIT_3_H,      0,      8},  // 0x5C
+	{BIT_3_L,      0,      8},  // 0x5D
+	{BIT_3_HL,     0,     16},  // 0x5E
+	{BIT_3_A,      0,      8},  // 0x5F
+	{BIT_4_B,      0,      8},  // 0x60
+	{BIT_4_C,      0,      8},  // 0x61
+	{BIT_4_D,      0,      8},  // 0x62
+	{BIT_4_E,      0,      8},  // 0x63
+	{BIT_4_H,      0,      8},  // 0x64
+	{BIT_4_L,      0,      8},  // 0x65
+	{BIT_4_HL,     0,     16},  // 0x66
+	{BIT_4_A,      0,      8},  // 0x67
+	{BIT_5_B,      0,      8},  // 0x68
+	{BIT_5_C,      0,      8},  // 0x69
+	{BIT_5_D,      0,      8},  // 0x6A
+	{BIT_5_E,      0,      8},  // 0x6B
+	{BIT_5_H,      0,      8},  // 0x6C
+	{BIT_5_L,      0,      8},  // 0x6D
+	{BIT_5_HL,     0,     16},  // 0x6E
+	{BIT_5_A,      0,      8},  // 0x6F
+	{BIT_6_B,      0,      8},  // 0x70
+	{BIT_6_C,      0,      8},  // 0x71
+	{BIT_6_D,      0,      8},  // 0x72
+	{BIT_6_E,      0,      8},  // 0x73
+	{BIT_6_H,      0,      8},  // 0x74
+	{BIT_6_L,      0,      8},  // 0x75
+	{BIT_6_HL,     0,     16},  // 0x76
+	{BIT_6_A,      0,      8},  // 0x77
+	{BIT_7_B,      0,      8},  // 0x78
+	{BIT_7_C,      0,      8},  // 0x79
+	{BIT_7_D,      0,      8},  // 0x7A
+	{BIT_7_E,      0,      8},  // 0x7B
+	{BIT_7_H,      0,      8},  // 0x7C
+	{BIT_7_L,      0,      8},  // 0x7D
+	{BIT_7_HL,     0,     16},  // 0x7E
+	{BIT_7_A,      0,      8},  // 0x7F
+	{RES_0_B,      0,      8},  // 0x80
+	{RES_0_C,      0,      8},  // 0x81
+	{RES_0_D,      0,      8},  // 0x82
+	{RES_0_E,      0,      8},  // 0x83
+	{RES_0_H,      0,      8},  // 0x84
+	{RES_0_L,      0,      8},  // 0x85
+	{RES_0_HL,     0,     16},  // 0x86
+	{RES_0_A,      0,      8},  // 0x87
+	{RES_1_B,      0,      8},  // 0x88
+	{RES_1_C,      0,      8},  // 0x89
+	{RES_1_D,      0,      8},  // 0x8A
+	{RES_1_E,      0,      8},  // 0x8B
+	{RES_1_H,      0,      8},  // 0x8C
+	{RES_1_L,      0,      8},  // 0x8D
+	{RES_1_HL,     0,     16},  // 0x8E
+	{RES_1_A,      0,      8},  // 0x8F
+	{RES_2_B,      0,      8},  // 0x90
+	{RES_2_C,      0,      8},  // 0x91
+	{RES_2_D,      0,      8},  // 0x92
+	{RES_2_E,      0,      8},  // 0x93
+	{RES_2_H,      0,      8},  // 0x94
+	{RES_2_L,      0,      8},  // 0x95
+	{RES_2_HL,     0,     16},  // 0x96
+	{RES_2_A,      0,      8},  // 0x97
+	{RES_3_B,      0,      8},  // 0x98
+	{RES_3_C,      0,      8},  // 0x99
+	{RES_3_D,      0,      8},  // 0x9A
+	{RES_3_E,      0,      8},  // 0x9B
+	{RES_3_H,      0,      8},  // 0x9C
+	{RES_3_L,      0,      8},  // 0x9D
+	{RES_3_HL,     0,     16},  // 0x9E
+	{RES_3_A,      0,      8},  // 0x9F
+	{RES_4_B,      0,      8},  // 0xA0
+	{RES_4_C,      0,      8},  // 0xA1
+	{RES_4_D,      0,      8},  // 0xA2
+	{RES_4_E,      0,      8},  // 0xA3
+	{RES_4_H,      0,      8},  // 0xA4
+	{RES_4_L,      0,      8},  // 0xA5
+	{RES_4_HL,     0,     16},  // 0xA6
+	{RES_4_A,      0,      8},  // 0xA7
+	{RES_5_B,      0,      8},  // 0xA8
+	{RES_5_C,      0,      8},  // 0xA9
+	{RES_5_D,      0,      8},  // 0xAA
+	{RES_5_E,      0,      8},  // 0xAB
+	{RES_5_H,      0,      8},  // 0xAC
+	{RES_5_L,      0,      8},  // 0xAD
+	{RES_5_HL,     0,     16},  // 0xAE
+	{RES_5_A,      0,      8},  // 0xAF
+	{RES_6_B,      0,      8},  // 0xB0
+	{RES_6_C,      0,      8},  // 0xB1
+	{RES_6_D,      0,      8},  // 0xB2
+	{RES_6_E,      0,      8},  // 0xB3
+	{RES_6_H,      0,      8},  // 0xB4
+	{RES_6_L,      0,      8},  // 0xB5
+	{RES_6_HL,     0,     16},  // 0xB6
+	{RES_6_A,      0,      8},  // 0xB7
+	{RES_7_B,      0,      8},  // 0xB8
+	{RES_7_C,      0,      8},  // 0xB9
+	{RES_7_D,      0,      8},  // 0xBA
+	{RES_7_E,      0,      8},  // 0xBB
+	{RES_7_H,      0,      8},  // 0xBC
+	{RES_7_L,      0,      8},  // 0xBD
+	{RES_7_HL,     0,     16},  // 0xBE
+	{RES_7_A,      0,      8},  // 0xBF
 	{tempfunction,0},		    // 0xC0
 	{tempfunction,0},		    // 0xC1
 	{tempfunction,0},		    // 0xC2
@@ -544,10 +543,24 @@ int execute (void){
 
     instruction = readMemory8(registers.PC);
 
+    if (registers.PC == 0xFFFF){
+        printf("AF-0x%04x,BC-0x%04x,DE-0x%04x,HL-0x%04x,SP-0x%04x,PC-0x%04x\n",registers.AF,registers.BC,registers.DE,registers.HL,registers.SP,registers.PC);
+        printf("P1  -0x%02x, SB  -0x%02x, SC  -0x%02x, DIV -0x%02x, TIMA-0x%02x, TMA -0x%02x, TAC -0x%02x\n",memory[0xFF00],memory[0xFF01],memory[0xFF02],memory[0xFF04],memory[0xFF05],memory[0xFF06],memory[0xFF07]);
+        printf("IF  -0x%02x, NR10-0x%02x, NR11-0x%02x, NR12-0x%02x, NR13-0x%02x, NR14-0x%02x, NR21-0x%02x\n",memory[0xFF0F],memory[0xFF10],memory[0xFF11],memory[0xFF12],memory[0xFF13],memory[0xFF14],memory[0xFF16]);
+        printf("NR22-0x%02x, NR23-0x%02x, NR24-0x%02x, NR30-0x%02x, NR31-0x%02x, NR32-0x%02x, NR33-0x%02x\n",memory[0xFF17],memory[0xFF18],memory[0xFF19],memory[0xFF1A],memory[0xFF1B],memory[0xFF1C],memory[0xFF1D]);
+        printf("NR34-0x%02x, NR41-0x%02x, NR42-0x%02x, NR43-0x%02x, NR44-0x%02x, NR50-0x%02x, NR51-0x%02x, NR52-0x%02x\n",memory[0xFF1E],memory[0xFF20],memory[0xFF21],memory[0xFF22],memory[0xFF23],memory[0xFF24],memory[0xFF25],memory[0xFF26]);
+
+        printf("LCDC-0x%02x, STAT-0x%02x, SCY -0x%02x, SCX -0x%02x, LY  -0x%02x, LYC -0x%02x\n",memory[0xFF40],memory[0xFF41],memory[0xFF42],memory[0xFF43],memory[0xFF44],memory[0xFF45]);
+        printf("DMA -0x%02x, BGB -0x%02x, OBP0-0x%02x, OBP1-0x%02x, WY  -0x%02x, WX  -0x%02x, IE  -0x%02x\n",memory[0xFF46],memory[0xFF47],memory[0xFF48],memory[0xFF49],memory[0xFF4A],memory[0xFF4B],memory[0xFFFF]);
+        //exit(1);
+        debug = TRUE;
+    }
+
     if (instruction == 0xCB){
-        printf("[DEBUG] CB \n");
+        if (debug)
+            printf("[DEBUG] CB \n");
         instruction = readMemory8(++registers.PC);
-        cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
+        cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
     }
@@ -557,24 +570,27 @@ int execute (void){
         operand_length = opCodes[instruction].opLength;
     }    
 
-
-    printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+    if (debug)
+        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
-			printf("ARG-0x0000, ");
+            if (debug)
+			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
-			printf("ARG-0x%04x, ",operand8);
+            if (debug)
+			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
 			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
-			printf("ARG-0x%04x, ",operand16);
+            if (debug)
+			     printf("ARG-0x%04x, ",operand16);
 			break;
        /* case 3 :
             instruction = memory[registers.PC+1];
@@ -594,10 +610,11 @@ int execute (void){
         ((void (*)(void))opCodes[instruction].function)();
     }
     
-
-            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[SP]=0x%04x\n"
-           ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[registers.SP + 1]);
-
+    if (debug){
+            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
+           ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
+    }
+    
 	return cpuCycles;
 	
 }
@@ -726,6 +743,15 @@ void LD_A_n  (void){registers.A = operand8;}
   * Description: Put A into address $FF00 + register C.
   */
   void LD_MC_A (void) {writeMemory(0xFF00 + registers.C, registers.A);}
+/*
+ * LDD A,(HL)
+ * Description: Put value at address HL into A. Decrement HL.
+ * Same as: LD A,(HL) - DEC HL
+ */
+void LDD_A_HL (void){
+    registers.A = readMemory8(registers.HL);
+    registers.HL--;
+}
   
 /*
  * LDD (HL),A
@@ -1178,7 +1204,7 @@ void DAA (void){
 /*
  * EI
  * Description: Enable interrupts. This intruction enables interrupts
- * but not immediately. Interrupts are enabled after instruction after EI is executed.
+ * but not immediately. Interrupts are enabled after instruction EI is executed.
  * Flags affected: None.
  */
  void EI (void) {interruptMaster = TRUE;}
@@ -1344,26 +1370,167 @@ void SWAP_A (void) {
     resetFlag(CARRY_F);
     cpuCycles += 8;
 }
+/*
+ * SET b,r
+ * Description: Set bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * None.
+ */
+void RES_0_A (void) { registers.A = res(0,registers.A); }
+void RES_1_A (void) { registers.A = res(1,registers.A); }
+void RES_2_A (void) { registers.A = res(2,registers.A); }
+void RES_3_A (void) { registers.A = res(3,registers.A); }
+void RES_4_A (void) { registers.A = res(4,registers.A); }
+void RES_5_A (void) { registers.A = res(5,registers.A); }
+void RES_6_A (void) { registers.A = res(6,registers.A); }
+void RES_7_A (void) { registers.A = res(7,registers.A); }
 
-void RES_0_A (void) {
-    registers.A &= 0xFE;
-//    cinoop sucks
-//    registers.A &= ~(1 << 0);
-    cpuCycles += 8;
-}
+void RES_0_B (void) { registers.B = res(0,registers.B); }
+void RES_1_B (void) { registers.B = res(1,registers.B); }
+void RES_2_B (void) { registers.B = res(2,registers.B); }
+void RES_3_B (void) { registers.B = res(3,registers.B); }
+void RES_4_B (void) { registers.B = res(4,registers.B); }
+void RES_5_B (void) { registers.B = res(5,registers.B); }
+void RES_6_B (void) { registers.B = res(6,registers.B); }
+void RES_7_B (void) { registers.B = res(7,registers.B); }
 
-void BIT_7_H (void) {
-    
-    if((1 << 7)&registers.H)
-        resetFlag(ZERO_F);
-    else
-        setFlag(ZERO_F);
-   
-    
-    resetFlag(SUBSTRACT_F);
-    setFlag(HALF_CARRY_F);
-    cpuCycles += 8;
-}
+void RES_0_C (void) { registers.C = res(0,registers.C); }
+void RES_1_C (void) { registers.C = res(1,registers.C); }
+void RES_2_C (void) { registers.C = res(2,registers.C); }
+void RES_3_C (void) { registers.C = res(3,registers.C); }
+void RES_4_C (void) { registers.C = res(4,registers.C); }
+void RES_5_C (void) { registers.C = res(5,registers.C); }
+void RES_6_C (void) { registers.C = res(6,registers.C); }
+void RES_7_C (void) { registers.C = res(7,registers.C); }
+
+void RES_0_D (void) { registers.D = res(0,registers.D); }
+void RES_1_D (void) { registers.D = res(1,registers.D); }
+void RES_2_D (void) { registers.D = res(2,registers.D); }
+void RES_3_D (void) { registers.D = res(3,registers.D); }
+void RES_4_D (void) { registers.D = res(4,registers.D); }
+void RES_5_D (void) { registers.D = res(5,registers.D); }
+void RES_6_D (void) { registers.D = res(6,registers.D); }
+void RES_7_D (void) { registers.D = res(7,registers.D); }
+
+void RES_0_E (void) { registers.E = res(0,registers.E); }
+void RES_1_E (void) { registers.E = res(1,registers.E); }
+void RES_2_E (void) { registers.E = res(2,registers.E); }
+void RES_3_E (void) { registers.E = res(3,registers.E); }
+void RES_4_E (void) { registers.E = res(4,registers.E); }
+void RES_5_E (void) { registers.E = res(5,registers.E); }
+void RES_6_E (void) { registers.E = res(6,registers.E); }
+void RES_7_E (void) { registers.E = res(7,registers.E); }
+
+void RES_0_H (void) { registers.H = res(0,registers.H); }
+void RES_1_H (void) { registers.H = res(1,registers.H); }
+void RES_2_H (void) { registers.H = res(2,registers.H); }
+void RES_3_H (void) { registers.H = res(3,registers.H); }
+void RES_4_H (void) { registers.H = res(4,registers.H); }
+void RES_5_H (void) { registers.H = res(5,registers.H); }
+void RES_6_H (void) { registers.H = res(6,registers.H); }
+void RES_7_H (void) { registers.H = res(7,registers.H); }
+
+void RES_0_L (void) { registers.L = res(0,registers.L); }
+void RES_1_L (void) { registers.L = res(1,registers.L); }
+void RES_2_L (void) { registers.L = res(2,registers.L); }
+void RES_3_L (void) { registers.L = res(3,registers.L); }
+void RES_4_L (void) { registers.L = res(4,registers.L); }
+void RES_5_L (void) { registers.L = res(5,registers.L); }
+void RES_6_L (void) { registers.L = res(6,registers.L); }
+void RES_7_L (void) { registers.L = res(7,registers.L); }
+
+void RES_0_HL (void) { writeMemory (registers.HL, res(0,readMemory8(registers.HL))); }
+void RES_1_HL (void) { writeMemory (registers.HL, res(1,readMemory8(registers.HL))); }
+void RES_2_HL (void) { writeMemory (registers.HL, res(2,readMemory8(registers.HL))); }
+void RES_3_HL (void) { writeMemory (registers.HL, res(3,readMemory8(registers.HL))); }
+void RES_4_HL (void) { writeMemory (registers.HL, res(4,readMemory8(registers.HL))); }
+void RES_5_HL (void) { writeMemory (registers.HL, res(5,readMemory8(registers.HL))); }
+void RES_6_HL (void) { writeMemory (registers.HL, res(6,readMemory8(registers.HL))); }
+void RES_7_HL (void) { writeMemory (registers.HL, res(7,readMemory8(registers.HL))); }
+/*
+ * BIT b,r
+ * Description: Test bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if bit b of register r is 0.
+ * N - Reset.
+ * H - Set.
+ * C - Not affected.
+ */
+void BIT_0_A (void) { bit(0,registers.A); }
+void BIT_1_A (void) { bit(1,registers.A); }
+void BIT_2_A (void) { bit(2,registers.A); }
+void BIT_3_A (void) { bit(3,registers.A); }
+void BIT_4_A (void) { bit(4,registers.A); }
+void BIT_5_A (void) { bit(5,registers.A); }
+void BIT_6_A (void) { bit(6,registers.A); }
+void BIT_7_A (void) { bit(7,registers.A); }
+
+void BIT_0_B (void) { bit(0,registers.B); }
+void BIT_1_B (void) { bit(1,registers.B); }
+void BIT_2_B (void) { bit(2,registers.B); }
+void BIT_3_B (void) { bit(3,registers.B); }
+void BIT_4_B (void) { bit(4,registers.B); }
+void BIT_5_B (void) { bit(5,registers.B); }
+void BIT_6_B (void) { bit(6,registers.B); }
+void BIT_7_B (void) { bit(7,registers.B); }
+
+void BIT_0_C (void) { bit(0,registers.C); }
+void BIT_1_C (void) { bit(1,registers.C); }
+void BIT_2_C (void) { bit(2,registers.C); }
+void BIT_3_C (void) { bit(3,registers.C); }
+void BIT_4_C (void) { bit(4,registers.C); }
+void BIT_5_C (void) { bit(5,registers.C); }
+void BIT_6_C (void) { bit(6,registers.C); }
+void BIT_7_C (void) { bit(7,registers.C); }
+
+void BIT_0_D (void) { bit(0,registers.D); }
+void BIT_1_D (void) { bit(1,registers.D); }
+void BIT_2_D (void) { bit(2,registers.D); }
+void BIT_3_D (void) { bit(3,registers.D); }
+void BIT_4_D (void) { bit(4,registers.D); }
+void BIT_5_D (void) { bit(5,registers.D); }
+void BIT_6_D (void) { bit(6,registers.D); }
+void BIT_7_D (void) { bit(7,registers.D); }
+
+void BIT_0_E (void) { bit(0,registers.E); }
+void BIT_1_E (void) { bit(1,registers.E); }
+void BIT_2_E (void) { bit(2,registers.E); }
+void BIT_3_E (void) { bit(3,registers.E); }
+void BIT_4_E (void) { bit(4,registers.E); }
+void BIT_5_E (void) { bit(5,registers.E); }
+void BIT_6_E (void) { bit(6,registers.E); }
+void BIT_7_E (void) { bit(7,registers.E); }
+
+void BIT_0_H (void) { bit(0,registers.H); }
+void BIT_1_H (void) { bit(1,registers.H); }
+void BIT_2_H (void) { bit(2,registers.H); }
+void BIT_3_H (void) { bit(3,registers.H); }
+void BIT_4_H (void) { bit(4,registers.H); }
+void BIT_5_H (void) { bit(5,registers.H); }
+void BIT_6_H (void) { bit(6,registers.H); }
+void BIT_7_H (void) { bit(7,registers.H); }
+
+void BIT_0_L (void) { bit(0,registers.L); }
+void BIT_1_L (void) { bit(1,registers.L); }
+void BIT_2_L (void) { bit(2,registers.L); }
+void BIT_3_L (void) { bit(3,registers.L); }
+void BIT_4_L (void) { bit(4,registers.L); }
+void BIT_5_L (void) { bit(5,registers.L); }
+void BIT_6_L (void) { bit(6,registers.L); }
+void BIT_7_L (void) { bit(7,registers.L); }
+
+void BIT_0_HL (void) { bit(0,readMemory8(registers.HL)); }
+void BIT_1_HL (void) { bit(1,readMemory8(registers.HL)); }
+void BIT_2_HL (void) { bit(2,readMemory8(registers.HL)); }
+void BIT_3_HL (void) { bit(3,readMemory8(registers.HL)); }
+void BIT_4_HL (void) { bit(4,readMemory8(registers.HL)); }
+void BIT_5_HL (void) { bit(5,readMemory8(registers.HL)); }
+void BIT_6_HL (void) { bit(6,readMemory8(registers.HL)); }
+void BIT_7_HL (void) { bit(7,readMemory8(registers.HL)); }
+
+
 
 void  RL_C (void){
 //cinoop sucks    
@@ -1386,4 +1553,66 @@ void  RL_C (void){
         resetFlag(HALF_CARRY_F);
         cpuCycles += 8; 
 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* #######################################################
+ * HELPER FUNCTIONS
+ */
+ 
+void bit(unsigned char pos, unsigned char value){
+    if ( (0x01 << pos) & value )
+        resetFlag(ZERO_F);
+    else
+        setFlag(ZERO_F);
+           
+    resetFlag(SUBSTRACT_F);
+    setFlag(HALF_CARRY_F);
+}
+
+
+unsigned char res(unsigned char pos, unsigned char value){
+    
+    switch (pos){
+        case 0:
+            value &= 0xFE;
+            break;
+        case 1:
+            value &= 0xFD;
+            break;
+        case 2:
+            value &= 0xFB;
+            break;
+        case 3:
+            value &= 0xF7;
+            break;
+        case 4:
+            value &= 0xEF;
+            break;
+        case 5:
+            value &= 0xDF;
+            break;
+        case 6:
+            value &= 0xBF;
+            break;
+        case 7:
+            value &= 0x7F;
+            break;
+            
+    
+    }
+    return value;
 }
