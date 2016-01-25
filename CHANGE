@@ -1,3 +1,15 @@
+bobonis
+    - Fixed rom booting after BIOS
+        (Problem was bios overwrote memory address 0x00-0x100)
+    - New switchable debug variable in cpu.c
+    - Implemented all extended opcodes for BIT OPERATIONS
+
+bobonis
+    - Check LCDC register to draw background and / or sprites
+    - Taso check add function for 0x86 opcode. Changed HALFCARRY and ZERO
+    - Bios locks at checksum (After changed 0x86 ZERO no more locks)
+    - [ERROR] Opcode 0x3a not implemented
+
 Bobonis
     - Many changes from both bakg and alam Finally some progress!
 
