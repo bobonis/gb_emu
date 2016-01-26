@@ -333,14 +333,14 @@ const struct extendedopCode extendedopCodes[256] = {
 	{tempfunction,0},		    // 0x35
 	{tempfunction,0},		    // 0x36
 	{SWAP_A,          0,  8},		        // 0x37
-	{tempfunction,0},		    // 0x38
-	{tempfunction,0},		    // 0x39
-	{tempfunction,0},		    // 0x3A
-	{tempfunction,0},		    // 0x3B
-	{tempfunction,0},		    // 0x3C
-	{tempfunction,0},		    // 0x3D
-	{tempfunction,0},		    // 0x3E
-	{tempfunction,0},		    // 0x3F
+	{SRL_B,           0,  8},		        // 0x38
+	{SRL_C,           0,  8},		        // 0x39
+	{SRL_D,           0,  8},		        // 0x3A
+	{SRL_E,           0,  8},		        // 0x3B
+	{SRL_H,           0,  8},		        // 0x3C
+	{SRL_L,           0,  8},		        // 0x3D
+	{SRL_HL,          0,  8},		        // 0x3E
+	{SRL_A,           0,  8},		        // 0x3F
 	{BIT_0_B,      0,      8},  // 0x40
 	{BIT_0_C,      0,      8},  // 0x41
 	{BIT_0_D,      0,      8},  // 0x42
@@ -1256,6 +1256,25 @@ void SLA_L (void) {registers.L = sla(registers.L);}
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
  }
+ 
+/*
+ * SRL n
+ * Description: Shift n right into Carry. MSB set to 0.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
+ void SRL_A (void) {registers.A = srl(registers.A);}
+ void SRL_B (void) {registers.B = srl(registers.B);}
+ void SRL_C (void) {registers.C = srl(registers.C);}
+ void SRL_D (void) {registers.D = srl(registers.D);}
+ void SRL_E (void) {registers.E = srl(registers.E);}
+ void SRL_H (void) {registers.H = srl(registers.H);}
+ void SRL_L (void) {registers.L = srl(registers.L);}
+ void SRL_HL (void) {writeMemory(registers.HL,srl(readMemory8(registers.HL)));}
 /********************
  * Bit Opcodes      *
  ********************/
@@ -1659,4 +1678,25 @@ unsigned char res(unsigned char pos, unsigned char value){
     
     }
     return value;
+}
+
+unsigned char srl (unsigned char value){
+    
+    if (value & 0x01)
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
+
+    value >>= 1;
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    if (value)
+        resetFlag(ZERO_F);
+    else
+        setFlag(ZERO_F);
+
+    return value;
+      
 }
