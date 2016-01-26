@@ -15,6 +15,7 @@ const struct extendedopCode{
 int execute (void);
 void tempfunction (void);
 void bit (unsigned char pos, unsigned char value);
+unsigned char srl (unsigned char value);
 unsigned char res(unsigned char pos, unsigned char value);
  /********************
  * 8-Bit Loads       *
@@ -121,6 +122,8 @@ void LD_BC_nn (void);
 void LD_DE_nn (void);
 void LD_HL_nn (void);
 void LD_SP_nn (void);
+//LD (nn),SP
+void LD_nn_SP (void);
 //PUSH nn
 void PUSH_AF (void);
 void PUSH_BC (void);
@@ -265,6 +268,15 @@ void SLA_D (void);
 void SLA_E (void);
 void SLA_H (void);
 void SLA_L (void);
+// SRL n
+void SRL_A (void); 
+void SRL_B (void);
+void SRL_C (void);
+void SRL_D (void);
+void SRL_E (void);
+void SRL_H (void);
+void SRL_L (void);
+void SRL_HL (void);
 //RLA 
 void RLA (void);
 /********************
@@ -432,7 +444,11 @@ void JR_C_n (void);
 /********************
  * Calls            *
  ********************/
-void CALL_nn (void); 
+void CALL_nn (void);
+void CALL_NZ_nn (void);
+void CALL_Z_nn (void);
+void CALL_NC_nn (void);
+void CALL_C_nn (void);
 /********************
  * Restarts         *
  ********************/
