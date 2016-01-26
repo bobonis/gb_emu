@@ -121,6 +121,8 @@ void LD_BC_nn (void);
 void LD_DE_nn (void);
 void LD_HL_nn (void);
 void LD_SP_nn (void);
+//LD (nn),SP
+void LD_nn_SP (void);
 //PUSH nn
 void PUSH_AF (void);
 void PUSH_BC (void);
@@ -432,7 +434,11 @@ void JR_C_n (void);
 /********************
  * Calls            *
  ********************/
-void CALL_nn (void); 
+void CALL_nn (void);
+void CALL_NZ_nn (void);
+void CALL_Z_nn (void);
+void CALL_NC_nn (void);
+void CALL_C_nn (void);
 /********************
  * Restarts         *
  ********************/
