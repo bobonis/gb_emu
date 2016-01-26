@@ -1,5 +1,6 @@
 #include "display.h"
 #include "gpu.h"
+#include "input.h"
 
 // Window size
 #define SCREEN_WIDTH 160
@@ -22,6 +23,21 @@ void display (void){
     if( event.type == SDL_QUIT ) { 
         displayEnd(); 
     }
+    if (event.type == SDL_KEYDOWN){
+        printf ("key down\n");   
+        if (event.key.keysym.sym == SDLK_UP){
+            inputPressKey(2);
+        }
+        if (event.key.keysym.sym == SDLK_DOWN){
+            inputPressKey(3);
+        }
+        if (event.key.keysym.sym == SDLK_RIGHT){
+            inputPressKey(0);
+        }
+        if (event.key.keysym.sym == SDLK_LEFT){
+            inputPressKey(1);
+        }
+    }            
     
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     updateTexture();

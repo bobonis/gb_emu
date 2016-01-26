@@ -376,14 +376,14 @@ void gpuRenderSprites(void){
         }
     }
 
-    for (pixel = 159; pixel >=0; pixel--){
+    for (pixel = 159; pixel >= 0; pixel--){
         for (sprite = 39; sprite >= 0; sprite--){
-        
+
             posY = readMemory8(OAM + (sprite * 4)) - 16;
             posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
             
             if ((scanline >= posY) && (scanline < (posY + sprite_size))){ //if sprite is visible on current scanline
-                if (pixel = posX){   //if sprite starts on current pixel
+                if (pixel == posX){   //if sprite starts on current pixel
                     if (sprites_on_scanline > 10){
                         //limit of sprites reached on current scanline
                     }
@@ -399,7 +399,7 @@ void gpuRenderSprites(void){
 }
 
 
-void gpuDrawSprite (int sprite){
+void gpuDrawSprite (unsigned char sprite){
     int using_8x16_sprites = FALSE;
     unsigned char sprite_size = 8;
     unsigned char sprite_number;
@@ -407,7 +407,11 @@ void gpuDrawSprite (int sprite){
     unsigned char sprite_X;
     unsigned char scanline = readMemory8(LY);
     unsigned short sprite_start_address;
-    
+    unsigned char bit_1;
+    unsigned char bit_2;
+    unsigned char colour;
+    int i;
+
     //find sprite coordinates
     sprite_Y = readMemory8(OAM + (sprite * 4));
     sprite_X = readMemory8((OAM + (sprite * 4)) + 1 );    
@@ -419,12 +423,27 @@ void gpuDrawSprite (int sprite){
     if (testBit(LCDC,2) == TRUE){
         using_8x16_sprites = TRUE;
         sprite_size = 16;
-       // sprite_start_address = SPT + sprite_number *  
+        sprite_start_address = SPT + sprite_number * 32; 
     }
     else{
-       // sprite_start_address = 
+        sprite_start_address = SPT + sprite_number * 16;
     }
 
-
+    //read sprite row contents
+    unsigned char sprite_1 = readMemory8( sprite_start_address + ( ( sprite_Y % 8 ) * 2 ) );
+    unsigned char sprite_2 = readMemory8( sprite_start_address + ( ( sprite_Y % 8 ) * 2 ) + 1);
+    //read pixel from tile row
+    bit_1 = ((sprite_1 << ( sprite_X % 8 )) & 0x80 ) >> 7;
+    bit_2 = ((sprite_2 << ( sprite_X % 8 )) & 0x80 ) >> 7;
+    colour = (bit_2 << 1) | bit_1;
+    
+    for (i=0;i<8;i++){
+        if (sprite_X <= 159){
+            framebuffer[readMemory8(LY)][sprite_X][0] = 255;
+            framebuffer[readMemory8(LY)][sprite_X][1] = 0;
+            framebuffer[readMemory8(LY)][sprite_X][2] = 0;
+        }
+        sprite_X +=1;
+    }
 
 }
