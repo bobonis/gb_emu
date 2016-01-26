@@ -1,5 +1,6 @@
 #include "input.h"
 #include "memory.h"
+#include "interrupts.h"
 #include <stdio.h>
 
 /*
@@ -47,6 +48,25 @@ unsigned char inputReadKeys(){
     }
     //printf ("\nJoypad = %d\n",joypad_state);
     return joypad_state;
+    //joypad = 0xFF;
     
 
+}
+
+void inputPressKey(int key){
+    switch (key){
+        case 0:
+            joypad &= 0xFE;
+            break;
+        case 1:
+            joypad &= 0xFD;
+            break;
+        case 2:
+            joypad &= 0xFB;
+            break;
+        case 3:
+            joypad &= 0xF7;
+            break;
+    }
+    triggerInterrupt(JOYPAD_INTERRUPT);
 }
