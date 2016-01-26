@@ -11,7 +11,6 @@
 #define CARRY_F			4
 
 unsigned char debug = FALSE;
-//unsigned char help = 1;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -26,7 +25,7 @@ const struct opCode opCodes[256] = {
 	{DEC_B,     0,  4,  "DEC_B"},		// 0x05
 	{LD_B_n,	1,	8,  "LD_B_n"},	    // 0x06
 	{tempfunction,0},		// 0x07
-	{tempfunction,0},		// 0x08
+	{LD_nn_SP,  2,  20, "LD_nn_SP"},	// 0x08
 	{ADD_HL_BC, 0,  8, "ADD_HL_BC"},	// 0x09
 	{LD_A_BC,   0,  8, "LD_A_BC"},		// 0x0A
 	{DEC_BC,    0,  8, "DEC_BC"},		// 0x0B
@@ -214,7 +213,7 @@ const struct opCode opCodes[256] = {
 	{POP_BC,     0,  12, "POP_BC"},		// 0xC1
 	{JP_NZ_nn,	2,	12, "JP_NZ_nn"},	// 0xC2
 	{JP_nn,		2,	12, "JP_nn"},	    // 0xC3
-	{tempfunction,0},		// 0xC4
+	{CALL_NZ_nn,2,   12, "CALL_NZ_nn"}, // 0xC4
 	{PUSH_BC,   0,  16, "PUSH_BC"},		// 0xC5
 	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
 	{RST00,     0,   32, "RST00"},		// 0xC7
@@ -222,7 +221,7 @@ const struct opCode opCodes[256] = {
 	{RET,       0,   16, "RET"},	    // 0xC9
 	{JP_Z_nn,	2,	 12, "JP_Z_nn"},	// 0xCA
 	{CB,        3,   4,  "CB"}, 		// 0xCB
-	{tempfunction,0},		// 0xCC
+	{CALL_Z_nn, 2,   12, "CALL_Z_nn"},  // 0xCC
 	{CALL_nn,   2,   24, "CALL_nn"},	// 0xCD
 	{ADC_A_n,   1,   8, "ADC_A_n"},	    // 0xCE
 	{RST08,     0,   32, "RST08"},		// 0xCF
@@ -230,7 +229,7 @@ const struct opCode opCodes[256] = {
 	{POP_DE,    0,  12, "POP_DE"},		// 0xD1
 	{JP_NC_nn,	2,	12, "JP_NC_nn"},	// 0xD2
 	{tempfunction,0},		// 0xD3
-	{tempfunction,0},		// 0xD4
+	{CALL_NC_nn,2,   12, "CALL_NC_nn"}, // 0xD4
 	{PUSH_DE,   0,  16, "PUSH_DE"},		// 0xD5
 	{SUB_n,     1,  8,  "SUB_n"},		// 0xD6
 	{RST10,     0,   32, "RST10"},		// 0xD7
@@ -238,7 +237,7 @@ const struct opCode opCodes[256] = {
 	{RETI,      0,   8, "RETI"},        // 0xD9
 	{JP_C_nn,	2,	12, "JP_C_nn"},	    // 0xDA
 	{tempfunction,0},		// 0xDB
-	{tempfunction,0},		// 0xDC
+	{CALL_C_nn, 2,   12, "CALL_C_nn"}, // 0xDC
 	{tempfunction,0},		// 0xDD
 	{tempfunction,0},		// 0xDE
 	{RST18,     0,   32, "RST18"},		// 0xDF
@@ -831,7 +830,12 @@ void LD_BC_nn (void) { registers.BC = operand16; }
 void LD_DE_nn (void) { registers.DE = operand16; }
 void LD_HL_nn (void) { registers.HL = operand16; }
 void LD_SP_nn (void) { registers.SP = operand16; }
-
+/*
+ * LD (nn),SP
+ * Description: Put Stack Pointer (SP) at address n.
+ * Use with: nn = two byte immediate address.
+ */
+ void LD_nn_SP (void) { writeMemory(operand16, registers.SP); }
 /*
  * PUSH nn
  * Description: Push register pair nn onto stack.
@@ -1282,6 +1286,46 @@ void JR_C_n (void)	{ if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + 
  void CALL_nn (void) { 
      stackPush16(registers.PC);
      registers.PC = operand16;
+ }
+ 
+/*
+ * CALL cc,nn
+ * Description: Call address n if following condition is true:
+ *               cc = NZ, Call if Z flag is reset
+ *               cc = Z,  Call if Z flag is set
+ *               cc = NC, Call if C flag is reset
+ *               cc = C,  Call if C flag is set
+ *
+ * Use with: nn = two byte immediate value. (LS byte first.)
+ */
+ 
+ void CALL_NZ_nn (void){
+     if (testFlag(ZERO_F)  == 0){
+        stackPush16(registers.PC);
+        registers.PC = operand16; 
+        cpuCycles += 12;
+     }
+ }
+ void CALL_Z_nn (void){
+     if (testFlag(ZERO_F)){
+        stackPush16(registers.PC);
+        registers.PC = operand16; 
+        cpuCycles += 12;
+     }
+ }
+ void CALL_NC_nn (void){
+     if (testFlag(CARRY_F)  == 0){
+        stackPush16(registers.PC);
+        registers.PC = operand16; 
+        cpuCycles += 12;
+     }
+ }
+ void CALL_C_nn (void){
+     if (testFlag(CARRY_F)){
+        stackPush16(registers.PC);
+        registers.PC = operand16; 
+        cpuCycles += 12;
+     }
  }
 /********************
  * Restarts         *
