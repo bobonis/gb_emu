@@ -294,21 +294,21 @@ const struct extendedopCode extendedopCodes[256] = {
 	{tempfunction,0},		    // 0x0E
 	{tempfunction,0},		    // 0x0F
 	{tempfunction,0},		    // 0x10
-	{RL_C,        0, 8},		    // 0x11
+	{RL_C,        0, 8},		            // 0x11
 	{tempfunction,0},		    // 0x12
 	{tempfunction,0},		    // 0x13
 	{tempfunction,0},		    // 0x14
 	{tempfunction,0},		    // 0x15
 	{tempfunction,0},		    // 0x16
 	{tempfunction,0},		    // 0x17
-	{tempfunction,0},		    // 0x18
-	{tempfunction,0},		    // 0x19
-	{tempfunction,0},		    // 0x1A
-	{tempfunction,0},		    // 0x1B
-	{tempfunction,0},		    // 0x1C
-	{tempfunction,0},		    // 0x1D
-	{tempfunction,0},		    // 0x1E
-	{tempfunction,0},		    // 0x1F
+	{RR_B,        0,      8},		        // 0x18
+	{RR_C,        0,      8},		        // 0x19
+	{RR_D,        0,      8},		        // 0x1A
+	{RR_E,        0,      8},		        // 0x1B
+	{RR_H,        0,      8},		        // 0x1C
+	{RR_L,        0,      8},		        // 0x1D
+	{RR_HL,       0,      8},		        // 0x1E
+	{RR_A,        0,      8},		        // 0x1F
 	{SLA_B,       0,     8},    // 0x20
 	{SLA_C,       0,     8},    // 0x21
 	{SLA_D,       0,     8},    // 0x22
@@ -1216,6 +1216,27 @@ void DAA (void){
  * Rotates & Shifts *
  ********************/
 /*
+ * RR n
+ * Description: Rotate n right through Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
+ void RR_A (void) {registers.A = rr(registers.A);}
+ void RR_B (void) {registers.B = rr(registers.B);
+ debug=TRUE;}
+ void RR_C (void) {registers.C = rr(registers.C);
+ debug=TRUE;}
+ void RR_D (void) {registers.D = rr(registers.D);}
+ void RR_E (void) {registers.E = rr(registers.E);}
+ void RR_H (void) {registers.H = rr(registers.H);}
+ void RR_L (void) {registers.L = rr(registers.L);}
+ void RR_HL (void) {writeMemory(registers.HL,rr(readMemory8(registers.HL)));}
+ 
+/*
  * SLA n
  * Description: Shift n left into Carry. LSB of n set to 0.
  * Flags affected:
@@ -1689,6 +1710,24 @@ unsigned char srl (unsigned char value){
 
     value >>= 1;
     
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    if (value)
+        resetFlag(ZERO_F);
+    else
+        setFlag(ZERO_F);
+
+    return value;
+      
+}
+
+unsigned char rr (unsigned char value){
+    
+    value >>= 1;
+    if (testFlag(CARRY_F))
+        value |= 0x80;
+        
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
     

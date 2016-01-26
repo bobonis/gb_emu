@@ -491,14 +491,6 @@ void stackPush16 (unsigned short value){
 
 unsigned short stackPop16 (void){
     unsigned short value = 0;
-/*
-Imagine a stack which can store 4 elements
-At the beginning SP will have an invalid value 5 (memory[5])
-When you push two bytes you will decrement SP by 2 in order to point to memory[3]
-and you will add the values in memory[3] and memory[4].
-The below code will read from memory[2] and memory[1] and will set SP to 5.
-Please check my assumption and provide your feedback
-*/
 
 //    value = (memory[registers.SP - 1] | (memory[registers.SP - 2] << 8));
 //proposed
