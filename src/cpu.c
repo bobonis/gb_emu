@@ -1226,10 +1226,8 @@ void DAA (void){
  * C - Contains old bit 0 data.
  */
  void RR_A (void) {registers.A = rr(registers.A);}
- void RR_B (void) {registers.B = rr(registers.B);
- debug=TRUE;}
- void RR_C (void) {registers.C = rr(registers.C);
- debug=TRUE;}
+ void RR_B (void) {registers.B = rr(registers.B);}
+ void RR_C (void) {registers.C = rr(registers.C);}
  void RR_D (void) {registers.D = rr(registers.D);}
  void RR_E (void) {registers.E = rr(registers.E);}
  void RR_H (void) {registers.H = rr(registers.H);}

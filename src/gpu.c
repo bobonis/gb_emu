@@ -64,7 +64,8 @@ void gpu (int cycles){
                 gpuDrawScanline();
 
                 memory[LY] += 1;          //Scanning a line completed, move to next
-                //display();              //temporary solution
+               // if (memory[LY] % 8 == 0)
+                //    display();              //temporary solution
 
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      
@@ -197,9 +198,9 @@ void gpuRenderBackground(void){
      
      
     unsigned char colour;
-    unsigned char red;
-    unsigned char green;
-    unsigned char blue;
+    int red;
+    int green;
+    int blue;
      
     unsigned char posX = readMemory8(SCX);
     unsigned char posY = readMemory8(SCY) + readMemory8(LY);
@@ -280,7 +281,7 @@ void gpuRenderBackground(void){
         bit_1 = ((tile_1 << ( posX % 8 )) & 0x80 ) >> 7;
         bit_2 = ((tile_2 << ( posX % 8 )) & 0x80 ) >> 7;
         colour = (bit_2 << 1) | bit_1;
-
+/*
         //Pass colour through the palette
         switch (colour){
             case 0b00:
@@ -322,8 +323,8 @@ void gpuRenderBackground(void){
             default:
                 printf("COLOUR2 = %d\n",colour);            
                 exit(1);                
-        }
-
+        }*/
+        gpuPaintColour(colour, BGP, &red, &green, &blue);
         framebuffer[readMemory8(LY)][pixel][0] = red;
         framebuffer[readMemory8(LY)][pixel][1] = green;
         framebuffer[readMemory8(LY)][pixel][2] = blue;
@@ -403,6 +404,7 @@ void gpuDrawSprite (unsigned char sprite){
     int using_8x16_sprites = FALSE;
     unsigned char sprite_size = 8;
     unsigned char sprite_number;
+    unsigned char sprite_attributes;
     unsigned char sprite_Y;
     unsigned char sprite_X;
     unsigned char scanline = readMemory8(LY);
@@ -410,13 +412,17 @@ void gpuDrawSprite (unsigned char sprite){
     unsigned char bit_1;
     unsigned char bit_2;
     unsigned char colour;
+    unsigned short palette;
     int i;
+    int red, green, blue;
 
     //find sprite coordinates
     sprite_Y = readMemory8(OAM + (sprite * 4));
     sprite_X = readMemory8((OAM + (sprite * 4)) + 1 );    
     //find sprite pattern number
     sprite_number = readMemory8(OAM + (sprite * 4) + 2);
+    //find sprite attributes
+    sprite_attributes = readMemory8(OAM + (sprite * 4) + 3);
 
     
     //find sprite memory start adress    
@@ -437,13 +443,71 @@ void gpuDrawSprite (unsigned char sprite){
     bit_2 = ((sprite_2 << ( sprite_X % 8 )) & 0x80 ) >> 7;
     colour = (bit_2 << 1) | bit_1;
     
+    //find palete address
+    if (sprite_attributes & 0x10){
+        palette = 0xFF49;
+    }
+    else{
+        palette = 0xFF48;
+    }
+    
+    gpuPaintColour(colour, palette, &red, &green, &blue);
+    
     for (i=0;i<8;i++){
         if (sprite_X <= 159){
-            framebuffer[readMemory8(LY)][sprite_X][0] = 255;
-            framebuffer[readMemory8(LY)][sprite_X][1] = 0;
-            framebuffer[readMemory8(LY)][sprite_X][2] = 0;
+            framebuffer[readMemory8(LY)][sprite_X][0] = red;
+            framebuffer[readMemory8(LY)][sprite_X][1] = green;
+            framebuffer[readMemory8(LY)][sprite_X][2] = blue;
         }
         sprite_X +=1;
     }
+
+}
+
+void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue){
+
+    //Pass colour through the palette
+    switch (colour){
+        case 0b00:
+            colour = testBit(palette,0) | (testBit(palette,1) << 1);
+            break;
+            
+        case 0b01:
+            colour = testBit(palette,2) | (testBit(palette,3) << 1);
+            break;
+                
+        case 0b10:
+            colour = testBit(palette,4) | (testBit(palette,5) << 1);
+            break;
+
+        case 0b11:
+            colour = testBit(palette,6) | (testBit(palette,7) << 1);          
+            break;
+        default:
+            printf("COLOUR1 = %d\n",colour);
+            exit(1);
+        }
+
+    //Set actuall dot colour
+    switch (colour){
+        case 0b00:
+            *red = 0xFF; *green = 0xFF; *blue = 0xFF;
+            break;
+            
+        case 0b01:
+            *red = 0xCC; *green = 0xCC; *blue = 0xCC;
+            break;
+                
+        case 0b10:
+            *red = 0x77; *green = 0x77; *blue = 0x77;
+            break;
+
+        case 0b11:
+            *red = 0x00; *green = 0x00; *blue = 0x00;         
+            break;
+        default:
+            printf("COLOUR2 = %d\n",colour);            
+            exit(1);                
+        }
 
 }
