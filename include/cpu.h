@@ -16,6 +16,7 @@ int execute (void);
 void tempfunction (void);
 void bit (unsigned char pos, unsigned char value);
 unsigned char srl (unsigned char value);
+unsigned char rr (unsigned char value);
 unsigned char res(unsigned char pos, unsigned char value);
  /********************
  * 8-Bit Loads       *
@@ -260,6 +261,16 @@ void EI (void);
 /********************
  * Rotates & Shifts *
  ********************/
+//RR n
+void RR_A (void);
+void RR_B (void); 
+void RR_C (void);  
+void RR_D (void); 
+void RR_E (void); 
+void RR_H (void); 
+void RR_L (void);
+void RR_HL (void); 
+ 
 //SLA,n
 void SLA_A (void);
 void SLA_B (void);
