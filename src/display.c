@@ -5,7 +5,7 @@
 // Window size
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 144
-int modifier = 4;  
+int modifier = 5;  
 
 const char* WINDOW_TITLE = "GB Emu";    //Window Title
 
@@ -36,6 +36,9 @@ void display (void){
         }
         if (event.key.keysym.sym == SDLK_LEFT){
             inputPressKey(1);
+        }
+        if (event.key.keysym.sym == SDLK_p){
+            SDL_Delay(1000);
         }
     }            
     

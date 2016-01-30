@@ -575,20 +575,20 @@ int execute (void){
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
-            if (debug)
+            if (0)
 			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
-            if (debug)
+            if (0)
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
 			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
-            if (debug)
+            if (0)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
        /* case 3 :
@@ -1226,10 +1226,8 @@ void DAA (void){
  * C - Contains old bit 0 data.
  */
  void RR_A (void) {registers.A = rr(registers.A);}
- void RR_B (void) {registers.B = rr(registers.B);
- debug=TRUE;}
- void RR_C (void) {registers.C = rr(registers.C);
- debug=TRUE;}
+ void RR_B (void) {registers.B = rr(registers.B);}
+ void RR_C (void) {registers.C = rr(registers.C);}
  void RR_D (void) {registers.D = rr(registers.D);}
  void RR_E (void) {registers.E = rr(registers.E);}
  void RR_H (void) {registers.H = rr(registers.H);}

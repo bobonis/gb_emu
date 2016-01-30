@@ -148,9 +148,10 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
     }
-    //else if (pos == 0xFF00){
-        
-    //}
+    else if (pos == 0xFF47){
+        //printf("[DEBUG] Write at palette 0x%2x\n",value);
+        memory[pos] = value;
+    }
     else{ //default
         memory[pos] = value;
     }
@@ -252,6 +253,9 @@ void add16 (unsigned short value1){
 
 
 void adc (unsigned char value1, unsigned char value2){
+    
+    registers.A = value1 + value2 + testFlag(CARRY_F);
+
     if ((value1 + value2 + testFlag(CARRY_F)) > 255) 
         setFlag(CARRY_F);
     else
@@ -262,7 +266,7 @@ void adc (unsigned char value1, unsigned char value2){
     else
         resetFlag(HALF_CARRY_F);
     
-    registers.A = value1 + value2 + testFlag(CARRY_F);
+
     
     if (registers.A == 0)  
         setFlag(ZERO_F);
