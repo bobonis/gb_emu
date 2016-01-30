@@ -575,20 +575,20 @@ int execute (void){
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
-            if (debug)
+            if (0)
 			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
-            if (debug)
+            if (0)
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
 			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
-            if (debug)
+            if (0)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
        /* case 3 :

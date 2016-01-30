@@ -1,4 +1,15 @@
 bobonis
+    - adc function had a little error. It was first calculating the carry
+      and then was adding it to REGISTER A. We should first do the addition
+      and then calculate the CARRY.
+    - Well, adc was causing the problem to the sprites. We need transperacy but
+      they are ok!
+
+bobonis
+    - more work on spites, Tetris is ok, Asteroids sucks
+    - Now pressing "p" will pause the execution for 1 second
+
+bobonis
     - Fixed rom booting after BIOS
         (Problem was bios overwrote memory address 0x00-0x100)
     - New switchable debug variable in cpu.c

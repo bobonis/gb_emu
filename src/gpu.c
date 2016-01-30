@@ -20,6 +20,8 @@
 #define LY      0xFF44 //Vertical line counter
 #define LYC     0xFF45 //Vertical line coincidence
 #define BGP     0xFF47 //BG & Window Palette Data
+#define OBP0    0xFF48 //Object Palette 0 Data
+#define OBP1    0xFF49 //Object Palette 1 Data
 #define WY      0xFF4A //Window Y position
 #define WX      0xFF4B //Window X position
  
@@ -27,6 +29,8 @@ unsigned char framebuffer[144][160][3];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles = 0;
+
+int temp = 0;
 
 /*  Period  GPU mode          Time spent   (clocks)
  * -----------------------------------------------------
@@ -64,8 +68,8 @@ void gpu (int cycles){
                 gpuDrawScanline();
 
                 memory[LY] += 1;          //Scanning a line completed, move to next
-               // if (memory[LY] % 8 == 0)
-                //    display();              //temporary solution
+                //if (memory[LY] % 4 == 0)
+                  //  display();              //temporary solution
 
                 if (memory[LY] > 143){
                     gpuChangeMode(V_BLANK);                      
@@ -324,6 +328,14 @@ void gpuRenderBackground(void){
                 printf("COLOUR2 = %d\n",colour);            
                 exit(1);                
         }*/
+        
+        
+        
+        if (readMemory8(BGP) != temp){
+                printf("palette 0x%2x\n",readMemory8(BGP));
+                temp = readMemory8(BGP);
+        }
+        
         gpuPaintColour(colour, BGP, &red, &green, &blue);
         framebuffer[readMemory8(LY)][pixel][0] = red;
         framebuffer[readMemory8(LY)][pixel][1] = green;
@@ -343,9 +355,7 @@ void gpuRenderBackground(void){
  *   Bit2-0: Not used in standard gameboy 
  */
 void gpuRenderSprites(void){
-    
-    
-    
+
     int sprite;
     int scanline = readMemory8(LY);
     unsigned char posY;
@@ -358,37 +368,43 @@ void gpuRenderSprites(void){
         //using_8x16_sprites = TRUE;
         sprite_size = 16;
     }
-     /*
-      * RENDER SPRITES 
-      */   
-   
+
+    //move scanline perspective to match sprites
+    scanline +=16;
+        
+    //Count total sprites visible on current scanline   
     for (sprite = 0; sprite < 40; sprite++){
         
-        posY = readMemory8(OAM + (sprite * 4)) - 16;
-        posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
+        posY = readMemory8(OAM + (sprite * 4));
+        //posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
         
         /*for accurate emulation we have to check sprite priorites
          *we will start checking from the last pixel in each scanline
          */
-        
+
         //Check if part of sprite is visible in current scanline
         if ((scanline >= posY) && (scanline < (posY + sprite_size))){
-            sprites_on_scanline++;  //Count total sprites visible in current scanline
+            sprites_on_scanline++;  
         }
     }
+    //printf ("[DEBUG] %d sprites on scanline %d\n", sprites_on_scanline, readMemory8(LY));
 
-    for (pixel = 159; pixel >= 0; pixel--){
+    for (pixel = 167; pixel > 0; pixel--){
         for (sprite = 39; sprite >= 0; sprite--){
 
-            posY = readMemory8(OAM + (sprite * 4)) - 16;
-            posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
-            
-            if ((scanline >= posY) && (scanline < (posY + sprite_size))){ //if sprite is visible on current scanline
-                if (pixel == posX){   //if sprite starts on current pixel
+            posY = readMemory8(OAM + (sprite * 4));
+            posX = readMemory8((OAM + (sprite * 4)) + 1 );
+            //printf("[DEBUG] sprite %d, scanline %d\n",sprite,scanline);
+             //if sprite is visible on current scanline
+            if ((scanline >= posY) && (scanline < (posY + sprite_size))){
+                //if sprite starts on current pixel
+               // printf ("[DEBUG] Sprite = %d, posX = %d, pixel = %d\n", sprite,posX,pixel);
+                if (pixel == posX){   
                     if (sprites_on_scanline > 10){
                         //limit of sprites reached on current scanline
                     }
-                    else{ 
+                    else{
+                        //printf("[DEBUG] Draw sprite %d at scanline %d starting at pixel %d\n",sprite,scanline-16,pixel);
                         gpuDrawSprite(sprite);//Draw sprite
                     }                  
                 }
@@ -403,6 +419,7 @@ void gpuRenderSprites(void){
 void gpuDrawSprite (unsigned char sprite){
     int using_8x16_sprites = FALSE;
     unsigned char sprite_size = 8;
+    unsigned char sprite_line;
     unsigned char sprite_number;
     unsigned char sprite_attributes;
     unsigned char sprite_Y;
@@ -415,7 +432,9 @@ void gpuDrawSprite (unsigned char sprite){
     unsigned short palette;
     int i;
     int red, green, blue;
-
+    int draw_pixel = TRUE;
+    //printf("[DEBUG] Sprite %d\n",sprite);
+    //sprite = 35;
     //find sprite coordinates
     sprite_Y = readMemory8(OAM + (sprite * 4));
     sprite_X = readMemory8((OAM + (sprite * 4)) + 1 );    
@@ -430,38 +449,63 @@ void gpuDrawSprite (unsigned char sprite){
         using_8x16_sprites = TRUE;
         sprite_size = 16;
         sprite_start_address = SPT + sprite_number * 32; 
+        printf("[DEBUG] Using large sprites\n" );
     }
     else{
         sprite_start_address = SPT + sprite_number * 16;
     }
 
+    sprite_line = scanline + 16 - sprite_Y;
+
     //read sprite row contents
-    unsigned char sprite_1 = readMemory8( sprite_start_address + ( ( sprite_Y % 8 ) * 2 ) );
-    unsigned char sprite_2 = readMemory8( sprite_start_address + ( ( sprite_Y % 8 ) * 2 ) + 1);
-    //read pixel from tile row
-    bit_1 = ((sprite_1 << ( sprite_X % 8 )) & 0x80 ) >> 7;
-    bit_2 = ((sprite_2 << ( sprite_X % 8 )) & 0x80 ) >> 7;
-    colour = (bit_2 << 1) | bit_1;
-    
-    //find palete address
-    if (sprite_attributes & 0x10){
-        palette = 0xFF49;
-    }
-    else{
-        palette = 0xFF48;
-    }
-    
-    gpuPaintColour(colour, palette, &red, &green, &blue);
+    //printf("[DEBUG] Sprite start address 0x%4x\n", sprite_start_address);
+    unsigned char sprite_1 = readMemory8( sprite_start_address + ( sprite_line * 2 ) );
+    unsigned char sprite_2 = readMemory8( sprite_start_address + ( sprite_line * 2 ) + 1);
+     //printf("[DEBUG] sprite_1 0x%2x sprite_2 0x%2x\n", sprite_1,sprite_2 );
     
     for (i=0;i<8;i++){
-        if (sprite_X <= 159){
-            framebuffer[readMemory8(LY)][sprite_X][0] = red;
-            framebuffer[readMemory8(LY)][sprite_X][1] = green;
-            framebuffer[readMemory8(LY)][sprite_X][2] = blue;
+        //read pixel from tile row
+        bit_1 = ((sprite_1 << ( sprite_X % 8 )) & 0x80 ) >> 7;
+        bit_2 = ((sprite_2 << ( sprite_X % 8 )) & 0x80 ) >> 7;
+        colour = (bit_2 << 1) | bit_1;
+    
+        //find palete address
+        if (sprite_attributes & 0x10){
+            palette = OBP1;
+        }
+        else{
+            palette = OBP0;
+        }
+        
+        //check sprite priority
+        if (sprite_attributes & 0x80){ //no priority
+            //If sprite pixel is in visible space
+            if (sprite_X >= 8){
+                if (framebuffer[readMemory8(LY)][sprite_X][0] != 255)
+                    if (framebuffer[readMemory8(LY)][sprite_X][1] != 255)
+                        if (framebuffer[readMemory8(LY)][sprite_X][2] != 255)
+                            draw_pixel = FALSE;
+                
+            }
+        }
+        else{
+            draw_pixel = TRUE;
+        }
+    
+        gpuPaintColour(colour, palette, &red, &green, &blue);
+    
+        
+        if (sprite_X <= 167 && sprite_X >= 8){
+            if (draw_pixel){
+                
+                framebuffer[readMemory8(LY)][sprite_X - 8][0] = red;
+                framebuffer[readMemory8(LY)][sprite_X - 8][1] = green;
+                framebuffer[readMemory8(LY)][sprite_X - 8][2] = blue;
+            }
         }
         sprite_X +=1;
     }
-
+//printf("[DEBUG] Sprite drawn\n\n");
 }
 
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue){
