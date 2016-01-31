@@ -1,6 +1,7 @@
 #include "input.h"
 #include "memory.h"
 #include "interrupts.h"
+#include "display.h"
 #include <stdio.h>
 
 /*
@@ -47,10 +48,8 @@ unsigned char inputReadKeys(){
         //resetBit(joypad_state,5);
     }
     //printf ("\nJoypad = %d\n",joypad_state);
-    return joypad_state;
     //joypad = 0xFF;
-    
-
+    return joypad_state;
 }
 
 void inputPressKey(int key){
@@ -69,4 +68,60 @@ void inputPressKey(int key){
             break;
     }
     triggerInterrupt(JOYPAD_INTERRUPT);
+}
+
+void inputReleaseKey(int key){
+    switch (key){
+        case 0:
+            joypad |= 0x01;
+            break;
+        case 1:
+            joypad |= 0x02;
+            break;
+        case 2:
+            joypad |= 0x04;
+            break;
+        case 3:
+            joypad |= 0x08;
+            break;
+    }
+}
+
+
+void inputHandleEvents(SDL_Event event){
+    
+    if (event.type == SDL_KEYDOWN){
+        printf ("key down\n");   
+        if (event.key.keysym.sym == SDLK_UP){
+            inputPressKey(2);
+        }
+        if (event.key.keysym.sym == SDLK_DOWN){
+            inputPressKey(3);
+        }
+        if (event.key.keysym.sym == SDLK_RIGHT){
+            inputPressKey(0);
+        }
+        if (event.key.keysym.sym == SDLK_LEFT){
+            inputPressKey(1);
+        }
+        if (event.key.keysym.sym == SDLK_p){
+            SDL_Delay(1000);
+        }
+    }
+    
+    if (event.type == SDL_KEYUP){
+        printf ("key down\n");   
+        if (event.key.keysym.sym == SDLK_UP){
+            inputReleaseKey(2);
+        }
+        if (event.key.keysym.sym == SDLK_DOWN){
+            inputReleaseKey(3);
+        }
+        if (event.key.keysym.sym == SDLK_RIGHT){
+            inputReleaseKey(0);
+        }
+        if (event.key.keysym.sym == SDLK_LEFT){
+            inputReleaseKey(1);
+        }
+    } 
 }

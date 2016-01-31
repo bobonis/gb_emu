@@ -6,10 +6,15 @@
 #include "timers.h"
 #include "interrupts.h"
 #include "display.h"
+#include "input.h"
 
 
 int main(int argc, char **argv){
 
+    SDL_Event event;                   //Event handler
+
+    int QUIT = FALSE;
+    
 	if (argc < 2){
 		printf("No Rom\n");
 		return 1;
@@ -26,18 +31,25 @@ int main(int argc, char **argv){
 	
 	reset();
 	printf("[INFO] System reset done\n");
-    display();
+    //display();
     int cycles;
     
-	while (1) {
+	while (!QUIT) {
+        
+        SDL_PollEvent( &event );
+        if( event.type == SDL_QUIT ) { 
+            QUIT = TRUE;
+        }
+              
 		cycles = execute();
         updateTimers(cycles);
 		gpu(cycles);
-		//input();
+		inputHandleEvents(event);
 		handleInterrupts();
         //display();
 	}
 	
+    displayEnd();
 	
 return 0;
 }
