@@ -1,4 +1,14 @@
 bobonis
+    - RLCA
+    - SWAP
+    - moar keas
+
+bobonis
+    - Sprites seem to work!
+    - Transperacy and axis flip
+    - Fixed input
+
+bobonis
     - adc function had a little error. It was first calculating the carry
       and then was adding it to REGISTER A. We should first do the addition
       and then calculate the CARRY.

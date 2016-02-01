@@ -5,7 +5,7 @@
 // Window size
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 144
-int modifier = 5;  
+int modifier = 4;  
 
 const char* WINDOW_TITLE = "GB Emu";    //Window Title
 
@@ -18,29 +18,12 @@ SDL_GLContext context;
 
 void display (void){
     
-    SDL_PollEvent( &event );
+    //SDL_PollEvent( &event );
     
-    if( event.type == SDL_QUIT ) { 
-        displayEnd(); 
-    }
-    if (event.type == SDL_KEYDOWN){
-        printf ("key down\n");   
-        if (event.key.keysym.sym == SDLK_UP){
-            inputPressKey(2);
-        }
-        if (event.key.keysym.sym == SDLK_DOWN){
-            inputPressKey(3);
-        }
-        if (event.key.keysym.sym == SDLK_RIGHT){
-            inputPressKey(0);
-        }
-        if (event.key.keysym.sym == SDLK_LEFT){
-            inputPressKey(1);
-        }
-        if (event.key.keysym.sym == SDLK_p){
-            SDL_Delay(1000);
-        }
-    }            
+    //if( event.type == SDL_QUIT ) { 
+    //    displayEnd(); 
+    //}
+                    
     
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     updateTexture();

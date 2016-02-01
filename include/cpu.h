@@ -18,6 +18,7 @@ void bit (unsigned char pos, unsigned char value);
 unsigned char srl (unsigned char value);
 unsigned char rr (unsigned char value);
 unsigned char res(unsigned char pos, unsigned char value);
+unsigned char swap (unsigned char value);
  /********************
  * 8-Bit Loads       *
  *********************/
@@ -252,6 +253,16 @@ void ADD_HL_SP (void);
 /********************
  * Miscellaneous    *
  ********************/
+//SWAP n
+void SWAP_A (void);
+void SWAP_B (void);
+void SWAP_C (void);
+void SWAP_D (void);
+void SWAP_E (void);
+void SWAP_H (void);
+void SWAP_L (void);
+void SWAP_HL (void); 
+
 void DAA (void); 
 void CPL (void);
 void CCF (void);
@@ -261,6 +272,8 @@ void EI (void);
 /********************
  * Rotates & Shifts *
  ********************/
+//RLCA
+void RLCA (void);
 //RR n
 void RR_A (void);
 void RR_B (void); 
@@ -485,7 +498,6 @@ void RETI (void);
 //Extended OPcodes
 void CB (void);
 
-void SWAP_A (void);
 void  RL_C (void);
 
 

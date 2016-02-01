@@ -26,11 +26,11 @@
 #define WX      0xFF4B //Window X position
  
 unsigned char framebuffer[144][160][3];
+unsigned char spritebuffer[160][3];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles = 0;
 
-int temp = 0;
 
 /*  Period  GPU mode          Time spent   (clocks)
  * -----------------------------------------------------
@@ -172,13 +172,29 @@ void gpuChangeMode(int mode){
  * and the sprites on current scanline
  */
 void gpuDrawScanline(void){
-
+    int i;
+    
+    for (i=159;i>=0;i--){
+        spritebuffer[i][0] = spritebuffer[i][1] = spritebuffer[i][2] = 255;
+    }
+    
     if (testBit(LCDC,0)){
         gpuRenderBackground();
     }
 
     if (testBit(LCDC,0)){
         gpuRenderSprites();
+
+    
+    for (i=159;i>=0;i--){
+        if (spritebuffer[i][0] != 255){
+            framebuffer[readMemory8(LY)][i][0] = spritebuffer[i][0];
+            framebuffer[readMemory8(LY)][i][1] = spritebuffer[i][1];
+            framebuffer[readMemory8(LY)][i][2] = spritebuffer[i][2];
+        }
+    }
+    
+
     }
 }
 /*
@@ -285,58 +301,9 @@ void gpuRenderBackground(void){
         bit_1 = ((tile_1 << ( posX % 8 )) & 0x80 ) >> 7;
         bit_2 = ((tile_2 << ( posX % 8 )) & 0x80 ) >> 7;
         colour = (bit_2 << 1) | bit_1;
-/*
-        //Pass colour through the palette
-        switch (colour){
-            case 0b00:
-                colour = testBit(BGP,0) | (testBit(BGP,1) << 1);
-                break;
-            
-            case 0b01:
-                colour = testBit(BGP,2) | (testBit(BGP,3) << 1);
-                break;
-                
-            case 0b10:
-                colour = testBit(BGP,4) | (testBit(BGP,5) << 1);
-                break;
-
-            case 0b11:
-                colour = testBit(BGP,6) | (testBit(BGP,7) << 1);          
-                break;
-            default:
-                printf("COLOUR1 = %d\n",colour);
-                exit(1);
-        }
-        //Set actuall dot colour
-        switch (colour){
-            case 0b00:
-                red = 0xFF; green = 0xFF; blue = 0xFF;
-                break;
-            
-            case 0b01:
-                red = 0xCC; green = 0xCC; blue = 0xCC;
-                break;
-                
-            case 0b10:
-                red = 0x77; green = 0x77; blue = 0x77;
-                break;
-
-            case 0b11:
-                red = 0x00; green = 0x00; blue = 0x00;         
-                break;
-            default:
-                printf("COLOUR2 = %d\n",colour);            
-                exit(1);                
-        }*/
-        
-        
-        
-        if (readMemory8(BGP) != temp){
-                printf("palette 0x%2x\n",readMemory8(BGP));
-                temp = readMemory8(BGP);
-        }
         
         gpuPaintColour(colour, BGP, &red, &green, &blue);
+        
         framebuffer[readMemory8(LY)][pixel][0] = red;
         framebuffer[readMemory8(LY)][pixel][1] = green;
         framebuffer[readMemory8(LY)][pixel][2] = blue;
@@ -419,7 +386,7 @@ void gpuRenderSprites(void){
 void gpuDrawSprite (unsigned char sprite){
     int using_8x16_sprites = FALSE;
     unsigned char sprite_size = 8;
-    unsigned char sprite_line;
+    int sprite_line;
     unsigned char sprite_number;
     unsigned char sprite_attributes;
     unsigned char sprite_Y;
@@ -433,6 +400,8 @@ void gpuDrawSprite (unsigned char sprite){
     int i;
     int red, green, blue;
     int draw_pixel = TRUE;
+    int flip_Y = FALSE;
+    int flip_X = FALSE;
     //printf("[DEBUG] Sprite %d\n",sprite);
     //sprite = 35;
     //find sprite coordinates
@@ -454,8 +423,20 @@ void gpuDrawSprite (unsigned char sprite){
     else{
         sprite_start_address = SPT + sprite_number * 16;
     }
+    
+    if (sprite_attributes & 0x40){
+        flip_Y = TRUE;
+    }
+    if (sprite_attributes & 0x20){
+        flip_X = TRUE;
+    }
 
     sprite_line = scanline + 16 - sprite_Y;
+    
+    if (flip_Y){
+        sprite_line -= sprite_size - 1;
+        sprite_line *= -1;
+    }
 
     //read sprite row contents
     //printf("[DEBUG] Sprite start address 0x%4x\n", sprite_start_address);
@@ -464,11 +445,18 @@ void gpuDrawSprite (unsigned char sprite){
      //printf("[DEBUG] sprite_1 0x%2x sprite_2 0x%2x\n", sprite_1,sprite_2 );
     
     for (i=0;i<8;i++){
+
         //read pixel from tile row
-        bit_1 = ((sprite_1 << ( sprite_X % 8 )) & 0x80 ) >> 7;
-        bit_2 = ((sprite_2 << ( sprite_X % 8 )) & 0x80 ) >> 7;
-        colour = (bit_2 << 1) | bit_1;
-    
+        if (flip_X){
+            bit_1 = ((sprite_1 << ( (7 - i) % 8 )) & 0x80 ) >> 7;
+            bit_2 = ((sprite_2 << ( (7 - i) % 8 )) & 0x80 ) >> 7;
+            colour = (bit_2 << 1) | bit_1;            
+        }else{
+        
+            bit_1 = ((sprite_1 << ( i % 8 )) & 0x80 ) >> 7;
+            bit_2 = ((sprite_2 << ( i % 8 )) & 0x80 ) >> 7;
+            colour = (bit_2 << 1) | bit_1;
+        }
         //find palete address
         if (sprite_attributes & 0x10){
             palette = OBP1;
@@ -497,15 +485,14 @@ void gpuDrawSprite (unsigned char sprite){
         
         if (sprite_X <= 167 && sprite_X >= 8){
             if (draw_pixel){
-                
-                framebuffer[readMemory8(LY)][sprite_X - 8][0] = red;
-                framebuffer[readMemory8(LY)][sprite_X - 8][1] = green;
-                framebuffer[readMemory8(LY)][sprite_X - 8][2] = blue;
+                spritebuffer[sprite_X - 8][0] = red;
+                spritebuffer[sprite_X - 8][1] = green;
+                spritebuffer[sprite_X - 8][2] = blue;
             }
         }
         sprite_X +=1;
     }
-//printf("[DEBUG] Sprite drawn\n\n");
+
 }
 
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue){

@@ -12,7 +12,8 @@ TIMERS
 - Verify when to step timer (equal or greater or both)
 
 GPU 
-- Handle sprites 
+- [DONE] Handle sprites
+- Optimize code 
 
 DISPLAY 
 - Use correct colors 
