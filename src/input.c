@@ -66,6 +66,18 @@ void inputPressKey(int key){
         case 3:
             joypad &= 0xF7;
             break;
+        case 4:
+            joypad &= 0xEF;
+            break;
+        case 5:
+            joypad &= 0xDF;
+            break;
+        case 6:
+            joypad &= 0xBF;
+            break;
+        case 7:
+            joypad &= 0x7F;
+            break;                                                
     }
     triggerInterrupt(JOYPAD_INTERRUPT);
 }
@@ -84,6 +96,18 @@ void inputReleaseKey(int key){
         case 3:
             joypad |= 0x08;
             break;
+        case 4:
+            joypad |= 0x10;
+            break;
+        case 5:
+            joypad |= 0x20;
+            break;
+        case 6:
+            joypad |= 0x40;
+            break;
+        case 7:
+            joypad |= 0x80;                                                
+            break;
     }
 }
 
@@ -91,7 +115,7 @@ void inputReleaseKey(int key){
 void inputHandleEvents(SDL_Event event){
     
     if (event.type == SDL_KEYDOWN){
-        printf ("key down\n");   
+       // printf ("key down\n");   
         if (event.key.keysym.sym == SDLK_UP){
             inputPressKey(2);
         }
@@ -104,13 +128,25 @@ void inputHandleEvents(SDL_Event event){
         if (event.key.keysym.sym == SDLK_LEFT){
             inputPressKey(1);
         }
+        if (event.key.keysym.sym == SDLK_a){
+            inputPressKey(4);
+        }
+        if (event.key.keysym.sym == SDLK_s){
+            inputPressKey(5);
+        }
+        if (event.key.keysym.sym == SDLK_q){
+            inputPressKey(7);
+        }
+        if (event.key.keysym.sym == SDLK_w){
+            inputPressKey(6);
+        }                                
         if (event.key.keysym.sym == SDLK_p){
             SDL_Delay(1000);
         }
     }
     
     if (event.type == SDL_KEYUP){
-        printf ("key down\n");   
+        //printf ("key down\n");   
         if (event.key.keysym.sym == SDLK_UP){
             inputReleaseKey(2);
         }
@@ -123,5 +159,17 @@ void inputHandleEvents(SDL_Event event){
         if (event.key.keysym.sym == SDLK_LEFT){
             inputReleaseKey(1);
         }
+        if (event.key.keysym.sym == SDLK_a){
+            inputReleaseKey(4);
+        }
+        if (event.key.keysym.sym == SDLK_s){
+            inputReleaseKey(5);
+        }
+        if (event.key.keysym.sym == SDLK_q){
+            inputReleaseKey(7);
+        }
+        if (event.key.keysym.sym == SDLK_w){
+            inputReleaseKey(6);
+        }          
     } 
 }

@@ -31,6 +31,11 @@ int main(int argc, char **argv){
 	
 	reset();
 	printf("[INFO] System reset done\n");
+    printf("[INFO] BUTTON A  = a\n");
+    printf("[INFO] BUTTON B  = s\n");
+    printf("[INFO] START     = q\n");
+    printf("[INFO] SELECT    = w\n");
+    printf("[INFO] DIRECTION = arrow keys\n");
     //display();
     int cycles;
     

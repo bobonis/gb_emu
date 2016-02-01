@@ -24,7 +24,7 @@ const struct opCode opCodes[256] = {
 	{INC_B,     0,  4,  "INC_B"},		// 0x04
 	{DEC_B,     0,  4,  "DEC_B"},		// 0x05
 	{LD_B_n,	1,	8,  "LD_B_n"},	    // 0x06
-	{tempfunction,0},		// 0x07
+	{RLCA,      0,  4,  "RLCA"},		// 0x07
 	{LD_nn_SP,  2,  20, "LD_nn_SP"},	// 0x08
 	{ADD_HL_BC, 0,  8, "ADD_HL_BC"},	// 0x09
 	{LD_A_BC,   0,  8, "LD_A_BC"},		// 0x0A
@@ -325,13 +325,13 @@ const struct extendedopCode extendedopCodes[256] = {
 	{tempfunction,0},		    // 0x2D
 	{tempfunction,0},		    // 0x2E
 	{tempfunction,0},		    // 0x2F
-	{tempfunction,0},		    // 0x30
-	{tempfunction,0},		    // 0x31
-	{tempfunction,0},		    // 0x32
-	{tempfunction,0},		    // 0x33
-	{tempfunction,0},		    // 0x34
-	{tempfunction,0},		    // 0x35
-	{tempfunction,0},		    // 0x36
+	{SWAP_B,          0,  8},   // 0x30
+	{SWAP_C,          0,  8},   // 0x31
+	{SWAP_D,          0,  8},   // 0x32
+	{SWAP_E,          0,  8},   // 0x33
+	{SWAP_H,          0,  8},   // 0x34
+	{SWAP_L,          0,  8},   // 0x35
+	{SWAP_HL,         0,  16},  // 0x36
 	{SWAP_A,          0,  8},		        // 0x37
 	{SRL_B,           0,  8},		        // 0x38
 	{SRL_C,           0,  8},		        // 0x39
@@ -1216,6 +1216,38 @@ void DAA (void){
  * Rotates & Shifts *
  ********************/
 /*
+ * RLCA
+ * Description: Rotate A left. Old bit 7 to Carry flag.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
+void RLCA (void){
+    
+    if (registers.A & 0x80){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    registers.A <= 1;
+    registers.A |= testFlag(CARRY_F);
+    
+    if (registers.A == 0){
+        setFlag(ZERO_F);
+    }
+    else{
+        resetFlag(ZERO_F);
+    }
+    
+    resetFlag(HALF_CARRY_F);
+    resetFlag(SUBSTRACT_F);
+}
+
+/*
  * RR n
  * Description: Rotate n right through Carry flag.
  * Use with: n = A,B,C,D,E,H,L,(HL)
@@ -1440,18 +1472,25 @@ void RETI   (void){ registers.PC = stackPop16(); interruptMaster = TRUE;}
  ************************/
 void CB (void) {printf("OK");}
 
-void SWAP_A (void) {
-    
-    registers.A = ((registers.A & 0xf) << 4) | ((registers.A & 0xf0) >> 4);
-    if(registers.A == 0)
-       setFlag(ZERO_F);
-    else
-       resetFlag(ZERO_F);
-    resetFlag(SUBSTRACT_F);
-    resetFlag(HALF_CARRY_F);
-    resetFlag(CARRY_F);
-    cpuCycles += 8;
-}
+/*
+ * SWAP n
+ * Description: Swap upper & lower nibles of n.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Reset.
+ */
+void SWAP_A (void) { registers.A = swap(registers.A); }
+void SWAP_B (void) { registers.B = swap(registers.B); }
+void SWAP_C (void) { registers.C = swap(registers.C); }
+void SWAP_D (void) { registers.D = swap(registers.D); }
+void SWAP_E (void) { registers.E = swap(registers.E); }
+void SWAP_H (void) { registers.H = swap(registers.H); }
+void SWAP_L (void) { registers.L = swap(registers.L); }
+void SWAP_HL (void) { writeMemory (registers.HL, swap(readMemory8(registers.HL))); }
+
 /*
  * SET b,r
  * Description: Set bit b in register r.
@@ -1736,4 +1775,19 @@ unsigned char rr (unsigned char value){
 
     return value;
       
+}
+
+unsigned char swap (unsigned char value){
+    
+    value = ((value & 0xf) << 4) | ((value & 0xf0) >> 4);
+    if (value == 0)
+       setFlag(ZERO_F);
+    else
+       resetFlag(ZERO_F);
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    resetFlag(CARRY_F);
+    
+    return value;
 }
