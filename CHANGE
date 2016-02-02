@@ -1,4 +1,8 @@
 bobonis
+    - MBC1 implementation
+    - Finished CB opcodes
+
+bobonis
     - dummy implementation of HALT opcode
 
 bobonis
