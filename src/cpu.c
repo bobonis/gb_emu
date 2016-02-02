@@ -15,6 +15,8 @@ unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
 unsigned char cpuCycles = 0;        //count internal cpu cycles
+int cpuHALT = FALSE;                // CPU is in HALT state
+int cpuSTOP = FALSE;                // CPU is in STOP state
 
 const struct opCode opCodes[256] = {
 	{NOP,		0,	4,  "NOP"},		    // 0x00
@@ -48,7 +50,7 @@ const struct opCode opCodes[256] = {
 	{INC_E,     0,  4, "INC_E"},		// 0x1C
 	{DEC_E,     0,  4, "DEC_E"},		// 0x1D
 	{LD_E_n,	1,	8, "LD_E_n"},		// 0x1E
-	{tempfunction,0},		// 0x1F
+	{RRA,       0,  4, "RRA"},		    // 0x1F
 	{JR_NZ_n,	1,	8,  "JR_NZ_n"},		// 0x20
 	{LD_HL_nn,  2,  12, "LD_HL_nn"},	// 0x21
 	{LDI_HL_A,  0,  8,  "LDI_HL_A"},	// 0x22
@@ -135,7 +137,7 @@ const struct opCode opCodes[256] = {
 	{LD_HL_E,    0,  8, "LD_HL_E"},		// 0x73
 	{LD_HL_H,    0,  8, "LD_HL_H"},		// 0x74
 	{LD_HL_L,    0,  8, "LD_HL_L"},		// 0x75
-	{tempfunction,0},		// 0x76
+	{HALT,       0,  4, "HALT"},		// 0x76
 	{LD_HL_A,    0,  8, "LD_HL_A"},		// 0x77
 	{LD_A_B,    0,  4, "LD_A_B"},		// 0x78
 	{LD_A_C,    0,  4, "LD_A_C"},		// 0x79
@@ -277,37 +279,37 @@ const struct opCode opCodes[256] = {
 
 
 const struct extendedopCode extendedopCodes[256] = {
-	{tempfunction,0},		    // 0x00
-	{tempfunction,0},		    // 0x01
-	{tempfunction,0},		    // 0x02
-	{tempfunction,0},		    // 0x03
-	{tempfunction,0},		    // 0x04
-	{tempfunction,0},		    // 0x05
-	{tempfunction,0},		    // 0x06
-	{tempfunction,0},		    // 0x07
-	{tempfunction,0},		    // 0x08
-	{tempfunction,0},		    // 0x09
-	{tempfunction,0},		    // 0x0A
-	{tempfunction,0},		    // 0x0B
-	{tempfunction,0},		    // 0x0C
-	{tempfunction,0},		    // 0x0D
-	{tempfunction,0},		    // 0x0E
-	{tempfunction,0},		    // 0x0F
-	{tempfunction,0},		    // 0x10
-	{RL_C,        0, 8},		            // 0x11
-	{tempfunction,0},		    // 0x12
-	{tempfunction,0},		    // 0x13
-	{tempfunction,0},		    // 0x14
-	{tempfunction,0},		    // 0x15
-	{tempfunction,0},		    // 0x16
-	{tempfunction,0},		    // 0x17
+	{RLC_B,       0,       8},		    // 0x00
+	{RLC_C,       0,       8},		    // 0x01
+	{RLC_D,       0,       8},		    // 0x02
+	{RLC_E,       0,       8},		    // 0x03
+	{RLC_H,       0,       8},		    // 0x04
+	{RLC_L,       0,       8},		    // 0x05
+	{RLC_HL,       0,       16},	    // 0x06
+	{RLC_A,       0,       8},		    // 0x07
+	{RRC_B,       0,       8},// 0x08
+	{RRC_C,       0,       8},// 0x09
+	{RRC_D,       0,       8},// 0x0A
+	{RRC_E,       0,       8},		    // 0x0B
+	{RRC_H,       0,       8},		    // 0x0C
+	{RRC_L,       0,       8},		    // 0x0D
+	{RRC_HL,       0,       16},		    // 0x0E
+	{RRC_A,       0,       8},		    // 0x0F
+	{RL_B,        0,        8},		    // 0x10
+	{RL_C,        0,       8},		    // 0x11
+	{RL_D,        0,       8},		    // 0x12
+	{RL_E,        0,       8},		    // 0x13
+	{RL_H,        0,       8},		    // 0x14
+	{RL_L,        0,       8},		    // 0x15
+	{RL_HL,        0,      16},		    // 0x16
+	{RL_A,        0,       8},		    // 0x17
 	{RR_B,        0,      8},		        // 0x18
 	{RR_C,        0,      8},		        // 0x19
 	{RR_D,        0,      8},		        // 0x1A
 	{RR_E,        0,      8},		        // 0x1B
 	{RR_H,        0,      8},		        // 0x1C
 	{RR_L,        0,      8},		        // 0x1D
-	{RR_HL,       0,      8},		        // 0x1E
+	{RR_HL,       0,      16},		        // 0x1E
 	{RR_A,        0,      8},		        // 0x1F
 	{SLA_B,       0,     8},    // 0x20
 	{SLA_C,       0,     8},    // 0x21
@@ -315,16 +317,16 @@ const struct extendedopCode extendedopCodes[256] = {
 	{SLA_E,       0,     8},    // 0x23
 	{SLA_H,       0,     8},    // 0x24
 	{SLA_L,       0,     8},    // 0x25
-	{tempfunction,0},           // 0x26
+	{SLA_HL,       0,     16},           // 0x26
 	{SLA_A,       0,     8},    // 0x27
-	{tempfunction,0},		    // 0x28
-	{tempfunction,0},		    // 0x29
-	{tempfunction,0},		    // 0x22
-	{tempfunction,0},		    // 0x2B
-	{tempfunction,0},		    // 0x2C
-	{tempfunction,0},		    // 0x2D
-	{tempfunction,0},		    // 0x2E
-	{tempfunction,0},		    // 0x2F
+	{SRA_B,       0,     8},    // 0x28
+	{SRA_C,       0,     8},    // 0x29
+	{SRA_D,       0,     8},    // 0x2A
+	{SRA_E,       0,     8},    // 0x2B
+	{SRA_H,       0,     8},    // 0x2C
+	{SRA_L,       0,     8},    // 0x2D
+	{SRA_HL,      0,     16},    // 0x2E
+	{SRA_A,       0,     8},    // 0x2F
 	{SWAP_B,          0,  8},   // 0x30
 	{SWAP_C,          0,  8},   // 0x31
 	{SWAP_D,          0,  8},   // 0x32
@@ -339,7 +341,7 @@ const struct extendedopCode extendedopCodes[256] = {
 	{SRL_E,           0,  8},		        // 0x3B
 	{SRL_H,           0,  8},		        // 0x3C
 	{SRL_L,           0,  8},		        // 0x3D
-	{SRL_HL,          0,  8},		        // 0x3E
+	{SRL_HL,          0,  16},		        // 0x3E
 	{SRL_A,           0,  8},		        // 0x3F
 	{BIT_0_B,      0,      8},  // 0x40
 	{BIT_0_C,      0,      8},  // 0x41
@@ -469,70 +471,70 @@ const struct extendedopCode extendedopCodes[256] = {
 	{RES_7_L,      0,      8},  // 0xBD
 	{RES_7_HL,     0,     16},  // 0xBE
 	{RES_7_A,      0,      8},  // 0xBF
-	{tempfunction,0},		    // 0xC0
-	{tempfunction,0},		    // 0xC1
-	{tempfunction,0},		    // 0xC2
-	{tempfunction,0},		    // 0xC3
-	{tempfunction,0},		    // 0xC4
-	{tempfunction,0},		    // 0xC5
-	{tempfunction,0},		    // 0xC6
-	{tempfunction,0},		    // 0xC7
-	{tempfunction,0},		    // 0xC8
-	{tempfunction,0},		    // 0xC9
-	{tempfunction,0},		    // 0xCA
-	{tempfunction,0},		    // 0xCB
-	{tempfunction,0},		    // 0xCC
-	{tempfunction,0},		    // 0xCD
-	{tempfunction,0},		    // 0xCE
-	{tempfunction,0},		    // 0xCF
-	{tempfunction,0},		    // 0xD0
-	{tempfunction,0},		    // 0xD1
-	{tempfunction,0},		    // 0xD2
-	{tempfunction,0},		    // 0xD3
-	{tempfunction,0},		    // 0xD4
-	{tempfunction,0},		    // 0xD5
-	{tempfunction,0},		    // 0xD6
-	{tempfunction,0},		    // 0xD7
-	{tempfunction,0},		    // 0xD8
-	{tempfunction,0},		    // 0xD9
-	{tempfunction,0},		    // 0xDA
-	{tempfunction,0},		    // 0xDB
-	{tempfunction,0},		    // 0xDC
-	{tempfunction,0},		    // 0xDD
-	{tempfunction,0},		    // 0xDE
-	{tempfunction,0},		    // 0xDF
-	{tempfunction,0},		    // 0xE0
-	{tempfunction,0},		    // 0xE1
-	{tempfunction,0},		    // 0xE2
-	{tempfunction,0},		    // 0xE3
-	{tempfunction,0},		    // 0xE4
-	{tempfunction,0},		    // 0xE5
-	{tempfunction,0},		    // 0xE6
-	{tempfunction,0},		    // 0xE7
-	{tempfunction,0},		    // 0xE8
-	{tempfunction,0},		    // 0xE9
-	{tempfunction,0},		    // 0xEA
-	{tempfunction,0},		    // 0xEB
-	{tempfunction,0},		    // 0xEC
-	{tempfunction,0},		    // 0xED
-	{tempfunction,0},		    // 0xEE
-	{tempfunction,0},		    // 0xEF
-	{tempfunction,0},		    // 0xF0
-	{tempfunction,0},		    // 0xF1
-	{tempfunction,0},		    // 0xF2
-	{tempfunction,0},		    // 0xF3
-	{tempfunction,0},		    // 0xF4
-	{tempfunction,0},		    // 0xF5
-	{tempfunction,0},		    // 0xF6
-	{tempfunction,0},		    // 0xF7
-	{tempfunction,0},		    // 0xF8
-	{tempfunction,0},		    // 0xF9
-	{tempfunction,0},		    // 0xFA
-	{tempfunction,0},		    // 0xFB
-	{tempfunction,0},		    // 0xFC
-	{tempfunction,0},		    // 0xFD
-	{tempfunction,0},		    // 0xFE
-	{tempfunction,0},		    // 0xFF
+	{SET_0_B,      0,      8},  // 0xC0
+	{SET_0_C,      0,      8},  // 0xC1
+	{SET_0_D,      0,      8},  // 0xC2
+	{SET_0_E,      0,      8},  // 0xC3
+	{SET_0_H,      0,      8},  // 0xC4
+	{SET_0_L,      0,      8},  // 0xC5
+	{SET_0_HL,     0,     16},  // 0xC6
+	{SET_0_A,      0,      8},  // 0xC7
+	{SET_1_B,      0,      8},  // 0xC8
+	{SET_1_C,      0,      8},  // 0xC9
+	{SET_1_D,      0,      8},  // 0xCA
+	{SET_1_E,      0,      8},  // 0xCB
+	{SET_1_H,      0,      8},  // 0xCC
+	{SET_1_L,      0,      8},  // 0xCD
+	{SET_1_HL,     0,     16},  // 0xCE
+	{SET_1_A,      0,      8},  // 0xCF
+	{SET_2_B,      0,      8},  // 0xD0
+	{SET_2_C,      0,      8},  // 0xD1
+	{SET_2_D,      0,      8},  // 0xD2
+	{SET_2_E,      0,      8},  // 0xD3
+	{SET_2_H,      0,      8},  // 0xD4
+	{SET_2_L,      0,      8},  // 0xD5
+	{SET_2_HL,     0,     16},  // 0xD6
+	{SET_2_A,      0,      8},  // 0xD7
+	{SET_3_B,      0,      8},  // 0xD8
+	{SET_3_C,      0,      8},  // 0xD9
+	{SET_3_D,      0,      8},  // 0xDA
+	{SET_3_E,      0,      8},  // 0xDB
+	{SET_3_H,      0,      8},  // 0xDC
+	{SET_3_L,      0,      8},  // 0xDD
+	{SET_3_HL,     0,     16},  // 0xDE
+	{SET_3_A,      0,      8},  // 0xDF
+	{SET_4_B,      0,      8},  // 0xE0
+	{SET_4_C,      0,      8},  // 0xE1
+	{SET_4_D,      0,      8},  // 0xE2
+	{SET_4_E,      0,      8},  // 0xE3
+	{SET_4_H,      0,      8},  // 0xE4
+	{SET_4_L,      0,      8},  // 0xE5
+	{SET_4_HL,     0,     16},  // 0xE6
+	{SET_4_A,      0,      8},  // 0xE7
+	{SET_5_B,      0,      8},  // 0xE8
+	{SET_5_C,      0,      8},  // 0xE9
+	{SET_5_D,      0,      8},  // 0xEA
+	{SET_5_E,      0,      8},  // 0xEB
+	{SET_5_H,      0,      8},  // 0xEC
+	{SET_5_L,      0,      8},  // 0xED
+	{SET_5_HL,     0,     16},  // 0xEE
+	{SET_5_A,      0,      8},  // 0xEF
+	{SET_6_B,      0,      8},  // 0xF0
+	{SET_6_C,      0,      8},  // 0xF1
+	{SET_6_D,      0,      8},  // 0xF2
+	{SET_6_E,      0,      8},  // 0xF3
+	{SET_6_H,      0,      8},  // 0xF4
+	{SET_6_L,      0,      8},  // 0xF5
+	{SET_6_HL,     0,     16},  // 0xF6
+	{SET_6_A,      0,      8},  // 0xF7
+	{SET_7_B,      0,      8},  // 0xF8
+	{SET_7_C,      0,      8},  // 0xF9
+	{SET_7_D,      0,      8},  // 0xFA
+	{SET_7_E,      0,      8},  // 0xFB
+	{SET_7_H,      0,      8},  // 0xFC
+	{SET_7_L,      0,      8},  // 0xFD
+	{SET_7_HL,     0,     16},  // 0xFE
+	{SET_7_A,      0,      8},  // 0xFF
 };
 
 int execute (void){
@@ -585,21 +587,11 @@ int execute (void){
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
-			//operand16 = memory[registers.PC + 1] | (memory[registers.PC + 2] << 8);
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
             if (0)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
-       /* case 3 :
-            instruction = memory[registers.PC+1];
-            registers.PC += 2; 
-            ((void (*)(void))extendedopCodes[instruction].function)();
-            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x, memory[HL]=0x%04x\n"
-            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xFF00]);
-            return cpuCycles;
-            break;
-       */
 	};
 
     if (extended_opcode){
@@ -814,7 +806,8 @@ void LDH_n_A (void) {
  * Description: Put memory address $FF00+n into A.
  * Use with: n = one byte immediate value.
  */
-  void LDH_A_n (void) { registers.A = readMemory8(0xFF00 + operand8); 
+  void LDH_A_n (void) { 
+      registers.A = readMemory8(0xFF00 + operand8); 
   }
  
 /********************
@@ -1205,6 +1198,27 @@ void DAA (void){
  *
 */
  void DI (void)     { interruptMaster = FALSE; }
+
+/*
+ * HALT
+ * Description: Power down CPU until an interrupt occurs. Use this
+ * when ever possible to reduce energy consumption.
+ */
+void HALT (void){
+    if (interruptMaster == TRUE){
+        
+    }
+    else{
+        
+    }
+}
+
+/*
+ * STOP
+ * Description: Halt CPU & LCD display until button pressed.
+ */
+//void STOP (void){}
+
 /*
  * EI
  * Description: Enable interrupts. This intruction enables interrupts
@@ -1248,6 +1262,25 @@ void RLCA (void){
 }
 
 /*
+ * RL n
+ * Description: Rotate n left through Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
+ void RL_A (void) {registers.A = rl(registers.A);}
+ void RL_B (void) {registers.B = rl(registers.B);}
+ void RL_C (void) {registers.C = rl(registers.C);}
+ void RL_D (void) {registers.D = rl(registers.D);}
+ void RL_E (void) {registers.E = rl(registers.E);}
+ void RL_H (void) {registers.H = rl(registers.H);}
+ void RL_L (void) {registers.L = rl(registers.L);}
+ void RL_HL (void) {writeMemory(registers.HL,rl(readMemory8(registers.HL)));}
+
+/*
  * RR n
  * Description: Rotate n right through Carry flag.
  * Use with: n = A,B,C,D,E,H,L,(HL)
@@ -1282,6 +1315,27 @@ void SLA_D (void) {registers.D = sla(registers.D);}
 void SLA_E (void) {registers.E = sla(registers.E);}
 void SLA_H (void) {registers.H = sla(registers.H);}
 void SLA_L (void) {registers.L = sla(registers.L);}
+void SLA_HL (void) {writeMemory(registers.HL,sla(readMemory8(registers.HL)));}
+
+/*
+ * SRA n
+ * Description: Shift n right into Carry. MSB doesn't change.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
+void SRA_A (void) {registers.A = sra(registers.A);}
+void SRA_B (void) {registers.B = sra(registers.B);}
+void SRA_C (void) {registers.C = sra(registers.C);}
+void SRA_D (void) {registers.D = sra(registers.D);}
+void SRA_E (void) {registers.E = sra(registers.E);}
+void SRA_H (void) {registers.H = sra(registers.H);}
+void SRA_L (void) {registers.L = sra(registers.L);}
+void SRA_HL (void) {writeMemory(registers.HL,sra(readMemory8(registers.HL)));}
+
 /*
  * RLA
  * Description: Rotate A left through Carry flag.
@@ -1306,7 +1360,84 @@ void SLA_L (void) {registers.L = sla(registers.L);}
 	
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
+    
+    if (registers.A == 0){
+        setFlag(ZERO_F);
+    }
+    else{
+        resetFlag(ZERO_F);
+    }
  }
+
+/*
+ * RRA
+ * Description: Rotate A right through Carry flag.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
+void RRA (void){
+	
+    int carry = testFlag(CARRY_F);
+	
+    if (registers.A & 0x01) 
+       setFlag(CARRY_F);
+	else 
+       resetFlag(CARRY_F);
+	
+	registers.A >>= 1;
+    
+    if (carry)
+	   registers.A &= 0x80;
+	
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    if (registers.A == 0){
+        setFlag(ZERO_F);
+    }
+    else{
+        resetFlag(ZERO_F);
+    }       
+}
+
+/* RLC n
+ * Description: Rotate n left. Old bit 7 to Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
+ void RLC_A (void) {registers.A = rlc(registers.A);}
+ void RLC_B (void) {registers.B = rlc(registers.B);}
+ void RLC_C (void) {registers.C = rlc(registers.C);}
+ void RLC_D (void) {registers.D = rlc(registers.D);}
+ void RLC_E (void) {registers.E = rlc(registers.E);}
+ void RLC_H (void) {registers.H = rlc(registers.H);}
+ void RLC_L (void) {registers.L = rlc(registers.L);}
+ void RLC_HL (void) {writeMemory(registers.HL,rlc(readMemory8(registers.HL)));}
+
+/* RRC n
+ * Description: Rotate n right. Old bit 0 to Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
+ void RRC_A (void) {registers.A = rrc(registers.A);}
+ void RRC_B (void) {registers.B = rrc(registers.B);}
+ void RRC_C (void) {registers.C = rrc(registers.C);}
+ void RRC_D (void) {registers.D = rrc(registers.D);}
+ void RRC_E (void) {registers.E = rrc(registers.E);}
+ void RRC_H (void) {registers.H = rrc(registers.H);}
+ void RRC_L (void) {registers.L = rrc(registers.L);}
+ void RRC_HL (void) {writeMemory(registers.HL,rrc(readMemory8(registers.HL)));}
  
 /*
  * SRL n
@@ -1498,6 +1629,85 @@ void SWAP_HL (void) { writeMemory (registers.HL, swap(readMemory8(registers.HL))
  * Flags affected:
  * None.
  */
+void SET_0_A (void) { registers.A = set(0,registers.A); }
+void SET_1_A (void) { registers.A = set(1,registers.A); }
+void SET_2_A (void) { registers.A = set(2,registers.A); }
+void SET_3_A (void) { registers.A = set(3,registers.A); }
+void SET_4_A (void) { registers.A = set(4,registers.A); }
+void SET_5_A (void) { registers.A = set(5,registers.A); }
+void SET_6_A (void) { registers.A = set(6,registers.A); }
+void SET_7_A (void) { registers.A = set(7,registers.A); }
+
+void SET_0_B (void) { registers.B = set(0,registers.B); }
+void SET_1_B (void) { registers.B = set(1,registers.B); }
+void SET_2_B (void) { registers.B = set(2,registers.B); }
+void SET_3_B (void) { registers.B = set(3,registers.B); }
+void SET_4_B (void) { registers.B = set(4,registers.B); }
+void SET_5_B (void) { registers.B = set(5,registers.B); }
+void SET_6_B (void) { registers.B = set(6,registers.B); }
+void SET_7_B (void) { registers.B = set(7,registers.B); }
+
+void SET_0_C (void) { registers.C = set(0,registers.C); }
+void SET_1_C (void) { registers.C = set(1,registers.C); }
+void SET_2_C (void) { registers.C = set(2,registers.C); }
+void SET_3_C (void) { registers.C = set(3,registers.C); }
+void SET_4_C (void) { registers.C = set(4,registers.C); }
+void SET_5_C (void) { registers.C = set(5,registers.C); }
+void SET_6_C (void) { registers.C = set(6,registers.C); }
+void SET_7_C (void) { registers.C = set(7,registers.C); }
+
+void SET_0_D (void) { registers.D = set(0,registers.D); }
+void SET_1_D (void) { registers.D = set(1,registers.D); }
+void SET_2_D (void) { registers.D = set(2,registers.D); }
+void SET_3_D (void) { registers.D = set(3,registers.D); }
+void SET_4_D (void) { registers.D = set(4,registers.D); }
+void SET_5_D (void) { registers.D = set(5,registers.D); }
+void SET_6_D (void) { registers.D = set(6,registers.D); }
+void SET_7_D (void) { registers.D = set(7,registers.D); }
+
+void SET_0_E (void) { registers.E = set(0,registers.E); }
+void SET_1_E (void) { registers.E = set(1,registers.E); }
+void SET_2_E (void) { registers.E = set(2,registers.E); }
+void SET_3_E (void) { registers.E = set(3,registers.E); }
+void SET_4_E (void) { registers.E = set(4,registers.E); }
+void SET_5_E (void) { registers.E = set(5,registers.E); }
+void SET_6_E (void) { registers.E = set(6,registers.E); }
+void SET_7_E (void) { registers.E = set(7,registers.E); }
+
+void SET_0_H (void) { registers.H = set(0,registers.H); }
+void SET_1_H (void) { registers.H = set(1,registers.H); }
+void SET_2_H (void) { registers.H = set(2,registers.H); }
+void SET_3_H (void) { registers.H = set(3,registers.H); }
+void SET_4_H (void) { registers.H = set(4,registers.H); }
+void SET_5_H (void) { registers.H = set(5,registers.H); }
+void SET_6_H (void) { registers.H = set(6,registers.H); }
+void SET_7_H (void) { registers.H = set(7,registers.H); }
+
+void SET_0_L (void) { registers.L = set(0,registers.L); }
+void SET_1_L (void) { registers.L = set(1,registers.L); }
+void SET_2_L (void) { registers.L = set(2,registers.L); }
+void SET_3_L (void) { registers.L = set(3,registers.L); }
+void SET_4_L (void) { registers.L = set(4,registers.L); }
+void SET_5_L (void) { registers.L = set(5,registers.L); }
+void SET_6_L (void) { registers.L = set(6,registers.L); }
+void SET_7_L (void) { registers.L = set(7,registers.L); }
+
+void SET_0_HL (void) { writeMemory (registers.HL, set(0,readMemory8(registers.HL))); }
+void SET_1_HL (void) { writeMemory (registers.HL, set(1,readMemory8(registers.HL))); }
+void SET_2_HL (void) { writeMemory (registers.HL, set(2,readMemory8(registers.HL))); }
+void SET_3_HL (void) { writeMemory (registers.HL, set(3,readMemory8(registers.HL))); }
+void SET_4_HL (void) { writeMemory (registers.HL, set(4,readMemory8(registers.HL))); }
+void SET_5_HL (void) { writeMemory (registers.HL, set(5,readMemory8(registers.HL))); }
+void SET_6_HL (void) { writeMemory (registers.HL, set(6,readMemory8(registers.HL))); }
+void SET_7_HL (void) { writeMemory (registers.HL, set(7,readMemory8(registers.HL))); }
+
+/*
+ * RES b,r
+ * Description: Reset bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * None.
+ */
 void RES_0_A (void) { registers.A = res(0,registers.A); }
 void RES_1_A (void) { registers.A = res(1,registers.A); }
 void RES_2_A (void) { registers.A = res(2,registers.A); }
@@ -1653,29 +1863,6 @@ void BIT_7_HL (void) { bit(7,readMemory8(registers.HL)); }
 
 
 
-void  RL_C (void){
-//cinoop sucks    
-//    	int carry = testFlag(CARRY_F) ? 1 : 0;
-    	int carry = testFlag(CARRY_F);
-        if (registers.C&0x80)
-           setFlag(CARRY_F);
-        else
-           resetFlag(CARRY_F);
-         
-        registers.C <<=1;
-        registers.C +=carry;
-        
-        if (registers.C)
-            resetFlag(ZERO_F);
-        else
-            setFlag(ZERO_F);
-            
-        resetFlag(SUBSTRACT_F);
-        resetFlag(HALF_CARRY_F);
-        cpuCycles += 8; 
-
-}
-
 
 
 
@@ -1789,5 +1976,153 @@ unsigned char swap (unsigned char value){
     resetFlag(HALF_CARRY_F);
     resetFlag(CARRY_F);
     
+    return value;
+}
+
+unsigned char set(unsigned char pos, unsigned char value){
+    
+    switch (pos){
+        case 0:
+            value |= 0x01;
+            break;
+        case 1:
+            value |= 0x02;
+            break;
+        case 2:
+            value |= 0x04;
+            break;
+        case 3:
+            value |= 0x08;
+            break;
+        case 4:
+            value |= 0x10;
+            break;
+        case 5:
+            value |= 0x20;
+            break;
+        case 6:
+            value |= 0x40;
+            break;
+        case 7:
+            value |= 0x80;
+            break;
+            
+    
+    }
+    return value;
+}
+
+unsigned char rrc (unsigned char value){
+
+    if (value & 0x01){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    value >>= 1;
+    
+    if ( testFlag(CARRY_F) ){
+        value |= 0x80;
+    }
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    if (value == 0){
+        setFlag(ZERO_F);
+    }
+    else{
+        resetFlag(ZERO_F);
+    }
+    
+    return value;   
+}
+
+unsigned char rlc (unsigned char value){
+    
+    if (value & 0x80){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    value <<= 1;
+    
+    if ( testFlag(CARRY_F) ){
+        value |= 0x1;
+    }
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    if (value == 0){
+        setFlag(ZERO_F);
+    }
+    else{
+        resetFlag(ZERO_F);
+    }
+    
+    return value;
+}
+
+unsigned char rl (unsigned char value){
+    
+    int carry = value & 0x80;
+    
+    value <<= 1;
+    
+    if (testFlag(CARRY_F)){
+        value |= 0x01;
+    }
+    
+    if (carry){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    if (value){
+        resetFlag(ZERO_F);
+    }
+    else{
+        setFlag(ZERO_F);
+    }
+    
+    resetFlag(HALF_CARRY_F);
+    resetFlag(SUBSTRACT_F);
+    
+    return value;
+}
+
+unsigned char sra (unsigned char value){
+    
+    int msb = value & 0x80;
+    
+    if (value & 0x01){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    value = value >> 1;
+    
+    if (msb){
+        value |= 0x80; 
+    }
+    
+    if (value){
+        resetFlag(ZERO_F);
+    }
+    else{
+        setFlag(ZERO_F);
+    }
     return value;
 }

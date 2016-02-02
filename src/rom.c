@@ -10,6 +10,15 @@ const unsigned char bioslogo[48] = {
 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 
 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E};
 
+unsigned char cart_RAM[0x8000];
+unsigned char *cart_ROM;
+unsigned char active_RAM_bank = 0;
+int RAM_bank_enabled = FALSE;
+unsigned char active_ROM_bank = 1;
+int MBC1 = FALSE;
+int MBC2 = FALSE;
+int MBC_mode = 0; // 0 - switch ROM bank, 1 - switch RAM bank
+
 int loadRom(const char *filename){
 	
 	int i;
@@ -31,33 +40,29 @@ int loadRom(const char *filename){
 	printf("[INFO] Filesize: %d\n", (int)lSize);
 	
 	// Allocate memory to contain the whole file
-	unsigned char * buffer = (char*)malloc(sizeof(char) * lSize);
-	if (buffer == NULL){
+    cart_ROM = (char*)malloc(sizeof(char) * lSize);
+	if (cart_ROM == NULL){
 		printf("[ERROR] Memory error\n"); 
 		return 1;
 	}
 
 	// Copy the file into the buffer
-	size_t result = fread (buffer, 1, lSize, pFile);
+	size_t result = fread (cart_ROM, 1, lSize, pFile);
 	if (result != lSize){
 		printf("[ERROR] Reading error\n"); 
 		return 1;
 	}
 
-//	for (i=0;i<100;i++){
-//		printf("0x%04x - 0x%02x\n",i,buffer[i]);
-//	}
-
 	// Read cartrige type
-	romtype = buffer[0x147];
+	romtype = cart_ROM[0x147];
 	switch (romtype){
 		case 0x00 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM ONLY\n",romtype);
-			memCopy(memory,0x0000,buffer,0x7FFF);
+			memCopy(memory,0x0000,cart_ROM,0x3FFF);
 			break;
 		case 0x01 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1\n",romtype);
-			memCopy(memory,0x0000,buffer,0x3FFF);
+			memCopy(memory,0x0000,cart_ROM,0x3FFF);
 			break;			
 		case 0x02 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM\n",romtype);
@@ -137,7 +142,7 @@ int loadRom(const char *filename){
 	}
 
 	// Read ROM size
-	romsize = buffer[0x148];
+	romsize = cart_ROM[0x148];
 	switch (romsize){
 		case 0x00 :
 			printf("[INFO] ROM size is: 0x%02x - 256Kbit = 32KByte = 2 banks\n",romsize);
@@ -175,7 +180,7 @@ int loadRom(const char *filename){
 	}
 
 	// Read RAM size
-	ramsize = buffer[0x149];
+	ramsize = cart_ROM[0x149];
 	switch (ramsize){
 		case 0x00 :
 			printf("[INFO] RAM size is: 0x%02x - None\n",ramsize);
@@ -218,20 +223,76 @@ int loadRom(const char *filename){
 	printf("[INFO] Bios Rom SUM passed\n");
 		
 
-	// Copy buffer to Chip8 memory
-
-/*	if((4096-512) > lSize)
-	{
-		for(i = 0; i < lSize; ++i)
-			memory[i + 512] = buffer[i];
-	}
-	else
-		printf("Error: ROM too big for memory");
-*/
-	
 	// Close file, free buffer
 	fclose(pFile);
-	free(buffer);
+	//free(buffer);
 	printf("[INFO] Rom loaded correctly\n");
 	return 0;
+}
+
+
+/*
+ * Locations    Register                         Details
+ *  
+ * 0000-1FFF	Enable external RAM	             4 bits wide 
+ *                                               value of 0x0A enables RAM,
+ *                                               any other value disables
+ * 2000-3FFF    ROM bank (low 5 bits)            Switch between banks 1-31 (value 0 is seen as 1)
+ * 4000-5FFF    ROM bank (high 2 bits)           ROM mode: switch ROM bank "set" {1-31}-{97-127}
+ *                                               RAM mode: switch RAM bank 0-3
+ * 6000-7FFF	Mode                             0: ROM mode (no RAM banks, up to 2MB ROM)
+ *                                               1: RAM mode (4 RAM banks, up to 512kB ROM)
+ */
+void cartridgeSwitchBanks(unsigned short address, unsigned char value){
+    
+    if (address <= 0x1FFF){
+        if (MBC1){
+            if (( value & 0x0F ) == 0x0A ){
+                RAM_bank_enabled = TRUE;    //Enable external RAM
+            }
+            else{
+                RAM_bank_enabled = FALSE;   //Disable external RAM
+            }
+        }
+    }
+    else if (( address >= 0x2000 ) && ( address <= 0x3FFF )){
+        if (MBC1){
+            value &= 0x1F; // keep 5 LSB
+            active_ROM_bank &= 0xE0; // Turn off 5 LSB
+            active_ROM_bank |= value; // merge value
+            
+            if (active_ROM_bank == 0){ // Bank 0 is not allowed
+                active_ROM_bank = 1;
+            }
+        }
+        
+    }
+    else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
+        if (MBC1){
+            if (MBC_mode == 0){     //ROM mode
+                value &= 0xE0;  // keep 3 MSB
+                active_ROM_bank &= 0x1F;    // Turn off 3 MSB
+                active_ROM_bank |= value; // merge value
+
+                if (active_ROM_bank == 0){ // Bank 0 is not allowed
+                    active_ROM_bank = 1;
+                }
+            }
+            else{                   //RAM mode
+                active_RAM_bank = value & 0x03;
+            }
+        }
+        
+    }
+    else if (( address >= 0x6000 ) && ( address <= 0x7FFF )){
+        if (MBC1){
+            if (( value & 0x01 ) == 0 ){
+                MBC_mode = 0;   //ROM mode (no RAM banks, up to 2MB ROM)
+            }
+            else{
+                MBC_mode = 1;   //RAM mode (4 RAM banks, up to 512kB ROM)
+            }
+        }
+        
+    }        
 }

@@ -1,4 +1,7 @@
 bobonis
+    - dummy implementation of HALT opcode
+
+bobonis
     - RLCA
     - SWAP
     - moar keas

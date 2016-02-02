@@ -37,7 +37,7 @@ int main(int argc, char **argv){
     printf("[INFO] SELECT    = w\n");
     printf("[INFO] DIRECTION = arrow keys\n");
     //display();
-    int cycles;
+    int cycles = 0;
     
 	while (!QUIT) {
         

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "timers.h"
 #include "input.h"
+#include "rom.h"
 
 #define ZERO_F 			7
 #define SUBSTRACT_F		6
@@ -68,10 +69,8 @@ void reset (void){
 	   registers.HL = 0x014D;
 	   registers.SP = 0xFFFE;
 	   registers.PC = 0x0100;
-//memory[0xFF00] = 0xdf; //wtf
 	   memory[0xFF05] = 0x00;	// TIMA
 	   memory[0xFF06] = 0x00;	// TMA
-//       	   memory[0xFF07] = 0x00;	// TAC should it be 0x00?
 	   memory[0xFF07] = 0x04;	// TAC
 	   memory[0xFF10] = 0x80;	// NR10
 	   memory[0xFF11] = 0xBF;	// NR11
@@ -107,7 +106,17 @@ void reset (void){
 
 unsigned char readMemory8 (unsigned short address){
     
-    if (address == 0xFF00){ //Read Joypad
+    if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
+        address -= 0x4000;
+        address += 0x4000 * active_ROM_bank; //move address space to correct Memory Bank
+        return cart_ROM[address];
+    }
+    else if (( address >= 0xA000 ) && ( address <= 0xBFFF )){ //RAM Memory Bank
+        address -= 0xA000;
+        address += 0x2000 * active_ROM_bank; //move address space to correct RAM Bank
+        return cart_RAM[address];
+    }
+    else if (address == 0xFF00){ //Read Joypad
         return inputReadKeys();
     }
     else {
@@ -116,13 +125,18 @@ unsigned char readMemory8 (unsigned short address){
 }
 
 unsigned short readMemory16 (unsigned short address){
-    return (memory[address] | (memory[address + 1] << 8));
+    
+    return (readMemory8(address) | (readMemory8(address + 1) << 8));
+
 }
 
 void writeMemory (unsigned short pos, unsigned char value){
     
    
-    if (pos == 0xFF07){
+    if (pos < 0x8000){
+        cartridgeSwitchBanks(pos, value);
+    }
+    else if (pos == 0xFF07){
         updateFrequency();
     }
     /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
