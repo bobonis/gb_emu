@@ -18,7 +18,12 @@ void bit (unsigned char pos, unsigned char value);
 unsigned char srl (unsigned char value);
 unsigned char rr (unsigned char value);
 unsigned char res(unsigned char pos, unsigned char value);
+unsigned char set(unsigned char pos, unsigned char value);
+unsigned char rrc (unsigned char value);
+unsigned char rlc (unsigned char value);
+unsigned char rl (unsigned char value);
 unsigned char swap (unsigned char value);
+unsigned char sra (unsigned char value);
  /********************
  * 8-Bit Loads       *
  *********************/
@@ -267,6 +272,7 @@ void DAA (void);
 void CPL (void);
 void CCF (void);
 void NOP (void);
+void HALT (void);
 void DI (void);
 void EI (void); 
 /********************
@@ -274,6 +280,24 @@ void EI (void);
  ********************/
 //RLCA
 void RLCA (void);
+//RLC n
+void RLC_A (void);
+void RLC_B (void);
+void RLC_C (void);
+void RLC_D (void);
+void RLC_E (void);
+void RLC_H (void);
+void RLC_L (void);
+void RLC_HL (void);
+//RRC n
+void RRC_A (void);
+void RRC_B (void);
+void RRC_C (void);
+void RRC_D (void);
+void RRC_E (void);
+void RRC_H (void);
+void RRC_L (void);
+void RRC_HL (void);
 //RR n
 void RR_A (void);
 void RR_B (void); 
@@ -283,7 +307,15 @@ void RR_E (void);
 void RR_H (void); 
 void RR_L (void);
 void RR_HL (void); 
- 
+//RL n
+void RL_A (void);
+void RL_B (void);
+void RL_C (void);
+void RL_D (void);
+void RL_E (void);
+void RL_H (void);
+void RL_L (void);
+void RL_HL (void); 
 //SLA,n
 void SLA_A (void);
 void SLA_B (void);
@@ -292,6 +324,16 @@ void SLA_D (void);
 void SLA_E (void);
 void SLA_H (void);
 void SLA_L (void);
+void SLA_HL (void);
+//SRA,n
+void SRA_A (void);
+void SRA_B (void);
+void SRA_C (void);
+void SRA_D (void);
+void SRA_E (void);
+void SRA_H (void);
+void SRA_L (void);
+void SRA_HL (void);
 // SRL n
 void SRL_A (void); 
 void SRL_B (void);
@@ -303,10 +345,84 @@ void SRL_L (void);
 void SRL_HL (void);
 //RLA 
 void RLA (void);
+//RRA 
+void RRA (void);
 /********************
  * Bit Opcodes      *
  ********************/
- //RES
+//SET
+void SET_0_A (void);
+void SET_1_A (void);
+void SET_2_A (void);
+void SET_3_A (void);
+void SET_4_A (void);
+void SET_5_A (void);
+void SET_6_A (void);
+void SET_7_A (void);
+
+void SET_0_B (void);
+void SET_1_B (void);
+void SET_2_B (void);
+void SET_3_B (void);
+void SET_4_B (void);
+void SET_5_B (void);
+void SET_6_B (void);
+void SET_7_B (void);
+
+void SET_0_C (void);
+void SET_1_C (void);
+void SET_2_C (void);
+void SET_3_C (void);
+void SET_4_C (void);
+void SET_5_C (void);
+void SET_6_C (void);
+void SET_7_C (void);
+
+void SET_0_D (void);
+void SET_1_D (void);
+void SET_2_D (void);
+void SET_3_D (void);
+void SET_4_D (void);
+void SET_5_D (void);
+void SET_6_D (void);
+void SET_7_D (void);
+
+void SET_0_E (void);
+void SET_1_E (void);
+void SET_2_E (void);
+void SET_3_E (void);
+void SET_4_E (void);
+void SET_5_E (void);
+void SET_6_E (void);
+void SET_7_E (void);
+
+void SET_0_H (void);
+void SET_1_H (void);
+void SET_2_H (void);
+void SET_3_H (void);
+void SET_4_H (void);
+void SET_5_H (void);
+void SET_6_H (void);
+void SET_7_H (void);
+
+void SET_0_L (void);
+void SET_1_L (void);
+void SET_2_L (void);
+void SET_3_L (void);
+void SET_4_L (void);
+void SET_5_L (void);
+void SET_6_L (void);
+void SET_7_L (void);
+
+void SET_0_HL (void);
+void SET_1_HL (void);
+void SET_2_HL (void);
+void SET_3_HL (void);
+void SET_4_HL (void);
+void SET_5_HL (void);
+void SET_6_HL (void);
+void SET_7_HL (void);  
+//RES
 void RES_0_A (void);
 void RES_1_A (void);
 void RES_2_A (void);
@@ -498,7 +614,6 @@ void RETI (void);
 //Extended OPcodes
 void CB (void);
 
-void  RL_C (void);
 
 
 	

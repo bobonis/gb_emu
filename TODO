@@ -3,6 +3,7 @@ CPU
 - Implement all extended opcodes 
 - Execute the test roms to check accuracy 
 - Create main SDL Loop
+- HALT and STOP
 
 MEMORY 
 - Handle MBC

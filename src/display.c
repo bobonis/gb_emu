@@ -52,8 +52,8 @@ int displayInit(void){
     /* Turn on double buffering with a 24bit Z buffer.
      * You may need to change this to 16 or 32 for your system */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);    
-    
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
     //Create window
     int width = SCREEN_WIDTH * modifier;
     int height = SCREEN_HEIGHT * modifier;
@@ -70,7 +70,10 @@ int displayInit(void){
         return 1;
     }
     /* This makes our buffer swap syncronized with the monitor's vertical refresh */
-    //SDL_GL_SetSwapInterval(1);
+    if (SDL_GL_SetSwapInterval(0) == 0)
+        printf("[DEBUG] Vsync Disabled\n");
+    else
+        printf("[DEBUG] Error with Vsync.SDL_Error: %s\n", SDL_GetError() );  
 
     setupTexture(); // init Textures
 
