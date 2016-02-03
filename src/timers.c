@@ -16,7 +16,9 @@
 
 int timeCounter = 0;
 int cycleCounter = 0;
+int divideCounter = 0;
 int maxCycles = CLOCKSPEED / FREQ_1;
+
 
 /* 
  * Address Register Details
@@ -62,6 +64,14 @@ void updateFrequency(void){
 }
 
 void updateTimers(int cycles){
+    
+    divideCounter += cycles;
+    
+    if (divideCounter >= 255){
+        divideCounter = 0;
+        memory[DIV]++;
+    }
+    
     
     if (testBit(TAC,2) == 0){
         return;             // verify that master timer is enabled

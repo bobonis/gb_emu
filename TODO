@@ -1,15 +1,16 @@
 CPU 
 - Implement all opcodes 
-- Implement all extended opcodes 
+- [DONE] Implement all extended opcodes 
 - Execute the test roms to check accuracy 
 - Create main SDL Loop
 - HALT and STOP
 
 MEMORY 
-- Handle MBC
+- [DONE] Handle MBC1
+- rest of MBC
 
 TIMERS
-- Implement divider timer (modulo?)
+- [DONE] Implement divider timer (modulo?)
 - Verify when to step timer (equal or greater or both)
 
 GPU 
