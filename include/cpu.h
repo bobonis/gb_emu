@@ -14,6 +14,7 @@ const struct extendedopCode{
 
 int execute (void);
 void tempfunction (void);
+void NOTVALID (void);
 void bit (unsigned char pos, unsigned char value);
 unsigned char srl (unsigned char value);
 unsigned char rr (unsigned char value);
@@ -24,6 +25,7 @@ unsigned char rlc (unsigned char value);
 unsigned char rl (unsigned char value);
 unsigned char swap (unsigned char value);
 unsigned char sra (unsigned char value);
+void sbc (unsigned char value);
  /********************
  * 8-Bit Loads       *
  *********************/
@@ -108,6 +110,8 @@ void LD_BC_A (void);
 void LD_DE_A (void);
 void LD_HL_A (void);
 void LD_nn_A (void);
+//LD A,(C)
+void LD_A_MC (void);
 //LD (C),A
 void LD_MC_A (void);
 //LDD A,(HL)
@@ -129,6 +133,10 @@ void LD_BC_nn (void);
 void LD_DE_nn (void);
 void LD_HL_nn (void);
 void LD_SP_nn (void);
+//LD SP,HL
+void LD_SP_HL (void);
+//LDHL SP,n
+void LDHL_SP_n (void);
 //LD (nn),SP
 void LD_nn_SP (void);
 //PUSH nn
@@ -176,6 +184,16 @@ void SUB_H (void);
 void SUB_L (void);
 void SUB_HL (void);
 void SUB_n (void);
+//SBC A,n
+void SBC_A_A (void);
+void SBC_A_B (void);
+void SBC_A_C (void);
+void SBC_A_D (void);
+void SBC_A_E (void);
+void SBC_A_H (void);
+void SBC_A_L (void);
+void SBC_A_HL (void);
+void SBC_A_n (void);
 //AND n
 void AND_A (void);
 void AND_B (void);
@@ -252,6 +270,8 @@ void ADD_HL_BC (void);
 void ADD_HL_DE (void);
 void ADD_HL_HL (void);
 void ADD_HL_SP (void);
+//ADD SP,n
+void ADD_SP_n (void);
  /*******************
  * ADD, INC, DEC    *
  ********************/
@@ -271,6 +291,7 @@ void SWAP_HL (void);
 void DAA (void); 
 void CPL (void);
 void CCF (void);
+void SCF (void);
 void NOP (void);
 void HALT (void);
 void DI (void);
@@ -280,6 +301,8 @@ void EI (void);
  ********************/
 //RLCA
 void RLCA (void);
+//RRCA
+void RRCA (void);
 //RLC n
 void RLC_A (void);
 void RLC_B (void);

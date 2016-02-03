@@ -502,17 +502,15 @@ bool testBit(unsigned short pos, unsigned char bit){
 
 void stackPush16 (unsigned short value){
     registers.SP--;                            // Decrease stack pointer
-    memory[registers.SP] = (value & 0x00FF);   // Push low part in the stack
+    writeMemory( registers.SP, value & 0x00FF );   // Push low part in the stack
     registers.SP--;                            // Decrease stack pointer again
-    memory[registers.SP] = ((value & 0xFF00) >> 8); // Push high part in the stack
+    writeMemory( registers.SP, (value & 0xFF00) >> 8); // Push high part in the stack
 }
 
 unsigned short stackPop16 (void){
     unsigned short value = 0;
 
-//    value = (memory[registers.SP - 1] | (memory[registers.SP - 2] << 8));
-//proposed
-    value = (memory[registers.SP+1] | (memory[registers.SP] << 8));
+    value = (readMemory8(registers.SP+1) | (readMemory8(registers.SP) << 8));
     registers.SP += 2;
     return value;
 }
