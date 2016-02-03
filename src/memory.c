@@ -246,6 +246,7 @@ void add (unsigned char value1, unsigned char value2){
 }
 
 void add16 (unsigned short value1){
+    
     unsigned long HL_long = registers.HL + value1;
     
     if ((HL_long&0xffff0000) == 0)
@@ -253,13 +254,13 @@ void add16 (unsigned short value1){
     else
         setFlag(CARRY_F);
     
-    registers.HL = (unsigned short)(HL_long&0xffff);
-
-    if (((registers.HL & 0x0F) + (value1 & 0x0F)) > 0x0F)
+    if (((registers.HL & 0x0FFF) + (value1 & 0x0FFF)) > 0x0FFF)
          setFlag(HALF_CARRY_F);
     else
          resetFlag(HALF_CARRY_F);
 
+    registers.HL = (unsigned short)(HL_long&0xffff);
+    
     resetFlag(SUBSTRACT_F);
 
 }

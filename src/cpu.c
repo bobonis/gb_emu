@@ -10,7 +10,7 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-unsigned char debug = FALSE;
+unsigned char debug = TRUE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -895,7 +895,7 @@ void LDHL_SP_n (void){
  * Increment Stack Pointer (SP) twice.
  * Use with: nn = AF,BC,DE,HL
  */
- void POP_AF (void){registers.AF = stackPop16();}
+ void POP_AF (void){registers.AF = stackPop16(); registers.F &= 0xF0;}
  void POP_BC (void){registers.BC = stackPop16();}
  void POP_DE (void){registers.DE = stackPop16();}
  void POP_HL (void){registers.HL = stackPop16();}
@@ -1207,49 +1207,46 @@ void ADD_SP_n (void){
  * H - Reset.
  * C - Set or reset according to operation.
  */
-/*  When this instruction is executed, the A register 
-    is BCD corrected using the contents of the flags. 
-    The exact process is the following: if the least 
-    significant four bits of A contain a non-BCD digit 
-    (i. e. it is greater than 9) or the H flag is set, 
-    then $06 is added to the register. Then the four 
-    most significant bits are checked. If this more 
-    significant digit also happens to be greater than 9 
-    or the C flag is set, then $60 is added.
-*/
 
 void DAA (void){
-    unsigned char H0,H1;
-    unsigned short value = registers.A;
-   
-    H0 = registers.A & 0x0F;
-    H1 = (registers.A & 0xF0) >> 4;
-    // if the lower 4 bits form a number greater than 9 or H is set, add $06 to the accumulator
-    if ( (H0 > 0x09) || ( testFlag( HALF_CARRY_F ) == TRUE )){
-        value += 0x06;
+
+    unsigned short correction = registers.A;
+
+    if (testFlag(SUBSTRACT_F)){
+        if (testFlag(HALF_CARRY_F)){
+            correction = ( correction - 0x06 ) & 0xFF;
+        }
+        if (testFlag(CARRY_F)){
+            correction -= 0x60;
+        }
     }
-    // if the upper 4 bits form a number greater than 9 or C is set, add $60 to the accumulator
-    if ( (H1 > 0x09) || ( testFlag( CARRY_F ) == TRUE )){
-        value += 0x60;
+    else{
+        // if the lower 4 bits form a number greater than 9 or H is set, add $06 to the accumulator
+        if ((( correction & 0x0F ) > 0x09) || ( testFlag( HALF_CARRY_F ) == TRUE )){
+            correction += 0x06;
+        }
+        // if the upper 4 bits form a number greater than 9 or C is set, add $60 to the accumulator
+        if (( correction > 0x9F ) || ( testFlag( CARRY_F ) == TRUE )){
+            correction += 0x60;
+        }
     }
-    
-    if (value >= 0x100){
+  
+    resetFlag(HALF_CARRY_F);
+
+    if ((correction & 0x100) == 0x100){
         setFlag(CARRY_F);
     }
-    else{
-        resetFlag(CARRY_F);
-    }
     
-    resetFlag(HALF_CARRY_F);
+    correction &= 0xFF;
     
-    if (registers.A){
-        resetFlag(ZERO_F);
-    }
-    else{
+    if (correction == 0){
         setFlag(ZERO_F);
     }
-    
-    registers.A = value & 0xFF;
+    else{
+        resetFlag(ZERO_F);
+    } 
+
+    registers.A = correction;
 }
 
 /*
@@ -1495,7 +1492,7 @@ void SRA_HL (void) {writeMemory(registers.HL,sra(readMemory8(registers.HL)));}
  * RRA
  * Description: Rotate A right through Carry flag.
  * Flags affected:
- * Z - Set if result is zero.
+ * Z - Set if result is zero. (This seems wrong according to op table.)
  * N - Reset.
  * H - Reset.
  * C - Contains old bit 0 data.
@@ -1517,12 +1514,8 @@ void RRA (void){
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
     
-    if (registers.A == 0){
-        setFlag(ZERO_F);
-    }
-    else{
-        resetFlag(ZERO_F);
-    }       
+    resetFlag(ZERO_F);
+     
 }
 
 /* RLC n
@@ -2070,6 +2063,8 @@ unsigned char srl (unsigned char value){
 
 unsigned char rr (unsigned char value){
     
+    int carry = value & 0x01;
+    
     value >>= 1;
     if (testFlag(CARRY_F))
         value |= 0x80;
@@ -2081,6 +2076,11 @@ unsigned char rr (unsigned char value){
         resetFlag(ZERO_F);
     else
         setFlag(ZERO_F);
+        
+    if (carry)
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
 
     return value;
       

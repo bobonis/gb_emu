@@ -1,4 +1,13 @@
 bobonis
+    - DIV timer
+    - Fix rr not setting CARRY
+    - Fix add16 not settich correct HALFCARRY
+    - Fix POP_AF to always set 4LSB of F register to zero
+    - Fix DDA
+    - Fix RRA to reset ZERO. CPU manual has fault
+    - First CPU test rom pass!!
+
+bobonis
     - Finished most opcodes
 
 bobonis
