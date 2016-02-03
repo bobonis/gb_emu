@@ -63,6 +63,7 @@ int loadRom(const char *filename){
 		case 0x01 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1\n",romtype);
 			memCopy(memory,0x0000,cart_ROM,0x3FFF);
+            MBC1 = TRUE;
 			break;			
 		case 0x02 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM\n",romtype);
@@ -244,6 +245,8 @@ int loadRom(const char *filename){
  *                                               1: RAM mode (4 RAM banks, up to 512kB ROM)
  */
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
+    
+    printf("[DEBUG] Switch bank, bank is %x\n",active_ROM_bank);
     
     if (address <= 0x1FFF){
         if (MBC1){

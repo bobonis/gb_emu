@@ -34,7 +34,7 @@ const struct opCode opCodes[256] = {
 	{INC_C,     0,  4, "INC_C"},		// 0x0C
 	{DEC_C,     0,  4, "DEC_C"},		// 0x0D
 	{LD_C_n,	1,	8, "LD_C_n"},		// 0x0E
-	{tempfunction,0},		// 0x0F
+	{RRCA,      0,  4, "RRCA"},         // 0x0F
 	{tempfunction,0},		// 0x10
 	{LD_DE_nn,  2,  12, "LD_DE_nn"},	// 0x11
 	{LD_DE_A,    0,  8, "LD_DE_A"},		// 0x12
@@ -74,7 +74,7 @@ const struct opCode opCodes[256] = {
 	{INC_MHL,    0,  12, "INC_MHL"},	// 0x34
 	{DEC_MHL,    0,  12, "DEC_MHL"},	// 0x35
 	{LD_HL_n,    1, 12, "LD_HL_n"},	    // 0x36
-	{tempfunction,0},		// 0x37
+	{SCF,       0,  4, "SCF"},           // 0x37
 	{JR_C_n,	1,	8,  "JR_C_n"},		// 0x38
 	{ADD_HL_SP, 0,  8, "ADD_HL_SP"},	// 0x39
 	{LDD_A_HL,  0,  8, "LDD_A_HL"},		// 0x3A
@@ -171,14 +171,14 @@ const struct opCode opCodes[256] = {
 	{SUB_L,     0,  4, "SUB_L"},		// 0x95
 	{SUB_HL,    0,  8, "SUB_HL"},		// 0x96
 	{SUB_A,     0,  4, "SUB_A"},		// 0x97
-	{tempfunction,0},		// 0x98
-	{tempfunction,0},		// 0x99
-	{tempfunction,0},		// 0x9A
-	{tempfunction,0},		// 0x9B
-	{tempfunction,0},		// 0x9C
-	{tempfunction,0},		// 0x9D
-	{tempfunction,0},		// 0x9E
-	{tempfunction,0},		// 0x9F
+	{SBC_A_B,   0,  4, "SBC_A_B"},		// 0x98
+	{SBC_A_C,   0,  4, "SBC_A_C"},		// 0x99
+	{SBC_A_D,   0,  4, "SBC_A_D"},		// 0x9A
+	{SBC_A_E,   0,  4, "SBC_A_E"},		// 0x9B
+	{SBC_A_H,   0,  4, "SBC_A_H"},		// 0x9C
+	{SBC_A_L,   0,  4, "SBC_A_L"},		// 0x9D
+	{SBC_A_HL,   0,  4, "SBC_A_HL"},	// 0x9E
+	{SBC_A_A,   0,  4, "SBC_A_A"},		// 0x9F
 	{AND_B,     0,  4, "AND_B"},		// 0xA0
 	{AND_C,     0,  4, "AND_C"},		// 0xA1
 	{AND_D,     0,  4, "AND_D"},		// 0xA2
@@ -230,7 +230,7 @@ const struct opCode opCodes[256] = {
 	{RET_NC,    0,  8,  "RET_NC"},	    // 0xD0
 	{POP_DE,    0,  12, "POP_DE"},		// 0xD1
 	{JP_NC_nn,	2,	12, "JP_NC_nn"},	// 0xD2
-	{tempfunction,0},		// 0xD3
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xD3
 	{CALL_NC_nn,2,   12, "CALL_NC_nn"}, // 0xD4
 	{PUSH_DE,   0,  16, "PUSH_DE"},		// 0xD5
 	{SUB_n,     1,  8,  "SUB_n"},		// 0xD6
@@ -238,41 +238,41 @@ const struct opCode opCodes[256] = {
 	{RET_C,     0,   8, "RET_C"},       // 0xD8
 	{RETI,      0,   8, "RETI"},        // 0xD9
 	{JP_C_nn,	2,	12, "JP_C_nn"},	    // 0xDA
-	{tempfunction,0},		// 0xDB
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xDB
 	{CALL_C_nn, 2,   12, "CALL_C_nn"}, // 0xDC
-	{tempfunction,0},		// 0xDD
-	{tempfunction,0},		// 0xDE
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xDD
+	{SBC_A_n,   1,   8, "SBC_A_n"},		// 0xDE
 	{RST18,     0,   32, "RST18"},		// 0xDF
 	{LDH_n_A,   1,  12, "LDH_n_A"},		// 0xE0
 	{POP_HL,    0,  12, "POP_HL"},		// 0xE1
 	{LD_MC_A,   0,  8,  "LD_MC_A"},		// 0xE2
-	{tempfunction,0},		// 0xE3
-	{tempfunction,0},		// 0xE4
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xE3
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xE4
 	{PUSH_HL,   0,  16, "PUSH_HL"},		// 0xE5
 	{AND_n,     1,  8, "AND_n"},		// 0xE6
 	{RST20,      0,   32, "RST20"},		// 0xE7
-	{tempfunction,0},		// 0xE8
+	{ADD_SP_n,  1,  16, "ADD_SP_n"},	// 0xE8
 	{JP_HL,		0,	4, "JP_HL"},		// 0xE9
 	{LD_nn_A,   2,  16, "LD_nn_A"},		// 0xEA
-	{tempfunction,0},		// 0xEB
-	{tempfunction,0},		// 0xEC
-	{tempfunction,0},		// 0xED
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xEB
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xEC
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xED
 	{XOR_n,     1,  8, "XOR_n"},		// 0xEE
 	{RST28,     0,   32, "RST28"},		// 0xEF
 	{LDH_A_n,   1,  12, "LDH_A_n"},		// 0xF0
 	{POP_AF,    0,  12, "POP_AF"},		// 0xF1
-	{tempfunction,0},		// 0xF2
+	{LD_A_MC,   0,   8, "LD_A_MC"},		// 0xF2
 	{DI,        0,  4, "DI"},		    // 0xF3
-	{tempfunction,0},		// 0xF4
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xF4
 	{PUSH_AF,   0,  16, "PUSH_AF"},		// 0xF5
 	{OR_n,      1,  8, "OR_n"}, 		// 0xF6
 	{RST30,     0,   32, "RST30"},		// 0xF7
-	{tempfunction,0},		// 0xF8
-	{tempfunction,0},		// 0xF9
+	{LDHL_SP_n, 1,   12, "LDHL_SP_n"},	// 0xF8
+	{LD_SP_HL,  0,   8, "LD_SP_HL"},	// 0xF9
 	{LD_A_nn,   2, 16, "LD_A_nn"},		// 0xFA
 	{EI,        0, 4,  "EI"},   		// 0xFB
-	{tempfunction,0},		// 0xFC
-	{tempfunction,0},		// 0xFD
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xFC
+	{NOTVALID,  0,   0, "NOTVALID"},	// 0xFD
 	{CP_n,       1,  4, "CP_n"},		// 0xFE
 	{RST38,      0,   32, "RST38"},		// 0xFF
 };
@@ -610,11 +610,14 @@ int execute (void){
 	
 }
 
-
+void NOTVALID(void){
+    printf("[ERROR] Opcode 0x%02x is not valid.\n",instruction);
+    exit(1);
+}
 	
 void tempfunction(void) {
 	
-	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 88\%\n[*****************===]\n",instruction);
+	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 99\%\n[*****************===]\n",instruction);
 	exit(1);
 
 }
@@ -728,7 +731,12 @@ void LD_A_n  (void){registers.A = operand8;}
  void LD_DE_A (void){writeMemory(registers.DE, registers.A);}
  void LD_HL_A (void){writeMemory(registers.HL, registers.A);}
  void LD_nn_A (void){writeMemory(operand16, registers.A);}
- 
+
+/*
+ * LD A,(C)
+ * Description: Put value at address $FF00 + register C into A.
+ */
+void LD_A_MC (void) { registers.A = readMemory8(0xFF00 + registers.C);} 
  /*
   * LD (C),A
   * Description: Put A into address $FF00 + register C.
@@ -824,6 +832,47 @@ void LD_DE_nn (void) { registers.DE = operand16; }
 void LD_HL_nn (void) { registers.HL = operand16; }
 void LD_SP_nn (void) { registers.SP = operand16; }
 /*
+ * LD SP,HL
+ * Description: Put HL into Stack Pointer (SP).
+ */
+void LD_SP_HL (void) { registers.SP = registers.HL; }
+
+/* 
+ * LD HL,SP+n
+ * LDHL SP,n
+ * Description: Put SP + n effective address into HL.
+ * Use with: n = one byte signed immediate value.
+ * Flags affected:
+ * Z - Reset.
+ * N - Reset.
+ * H - Set or reset according to operation.
+ * C - Set or reset according to operation.
+ */
+void LDHL_SP_n (void){
+    
+    unsigned short result = registers.SP + (signed)operand8;
+    
+    if ((result & 0xFF) < (registers.SP & 0xFF)) {
+        setFlag(CARRY_F);
+    } 
+    else{
+        resetFlag(CARRY_F);
+    }
+
+    if ((result & 0x0F) < (registers.SP & 0x0F)) {
+        setFlag(HALF_CARRY_F);
+    } 
+    else{
+        resetFlag(HALF_CARRY_F);
+    }
+    
+    registers.HL = registers.SP + (signed)operand8;
+    
+    resetFlag(ZERO_F);
+    resetFlag(SUBSTRACT_F);    
+
+} 
+/*
  * LD (nn),SP
  * Description: Put Stack Pointer (SP) at address n.
  * Use with: nn = two byte immediate address.
@@ -912,7 +961,26 @@ void ADC_A_n (void){ adc (registers.A, operand8); }
  void SUB_L (void) { sub (registers.L);}
  void SUB_HL (void) { sub (readMemory8(registers.HL));}
  void SUB_n (void) { sub (operand8);}
- 
+/*
+ * SBC A,n
+ * Description: Subtract n + Carry flag from A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set if no borrow.
+ */
+void SBC_A_A (void){ sbc (registers.A); }
+void SBC_A_B (void){ sbc (registers.B); }
+void SBC_A_C (void){ sbc (registers.C); }
+void SBC_A_D (void){ sbc (registers.D); }
+void SBC_A_E (void){ sbc (registers.E); }
+void SBC_A_H (void){ sbc (registers.H); }
+void SBC_A_L (void){ sbc (registers.L); }
+void SBC_A_HL (void){ sbc (readMemory8(registers.HL)); }
+void SBC_A_n (void){ sbc (operand8); }
+  
 /*
  * XOR n
  * Description: Logical exclusive OR n with register A, result in A.
@@ -1066,7 +1134,39 @@ void DEC_MHL (void) {dec (&memory[registers.HL]);
  void ADD_HL_DE (void) {add16 (registers.DE);}
  void ADD_HL_HL (void) {add16 (registers.HL);}
  void ADD_HL_SP (void) {add16 (registers.SP);}
- 
+/*
+ * ADD SP,n
+ * Description: Add n to Stack Pointer (SP).
+ * Use with: n = one byte signed immediate value (#).
+ * Flags affected:
+ * Z - Reset.
+ * N - Reset.
+ * H - Set or reset according to operation.
+ * C - Set or reset according to operation.
+ */
+void ADD_SP_n (void){
+    
+    unsigned short result = registers.SP + (signed)operand8;
+    
+    if ((result & 0xFF) < (registers.SP & 0xFF)) {
+        setFlag(CARRY_F);
+    } 
+    else{
+        resetFlag(CARRY_F);
+    }
+
+    if ((result & 0x0F) < (registers.SP & 0x0F)) {
+        setFlag(HALF_CARRY_F);
+    } 
+    else{
+        resetFlag(HALF_CARRY_F);
+    }
+    
+    registers.SP += (signed)operand8;
+    
+    resetFlag(ZERO_F);
+    resetFlag(SUBSTRACT_F);
+} 
 /*
  * INC nn
  * Description: Increment register nn.
@@ -1183,7 +1283,20 @@ void DAA (void){
      resetFlag(HALF_CARRY_F);
      registers.F = (registers.F)|((~(registers.F & 0x10)) & 0x10);
  }
-
+/*
+ * SCF
+ * Description: Set Carry flag.
+ * Flags affected:
+ * Z - Not affected.
+ * N - Reset.
+ * H - Reset.
+ * C - Set.
+ */
+void SCF (void){
+    setFlag(CARRY_F);
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+}
 /*
  * NOP
  * Description: No operation.
@@ -1260,7 +1373,16 @@ void RLCA (void){
     resetFlag(HALF_CARRY_F);
     resetFlag(SUBSTRACT_F);
 }
-
+/*
+ * RRCA
+ * Description: Rotate A right. Old bit 0 to Carry flag.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
+void RRCA (void){ registers.A = rrc(registers.A); }
 /*
  * RL n
  * Description: Rotate n left through Carry flag.
@@ -1390,7 +1512,7 @@ void RRA (void){
 	registers.A >>= 1;
     
     if (carry)
-	   registers.A &= 0x80;
+	   registers.A |= 0x80;
 	
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
@@ -2125,4 +2247,35 @@ unsigned char sra (unsigned char value){
         setFlag(ZERO_F);
     }
     return value;
+}
+
+void sbc (unsigned char value){
+    
+    unsigned char result = registers.A - value - testFlag(CARRY_F);
+    
+    if ((( registers.A & 0x0F ) - ( value & 0x0F ) - testFlag(CARRY_F)) >= 0 ){
+        setFlag(HALF_CARRY_F);
+    }
+    else{
+        resetFlag(HALF_CARRY_F);
+    }
+    
+    if (( registers.A - value - testFlag(CARRY_F)) >= 0 ){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    setFlag(SUBSTRACT_F);
+    
+    if (result){
+        resetFlag(ZERO_F);
+    }
+    else{
+        setFlag(ZERO_F);
+    }
+    
+    registers.A = result;
+    
 }
