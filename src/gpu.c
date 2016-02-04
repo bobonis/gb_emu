@@ -54,18 +54,21 @@ void gpu (int cycles){
         case SCAN_OAM:
             if (gpu_cycles >= 80){
                 gpuChangeMode(SCAN_VRAM);
+                gpu_cycles -= 80;
             }
             break;
 
         case SCAN_VRAM:
             if (gpu_cycles >= 172){
                 gpuChangeMode(H_BLANK);
+                gpu_cycles -= 172;
             } 
             break;
             
         case H_BLANK:
             if (gpu_cycles >= 204){
                 gpuDrawScanline();
+                gpu_cycles -= 204;
 
                 memory[LY] += 1;          //Scanning a line completed, move to next
                 //if (memory[LY] % 4 == 0)
@@ -83,7 +86,8 @@ void gpu (int cycles){
         case V_BLANK:
             if (gpu_cycles >= 456){
                 memory[LY] += 1;
-                gpu_cycles = 0;
+                gpu_cycles -= 456;
+                //gpu_cycles = 0;
                 
                 if (memory[LY] > 153){
                     memory[LY] = 0;
@@ -120,7 +124,7 @@ int gpuCheckStatus(void){
  */
 void gpuChangeMode(int mode){
     
-    gpu_cycles = 0;
+    //gpu_cycles = 0;
     
     switch (mode){
         

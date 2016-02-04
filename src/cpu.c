@@ -2253,14 +2253,14 @@ void sbc (unsigned char value){
     
     unsigned char result = registers.A - value - testFlag(CARRY_F);
     
-    if ((( registers.A & 0x0F ) - ( value & 0x0F ) - testFlag(CARRY_F)) >= 0 ){
+    if ((( registers.A & 0x0F ) - ( value & 0x0F ) - testFlag(CARRY_F)) < 0 ){
         setFlag(HALF_CARRY_F);
     }
     else{
         resetFlag(HALF_CARRY_F);
     }
     
-    if (( registers.A - value - testFlag(CARRY_F)) >= 0 ){
+    if (( registers.A - value - testFlag(CARRY_F)) < 0 ){
         setFlag(CARRY_F);
     }
     else{
