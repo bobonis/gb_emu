@@ -1,7 +1,7 @@
 bobonis
     - fix ADC overwritting CARRY
     - fix SBC false checking greater than zero
-    - Test 04 OK
+    - fix sign casting, should use (signed char)
 
 bobonis
     - DIV timer

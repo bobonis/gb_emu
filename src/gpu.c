@@ -288,7 +288,7 @@ void gpuRenderBackground(void){
         tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
         
         if (using_signed == TRUE)   //find tileset number
-            tileset_number = (signed)readMemory8(tilemap_start_addr + tilemap_offset);
+            tileset_number = (signed char)readMemory8(tilemap_start_addr + tilemap_offset);
         else
             tileset_number = readMemory8(tilemap_start_addr + tilemap_offset);
             
