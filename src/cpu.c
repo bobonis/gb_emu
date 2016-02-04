@@ -850,7 +850,7 @@ void LD_SP_HL (void) { registers.SP = registers.HL; }
  */
 void LDHL_SP_n (void){
     
-    unsigned short result = registers.SP + (signed)operand8;
+    unsigned short result = registers.SP + (signed char)operand8;
     
     if ((result & 0xFF) < (registers.SP & 0xFF)) {
         setFlag(CARRY_F);
@@ -866,7 +866,7 @@ void LDHL_SP_n (void){
         resetFlag(HALF_CARRY_F);
     }
     
-    registers.HL = registers.SP + (signed)operand8;
+    registers.HL = registers.SP + (signed char)operand8;
     
     resetFlag(ZERO_F);
     resetFlag(SUBSTRACT_F);    
@@ -1146,7 +1146,7 @@ void DEC_MHL (void) {dec (&memory[registers.HL]);
  */
 void ADD_SP_n (void){
     
-    unsigned short result = registers.SP + (signed)operand8;
+    unsigned short result = registers.SP + (signed char)operand8;
     
     if ((result & 0xFF) < (registers.SP & 0xFF)) {
         setFlag(CARRY_F);
@@ -1162,7 +1162,7 @@ void ADD_SP_n (void){
         resetFlag(HALF_CARRY_F);
     }
     
-    registers.SP += (signed)operand8;
+    registers.SP += (signed char)operand8;
     
     resetFlag(ZERO_F);
     resetFlag(SUBSTRACT_F);
@@ -2253,14 +2253,14 @@ void sbc (unsigned char value){
     
     unsigned char result = registers.A - value - testFlag(CARRY_F);
     
-    if ((( registers.A & 0x0F ) - ( value & 0x0F ) - testFlag(CARRY_F)) >= 0 ){
+    if ((( registers.A & 0x0F ) - ( value & 0x0F ) - testFlag(CARRY_F)) < 0 ){
         setFlag(HALF_CARRY_F);
     }
     else{
         resetFlag(HALF_CARRY_F);
     }
     
-    if (( registers.A - value - testFlag(CARRY_F)) >= 0 ){
+    if (( registers.A - value - testFlag(CARRY_F)) < 0 ){
         setFlag(CARRY_F);
     }
     else{

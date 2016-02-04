@@ -271,16 +271,15 @@ void adc (unsigned char value1, unsigned char value2){
     
     registers.A = value1 + value2 + testFlag(CARRY_F);
 
-    if ((value1 + value2 + testFlag(CARRY_F)) > 255) 
-        setFlag(CARRY_F);
-    else
-        resetFlag(CARRY_F);
-    
     if (((value1 & 0x0F) + (value2 & 0x0F) + testFlag(CARRY_F)) > 0x0F)  
         setFlag(HALF_CARRY_F);
     else
         resetFlag(HALF_CARRY_F);
-    
+
+    if ((value1 + value2 + testFlag(CARRY_F)) > 255) 
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
 
     
     if (registers.A == 0)  

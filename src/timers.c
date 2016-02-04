@@ -68,7 +68,7 @@ void updateTimers(int cycles){
     divideCounter += cycles;
     
     if (divideCounter >= 255){
-        divideCounter = 0;
+        divideCounter -= 255;
         memory[DIV]++;
     }
     
@@ -88,7 +88,7 @@ void updateTimers(int cycles){
         else{
             timeCounter++;
         }
-        cycleCounter = 0;
+        cycleCounter -= maxCycles;
     }
 }
 

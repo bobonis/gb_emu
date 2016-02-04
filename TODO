@@ -1,7 +1,16 @@
 CPU 
 - Implement all opcodes 
 - [DONE] Implement all extended opcodes 
-- Execute the test roms to check accuracy 
+- Execute the test roms to check accuracy
+    01 - PASS
+    02 - Fais at EI
+    03 - Loops
+    04 - PASS
+    05 - PASS
+    06 - PASS
+    07 - Loops
+    08 - Loops
+    
 - Create main SDL Loop
 - HALT and STOP
 

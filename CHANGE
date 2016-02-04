@@ -1,4 +1,9 @@
 bobonis
+    - fix ADC overwritting CARRY
+    - fix SBC false checking greater than zero
+    - fix sign casting, should use (signed char)
+
+bobonis
     - DIV timer
     - Fix rr not setting CARRY
     - Fix add16 not settich correct HALFCARRY
