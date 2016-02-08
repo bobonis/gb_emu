@@ -53,7 +53,7 @@ int main(int argc, char **argv){
 		handleInterrupts();
         //display();
 	}
-	
+
     displayEnd();
 	
 return 0;
