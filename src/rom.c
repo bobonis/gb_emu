@@ -255,6 +255,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             }
             else{
                 RAM_bank_enabled = FALSE;   //Disable external RAM
+                //codeslinger checks if value & 0x0F == 0 ??
             }
         }
     }
@@ -288,6 +289,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
         
     }
     else if (( address >= 0x6000 ) && ( address <= 0x7FFF )){
+        // we have to check it according to codeslinger
         if (MBC1){
             if (( value & 0x01 ) == 0 ){
                 MBC_mode = 0;   //ROM mode (no RAM banks, up to 2MB ROM)
