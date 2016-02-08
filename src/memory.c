@@ -71,7 +71,7 @@ void reset (void){
 	   registers.PC = 0x0100;
 	   memory[0xFF05] = 0x00;	// TIMA
 	   memory[0xFF06] = 0x00;	// TMA
-	   memory[0xFF07] = 0x04;	// TAC
+	   memory[0xFF07] = 0x00;	// TAC
 	   memory[0xFF10] = 0x80;	// NR10
 	   memory[0xFF11] = 0xBF;	// NR11
 	   memory[0xFF12] = 0xF3;	// NR12
@@ -132,7 +132,7 @@ unsigned short readMemory16 (unsigned short address){
 
 void writeMemory (unsigned short pos, unsigned char value){
     
-   
+
     if (pos < 0x8000){
         cartridgeSwitchBanks(pos, value);
     }
@@ -154,11 +154,11 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
-        writeMemory(pos - 0x2000, value) ;
+        memory[pos - 0x2000] = value;
     }
-    else if ( pos < 0x8000 ){  // dont allow any writing to the read only memory
-        //printf("\nmemory at 0x%4x\n",pos);
-        //memory[pos] = value;
+    else if ( ( pos >= 0xC000 ) && (pos < 0xE000) ){ // writing to RAM also writes in ECHO RAM
+        memory[pos] = value ;
+        memory[pos + 0x2000] = value;
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
     }
@@ -502,15 +502,15 @@ bool testBit(unsigned short pos, unsigned char bit){
 
 void stackPush16 (unsigned short value){
     registers.SP--;                            // Decrease stack pointer
-    writeMemory( registers.SP, value & 0x00FF );   // Push low part in the stack
-    registers.SP--;                            // Decrease stack pointer again
     writeMemory( registers.SP, (value & 0xFF00) >> 8); // Push high part in the stack
+    registers.SP--;                            // Decrease stack pointer again
+    writeMemory( registers.SP, value & 0x00FF );   // Push low part in the stack    
 }
 
 unsigned short stackPop16 (void){
     unsigned short value = 0;
 
-    value = (readMemory8(registers.SP+1) | (readMemory8(registers.SP) << 8));
+    value = (readMemory8(registers.SP) | (readMemory8(registers.SP + 1) << 8));
     registers.SP += 2;
     return value;
 }
