@@ -78,11 +78,12 @@ void updateTimers(int cycles){
     }
     
     cycleCounter += cycles;
+    timeCounter = readMemory8(TIMA);    // Read current timer value
     //printf("[DEBUG] Timers    - Cycles=%07d,MaxCycles=%07d,Timer=%07d\n",cycleCounter,maxCycles,timeCounter);
 
     if (cycleCounter > maxCycles){
         if (timeCounter == 255){
-            timeCounter = 0;
+            timeCounter = readMemory8(TMA); // Start timer from modulo
             triggerInterrupt(TIMER_INTERRUPT);
         }
         else{
@@ -90,6 +91,8 @@ void updateTimers(int cycles){
         }
         cycleCounter -= maxCycles;
     }
+    
+    writeMemory(TIMA, timeCounter);
 }
 
 
