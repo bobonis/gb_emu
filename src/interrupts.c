@@ -1,5 +1,6 @@
 #include "interrupts.h"
 #include "memory.h"
+#include "cpu.h"
 #include <stdio.h>
 
 unsigned char interruptMaster;
@@ -40,6 +41,7 @@ void handleInterrupts(void){
                         registers.PC = 0x60; break;
                 }
                 setBit(IFR,bit,FALSE);     // Reset Interrupt request Register
+                cpuHALT = FALSE; // Resume CPU execution
             }
         }
     }

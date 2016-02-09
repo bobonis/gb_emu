@@ -12,6 +12,9 @@ const struct extendedopCode{
     char *function_name;
 }extern const extendedopCodes[256];
 
+extern int cpuHALT;
+extern int cpuSTOP;
+
 int execute (void);
 void tempfunction (void);
 void NOTVALID (void);

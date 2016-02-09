@@ -10,7 +10,7 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-unsigned char debug = FALSE;
+unsigned char debug = TRUE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -564,32 +564,48 @@ int execute (void){
         cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
+        if (debug)
+            printf("[DEBUG] %9s,",extendedopCodes[instruction].function_name);
     }
     else{
         //instruction = memory[registers.PC];
         cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = opCodes[instruction].opLength;
+        if (debug)
+            printf("[DEBUG] %9s,",opCodes[instruction].function_name);
     }    
 
     if (debug)
-        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+        printf(" OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
-            if (0)
+            if (cpuHALT){
+                registers.PC -= 1;
+                cpuHALT = FALSE;
+            }
+            if (debug)
 			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
-            if (0)
+            if (cpuHALT){
+                registers.PC -= 2;
+                cpuHALT = FALSE;
+            }
+            if (debug)
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
-            if (0)
+            if (cpuHALT){
+                registers.PC -= 3;
+                cpuHALT = FALSE;
+            }
+            if (debug)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
 	};
@@ -1316,10 +1332,12 @@ void SCF (void){
  */
 void HALT (void){
     if (interruptMaster == TRUE){
-        
+        cpuHALT = TRUE;
+        registers.PC--;
     }
     else{
-        
+        cpuHALT = TRUE;
+        //registers.PC--;
     }
 }
 
