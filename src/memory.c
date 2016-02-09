@@ -137,6 +137,7 @@ void writeMemory (unsigned short pos, unsigned char value){
         cartridgeSwitchBanks(pos, value);
     }
     else if (pos == 0xFF07){
+        memory[pos] = value;    // forgot to write new value..
         updateFrequency();
     }
     /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
