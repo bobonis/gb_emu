@@ -10,11 +10,11 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-unsigned char debug = FALSE;
+int debug = FALSE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
-unsigned char cpuCycles = 0;        //count internal cpu cycles
+int cpuCycles = 0;                  //count internal cpu cycles
 int cpuHALT = FALSE;                // CPU is in HALT state
 int cpuSTOP = FALSE;                // CPU is in STOP state
 
@@ -35,7 +35,7 @@ const struct opCode opCodes[256] = {
 	{DEC_C,     0,  4, "DEC_C"},		// 0x0D
 	{LD_C_n,	1,	8, "LD_C_n"},		// 0x0E
 	{RRCA,      0,  4, "RRCA"},         // 0x0F
-	{tempfunction,0},		// 0x10
+	{STOP,      1,  4, "STOP"},	    	// 0x10
 	{LD_DE_nn,  2,  12, "LD_DE_nn"},	// 0x11
 	{LD_DE_A,    0,  8, "LD_DE_A"},		// 0x12
 	{INC_DE,    0,  8, "INC_DE"},		// 0x13
@@ -544,19 +544,6 @@ int execute (void){
 
     instruction = readMemory8(registers.PC);
 
-    if (registers.PC == 0xFFFF){
-        printf("AF-0x%04x,BC-0x%04x,DE-0x%04x,HL-0x%04x,SP-0x%04x,PC-0x%04x\n",registers.AF,registers.BC,registers.DE,registers.HL,registers.SP,registers.PC);
-        printf("P1  -0x%02x, SB  -0x%02x, SC  -0x%02x, DIV -0x%02x, TIMA-0x%02x, TMA -0x%02x, TAC -0x%02x\n",memory[0xFF00],memory[0xFF01],memory[0xFF02],memory[0xFF04],memory[0xFF05],memory[0xFF06],memory[0xFF07]);
-        printf("IF  -0x%02x, NR10-0x%02x, NR11-0x%02x, NR12-0x%02x, NR13-0x%02x, NR14-0x%02x, NR21-0x%02x\n",memory[0xFF0F],memory[0xFF10],memory[0xFF11],memory[0xFF12],memory[0xFF13],memory[0xFF14],memory[0xFF16]);
-        printf("NR22-0x%02x, NR23-0x%02x, NR24-0x%02x, NR30-0x%02x, NR31-0x%02x, NR32-0x%02x, NR33-0x%02x\n",memory[0xFF17],memory[0xFF18],memory[0xFF19],memory[0xFF1A],memory[0xFF1B],memory[0xFF1C],memory[0xFF1D]);
-        printf("NR34-0x%02x, NR41-0x%02x, NR42-0x%02x, NR43-0x%02x, NR44-0x%02x, NR50-0x%02x, NR51-0x%02x, NR52-0x%02x\n",memory[0xFF1E],memory[0xFF20],memory[0xFF21],memory[0xFF22],memory[0xFF23],memory[0xFF24],memory[0xFF25],memory[0xFF26]);
-
-        printf("LCDC-0x%02x, STAT-0x%02x, SCY -0x%02x, SCX -0x%02x, LY  -0x%02x, LYC -0x%02x\n",memory[0xFF40],memory[0xFF41],memory[0xFF42],memory[0xFF43],memory[0xFF44],memory[0xFF45]);
-        printf("DMA -0x%02x, BGB -0x%02x, OBP0-0x%02x, OBP1-0x%02x, WY  -0x%02x, WX  -0x%02x, IE  -0x%02x\n",memory[0xFF46],memory[0xFF47],memory[0xFF48],memory[0xFF49],memory[0xFF4A],memory[0xFF4B],memory[0xFFFF]);
-        //exit(1);
-        debug = TRUE;
-    }
-
     if (instruction == 0xCB){
         if (debug)
             printf("[DEBUG] CB \n");
@@ -564,11 +551,15 @@ int execute (void){
         cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
+        if (0)
+            printf("[DEBUG] %9s,",extendedopCodes[instruction].function_name);
     }
     else{
         //instruction = memory[registers.PC];
         cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = opCodes[instruction].opLength;
+        if (0)
+            printf("[DEBUG] %9s,",opCodes[instruction].function_name);
     }    
 
     if (debug)
@@ -577,18 +568,30 @@ int execute (void){
 	switch (operand_length){
 		case 0 :
 			registers.PC = registers.PC + 1;
+            //if (cpuHALT){
+            //    registers.PC -= 1;
+            //    cpuHALT = FALSE;
+            //}
             if (0)
 			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
 			operand8 = readMemory8(registers.PC + 1);
 			registers.PC = registers.PC + 2;
+            //if (cpuHALT){
+            //    registers.PC -= 2;
+            //    cpuHALT = FALSE;
+            //}
             if (0)
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
             operand16 = readMemory16(registers.PC + 1);
 			registers.PC = registers.PC + 3;
+            //if (cpuHALT){
+            //    registers.PC -= 3;
+            //    cpuHALT = FALSE;
+            //}
             if (0)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
@@ -607,23 +610,12 @@ int execute (void){
     }
     
 	return cpuCycles;
-	
 }
 
 void NOTVALID(void){
     printf("[ERROR] Opcode 0x%02x is not valid.\n",instruction);
     exit(1);
 }
-	
-void tempfunction(void) {
-	
-	printf("[ERROR] Opcode 0x%02x not implemented\nOpcode_Progress = 99\%\n[*****************===]\n",instruction);
-	exit(1);
-
-}
-
-
-
  /********************
  * 8-Bit Loads       *
  *********************/
@@ -645,7 +637,6 @@ void LD_L_n (void){ registers.L = operand8; }
  * Description: Put value r2 into r1.
  * Use with: r1,r2 = A,B,C,D,E,H,L,(HL)
  */
- 
  void LD_B_B (void) { registers.B = registers.B;}
  void LD_B_C (void) { registers.B = registers.C;}
  void LD_B_D (void) { registers.B = registers.D;}
@@ -760,24 +751,7 @@ void LDD_A_HL (void){
  */
 void LDD_HL_A (void) {    
     writeMemory(registers.HL, registers.A);
-// flags are not affected according to cinoop    
-//    if (memory[registers.HL] & 0x0F)
-//        resetFlag(HALF_CARRY_F);
-//    else 
-//        setFlag(HALF_CARRY_F);
-        
     registers.HL--;
-/*
-question alam:
-    why commented? flags will be ignored?
-    or you are unsure? or typo?
-*/
-
-//    if (registers.HL == 0)
-//        setFlag(ZERO_F);
-//    else
-//        resetFlag(ZERO_F);
-//    setFlag(SUBSTRACT_F);
 }
 
 /*
@@ -805,18 +779,13 @@ question alam:
  * Description: Put A into memory address $FF00+n.
  * Use with: n = one byte immediate value.
  */
- //void LDH_n_A (void) { memory[0xFF00+operand8] = registers.A; }
-void LDH_n_A (void) { 
-    writeMemory(0xFF00 + operand8, registers.A);
-} //hardcoded
+void LDH_n_A (void) { writeMemory(0xFF00 + operand8, registers.A); }
 /*
  * LDH A,(n)
  * Description: Put memory address $FF00+n into A.
  * Use with: n = one byte immediate value.
  */
-  void LDH_A_n (void) { 
-      registers.A = readMemory8(0xFF00 + operand8); 
-  }
+void LDH_A_n (void) { registers.A = readMemory8(0xFF00 + operand8); }
  
 /********************
  * 16-Bit Loads     *
@@ -852,19 +821,15 @@ void LDHL_SP_n (void){
     
     unsigned short result = registers.SP + (signed char)operand8;
     
-    if ((result & 0xFF) < (registers.SP & 0xFF)) {
+    if ((result & 0xFF) < (registers.SP & 0xFF))
         setFlag(CARRY_F);
-    } 
-    else{
+    else
         resetFlag(CARRY_F);
-    }
 
-    if ((result & 0x0F) < (registers.SP & 0x0F)) {
+    if ((result & 0x0F) < (registers.SP & 0x0F))
         setFlag(HALF_CARRY_F);
-    } 
-    else{
+    else
         resetFlag(HALF_CARRY_F);
-    }
     
     registers.HL = registers.SP + (signed char)operand8;
     
@@ -913,15 +878,15 @@ void LDHL_SP_n (void){
  * H - Set if carry from bit 3.
  * C - Set if carry from bit 7.
  */
-void ADD_A_A (void){ add (registers.A, registers.A); }
-void ADD_A_B (void){ add (registers.A, registers.B); }
-void ADD_A_C (void){ add (registers.A, registers.C); }
-void ADD_A_D (void){ add (registers.A, registers.D); }
-void ADD_A_E (void){ add (registers.A, registers.E); }
-void ADD_A_H (void){ add (registers.A, registers.H); }
-void ADD_A_L (void){ add (registers.A, registers.L); }
-void ADD_A_HL (void){ add (registers.A, readMemory8(registers.HL)); }
-void ADD_A_n (void){ add (registers.A, operand8); }
+void ADD_A_A (void){ add (registers.A); }
+void ADD_A_B (void){ add (registers.B); }
+void ADD_A_C (void){ add (registers.C); }
+void ADD_A_D (void){ add (registers.D); }
+void ADD_A_E (void){ add (registers.E); }
+void ADD_A_H (void){ add (registers.H); }
+void ADD_A_L (void){ add (registers.L); }
+void ADD_A_HL (void){ add (readMemory8(registers.HL)); }
+void ADD_A_n (void){ add (operand8); }
 /*
  * ADC A,n
  * Description: Add n + Carry flag to A.
@@ -932,15 +897,15 @@ void ADD_A_n (void){ add (registers.A, operand8); }
  * H - Set if carry from bit 3.
  * C - Set if carry from bit 7.
  */
-void ADC_A_A (void){ adc (registers.A, registers.A); }
-void ADC_A_B (void){ adc (registers.A, registers.B); }
-void ADC_A_C (void){ adc (registers.A, registers.C); }
-void ADC_A_D (void){ adc (registers.A, registers.D); }
-void ADC_A_E (void){ adc (registers.A, registers.E); }
-void ADC_A_H (void){ adc (registers.A, registers.H); }
-void ADC_A_L (void){ adc (registers.A, registers.L); }
-void ADC_A_HL (void){ adc (registers.A, readMemory8(registers.HL)); }
-void ADC_A_n (void){ adc (registers.A, operand8); }
+void ADC_A_A (void){ adc (registers.A); }
+void ADC_A_B (void){ adc (registers.B); }
+void ADC_A_C (void){ adc (registers.C); }
+void ADC_A_D (void){ adc (registers.D); }
+void ADC_A_E (void){ adc (registers.E); }
+void ADC_A_H (void){ adc (registers.H); }
+void ADC_A_L (void){ adc (registers.L); }
+void ADC_A_HL (void){ adc (readMemory8(registers.HL)); }
+void ADC_A_n (void){ adc (operand8); }
 /*
  * SUB n
  * Description: Subtract n from A.
@@ -951,7 +916,6 @@ void ADC_A_n (void){ adc (registers.A, operand8); }
  * H - Set if no borrow from bit 4.
  * C - Set if no borrow.
  */
- 
  void SUB_A (void) { sub (registers.A);}
  void SUB_B (void) { sub (registers.B);}
  void SUB_C (void) { sub (registers.C);}
@@ -1011,15 +975,15 @@ void XOR_n (void) { xor (operand8); }
  * H - Set.
  * C - Reset.
  */
- void AND_A (void) {cpu_and (registers.A);}
- void AND_B (void) {cpu_and (registers.B);}
- void AND_C (void) {cpu_and (registers.C);}
- void AND_D (void) {cpu_and (registers.D);}
- void AND_E (void) {cpu_and (registers.E);}
- void AND_H (void) {cpu_and (registers.H);}
- void AND_L (void) {cpu_and (registers.L);}
- void AND_HL (void) {cpu_and (readMemory8(registers.HL));}
- void AND_n (void) {cpu_and (operand8);}
+ void AND_A (void) {and (registers.A);}
+ void AND_B (void) {and (registers.B);}
+ void AND_C (void) {and (registers.C);}
+ void AND_D (void) {and (registers.D);}
+ void AND_E (void) {and (registers.E);}
+ void AND_H (void) {and (registers.H);}
+ void AND_L (void) {and (registers.L);}
+ void AND_HL (void) {and (readMemory8(registers.HL));}
+ void AND_n (void) {and (operand8);}
 
  
 /*
@@ -1053,15 +1017,15 @@ void XOR_n (void) { xor (operand8); }
  * H - Set if no borrow from bit 4.
  * C - Set for no borrow. (Set if A < n.)
 */
- void CP_A (void) {comp (registers.A);}
- void CP_B (void) {comp (registers.B);}
- void CP_C (void) {comp (registers.C);}
- void CP_D (void) {comp (registers.D);}
- void CP_E (void) {comp (registers.E);}
- void CP_H (void) {comp (registers.H);}
- void CP_L (void) {comp (registers.L);}
- void CP_HL (void) {comp (readMemory8(registers.HL));}
- void CP_n (void) {comp (operand8);}
+ void CP_A (void) {cp (registers.A);}
+ void CP_B (void) {cp (registers.B);}
+ void CP_C (void) {cp (registers.C);}
+ void CP_D (void) {cp (registers.D);}
+ void CP_E (void) {cp (registers.E);}
+ void CP_H (void) {cp (registers.H);}
+ void CP_L (void) {cp (registers.L);}
+ void CP_HL (void) {cp (readMemory8(registers.HL));}
+ void CP_n (void) {cp (operand8);}
  
 /*
  * INC n
@@ -1099,24 +1063,7 @@ void DEC_D (void) {dec (&registers.D);}
 void DEC_E (void) {dec (&registers.E);}
 void DEC_H (void) {dec (&registers.H);}
 void DEC_L (void) {dec (&registers.L);}
-void DEC_MHL (void) {dec (&memory[registers.HL]);
-
-//    if (memory[registers.HL] == 0)
-//        setFlag(ZERO_F);
-
-//memory[registers.HL] -= 1;   
-
-//    if (memory[registers.HL] == 0)
-//        setFlag(ZERO_F);
-//    else
-//        resetFlag(ZERO_F);
-//    setFlag(SUBSTRACT_F);
-
-// flags are not affected according to cinoop
-// flags indeed are affected
-// if (registers.HL == 0xF)
-//     setFlag(HALF_CARRY_F);
-}
+void DEC_MHL (void) {dec (&memory[registers.HL]);}
 /********************
  * 16-Bit Arithmetic*
  ********************/
@@ -1148,19 +1095,15 @@ void ADD_SP_n (void){
     
     unsigned short result = registers.SP + (signed char)operand8;
     
-    if ((result & 0xFF) < (registers.SP & 0xFF)) {
+    if ((result & 0xFF) < (registers.SP & 0xFF))
         setFlag(CARRY_F);
-    } 
-    else{
+    else
         resetFlag(CARRY_F);
-    }
 
-    if ((result & 0x0F) < (registers.SP & 0x0F)) {
+    if ((result & 0x0F) < (registers.SP & 0x0F))
         setFlag(HALF_CARRY_F);
-    } 
-    else{
+    else
         resetFlag(HALF_CARRY_F);
-    }
     
     registers.SP += (signed char)operand8;
     
@@ -1213,38 +1156,31 @@ void DAA (void){
     unsigned short correction = registers.A;
 
     if (testFlag(SUBSTRACT_F)){
-        if (testFlag(HALF_CARRY_F)){
+        if (testFlag(HALF_CARRY_F))
             correction = ( correction - 0x06 ) & 0xFF;
-        }
-        if (testFlag(CARRY_F)){
+        if (testFlag(CARRY_F))
             correction -= 0x60;
-        }
     }
     else{
         // if the lower 4 bits form a number greater than 9 or H is set, add $06 to the accumulator
-        if ((( correction & 0x0F ) > 0x09) || ( testFlag( HALF_CARRY_F ) == TRUE )){
+        if ((( correction & 0x0F ) > 0x09) || ( testFlag( HALF_CARRY_F ) == TRUE ))
             correction += 0x06;
-        }
         // if the upper 4 bits form a number greater than 9 or C is set, add $60 to the accumulator
-        if (( correction > 0x9F ) || ( testFlag( CARRY_F ) == TRUE )){
+        if (( correction > 0x9F ) || ( testFlag( CARRY_F ) == TRUE ))
             correction += 0x60;
-        }
     }
   
     resetFlag(HALF_CARRY_F);
 
-    if ((correction & 0x100) == 0x100){
+    if ((correction & 0x100) == 0x100)
         setFlag(CARRY_F);
-    }
     
     correction &= 0xFF;
     
-    if (correction == 0){
+    if (correction == 0)
         setFlag(ZERO_F);
-    }
-    else{
+    else
         resetFlag(ZERO_F);
-    } 
 
     registers.A = correction;
 }
@@ -1316,10 +1252,12 @@ void SCF (void){
  */
 void HALT (void){
     if (interruptMaster == TRUE){
-        
+        cpuHALT = TRUE;
+        registers.PC--;
     }
     else{
-        
+        cpuHALT = TRUE;
+        registers.PC--;
     }
 }
 
@@ -1327,7 +1265,10 @@ void HALT (void){
  * STOP
  * Description: Halt CPU & LCD display until button pressed.
  */
-//void STOP (void){}
+void STOP (void){
+    printf("[DEBUG] STOP Reached\n");
+    exit(1);
+}
 
 /*
  * EI
@@ -1343,43 +1284,24 @@ void HALT (void){
  * RLCA
  * Description: Rotate A left. Old bit 7 to Carry flag.
  * Flags affected:
- * Z - Set if result is zero.
+ * Z - Set if result is zero. (Undocummented CPU Bug)
  * N - Reset.
  * H - Reset.
  * C - Contains old bit 7 data.
  */
-void RLCA (void){
-    
-    if (registers.A & 0x80){
-        setFlag(CARRY_F);
-    }
-    else{
-        resetFlag(CARRY_F);
-    }
-    
-    registers.A <= 1;
-    registers.A |= testFlag(CARRY_F);
-    
-    if (registers.A == 0){
-        setFlag(ZERO_F);
-    }
-    else{
-        resetFlag(ZERO_F);
-    }
-    
-    resetFlag(HALF_CARRY_F);
-    resetFlag(SUBSTRACT_F);
-}
+void RLCA (void) {registers.A = rlc(registers.A); resetFlag(ZERO_F); }
+
 /*
  * RRCA
  * Description: Rotate A right. Old bit 0 to Carry flag.
  * Flags affected:
- * Z - Set if result is zero.
+ * Z - Set if result is zero. (Undocummented CPU Bug)
  * N - Reset.
  * H - Reset.
  * C - Contains old bit 0 data.
  */
-void RRCA (void){ registers.A = rrc(registers.A); }
+void RRCA (void){ registers.A = rrc(registers.A); resetFlag(ZERO_F); }
+
 /*
  * RL n
  * Description: Rotate n left through Carry flag.
@@ -1459,34 +1381,12 @@ void SRA_HL (void) {writeMemory(registers.HL,sra(readMemory8(registers.HL)));}
  * RLA
  * Description: Rotate A left through Carry flag.
  * Flags affected:
- * Z - Set if result is zero.
+ * Z - Set if result is zero.  (This seems wrong according to op table.)
  * N - Reset.
  * H - Reset.
  * C - Contains old bit 7 data.
  */
- 
- void RLA (void) {
-//     cinoop sucks
-//     int carry = testFlag(CARRY_F) ? 1 : 0;
-	int carry = testFlag(CARRY_F);
-	if (registers.A & 0x80) 
-       setFlag(CARRY_F);
-	else 
-       resetFlag(CARRY_F);
-	
-	registers.A <<= 1;
-	registers.A += carry;
-	
-    resetFlag(SUBSTRACT_F);
-    resetFlag(HALF_CARRY_F);
-    
-    if (registers.A == 0){
-        setFlag(ZERO_F);
-    }
-    else{
-        resetFlag(ZERO_F);
-    }
- }
+ void RLA (void) {registers.A = rl(registers.A); resetFlag(ZERO_F); }
 
 /*
  * RRA
@@ -1497,26 +1397,7 @@ void SRA_HL (void) {writeMemory(registers.HL,sra(readMemory8(registers.HL)));}
  * H - Reset.
  * C - Contains old bit 0 data.
  */
-void RRA (void){
-	
-    int carry = testFlag(CARRY_F);
-	
-    if (registers.A & 0x01) 
-       setFlag(CARRY_F);
-	else 
-       resetFlag(CARRY_F);
-	
-	registers.A >>= 1;
-    
-    if (carry)
-	   registers.A |= 0x80;
-	
-    resetFlag(SUBSTRACT_F);
-    resetFlag(HALF_CARRY_F);
-    
-    resetFlag(ZERO_F);
-     
-}
+void RRA (void){registers.A = rr(registers.A); resetFlag(ZERO_F);}
 
 /* RLC n
  * Description: Rotate n left. Old bit 7 to Carry flag.
@@ -1716,7 +1597,7 @@ void RETI   (void){ registers.PC = stackPop16(); interruptMaster = TRUE;}
 /************************
  * Extended instructions*
  ************************/
-void CB (void) {printf("OK");}
+void CB (void) {}
 
 /*
  * SWAP n
@@ -1976,27 +1857,334 @@ void BIT_5_HL (void) { bit(5,readMemory8(registers.HL)); }
 void BIT_6_HL (void) { bit(6,readMemory8(registers.HL)); }
 void BIT_7_HL (void) { bit(7,readMemory8(registers.HL)); }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* #######################################################
+/* 
  * HELPER FUNCTIONS
  */
- 
-void bit(unsigned char pos, unsigned char value){
+/*
+ * ADC A,n
+ * Description: Add n + Carry flag to A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set if carry from bit 3.
+ * C - Set if carry from bit 7.
+ */ 
+void adc (unsigned char value){
+
+    unsigned short tmp = registers.A + value + testFlag(CARRY_F);
+    
+
+    if (((registers.A & 0x0F) + (value & 0x0F) + testFlag(CARRY_F)) > 0x0F)  
+        setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
+
+    if (tmp > 0xFF)
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
+    
+    registers.A = tmp & 0xFF;
+    
+    if (registers.A == 0)  
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+
+    resetFlag(SUBSTRACT_F);
+}
+
+/*
+ * XOR n
+ * Description: Logical exclusive OR n with register A, result in A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Reset.
+ */
+void xor (unsigned char value){
+    registers.A = registers.A ^ value;
+    
+    if (registers.A == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    resetFlag(CARRY_F);
+}
+
+/*
+ * AND n
+ * Description: Logically AND n with A, result in A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set.
+ * C - Reset.
+ */
+void and (unsigned char value){
+    registers.A = registers.A & value;
+    
+    if (registers.A == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+    
+    resetFlag(SUBSTRACT_F);
+    setFlag(HALF_CARRY_F);
+    resetFlag(CARRY_F);
+}
+
+/*
+ * OR n
+ * Description: Logical OR n with register A, result in A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Reset.
+ */
+void or (unsigned char value){
+    registers.A |= value;
+    
+    if (registers.A == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    resetFlag(CARRY_F);
+}
+
+/*
+ * CP n
+ * Description: Compare A with n. This is basically an A - n
+ *              subtraction instruction but the results are thrown away.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero. (Set if A = n.)
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set for no borrow. (Set if A < n.)
+*/
+void cp (unsigned char value){
+    if (registers.A == value)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+        
+    setFlag(SUBSTRACT_F);
+    
+    if ((value & 0x0f) > (registers.A & 0x0f))
+        setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
+    
+    if (registers.A < value)
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
+}
+
+/*
+ * SUB n
+ * Description: Subtract n from A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set if no borrow.
+ */
+void sub (unsigned char value){
+
+    if (value > registers.A)
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
+
+    setFlag(SUBSTRACT_F);
+    
+    if ((value & 0x0f) > (registers.A & 0x0f))
+        setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
+    
+    if (registers.A == value)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+        
+    registers.A -= value;
+}
+
+/*
+ * INC n
+ * Description: Increment register n.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set if carry from bit 3.
+ * C - Not affected.
+ */
+void inc (unsigned char *value1){
+    
+    if ((*value1 & 0x0F) == 0x0F)
+        setFlag(HALF_CARRY_F);
+    else 
+        resetFlag(HALF_CARRY_F);
+        
+    *value1 = *value1 + 1;
+    
+    if (*value1 == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+
+    resetFlag(SUBSTRACT_F);
+}
+
+/*
+ * DEC n
+ * Description: Decrement register n.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Not affected.
+ */
+void dec (unsigned char *value1){
+    
+    if (*value1 & 0x0F)
+        resetFlag(HALF_CARRY_F);
+    else 
+        setFlag(HALF_CARRY_F);
+        
+    *value1 = *value1 - 1;
+    
+    if (*value1 == 0)
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);
+
+    setFlag(SUBSTRACT_F);
+}
+
+/*
+ * SLA n
+ * Description: Shift n left into Carry. LSB of n set to 0.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
+unsigned char sla (unsigned char value){
+    
+    if (value & 0x80){
+        setFlag(CARRY_F);
+    }
+    else{
+        resetFlag(CARRY_F);
+    }
+    
+    resetFlag(SUBSTRACT_F);
+    resetFlag(HALF_CARRY_F);
+    
+    value = value << 1;
+    
+    if (value){
+        resetFlag(ZERO_F);
+    }
+    else{
+        setFlag(ZERO_F);
+    }
+    return value;
+} 
+/*
+ * ADD A,n
+ * Description: Add n to A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set if carry from bit 3.
+ * C - Set if carry from bit 7.
+ */
+void add (unsigned char value){
+    
+    unsigned short tmp = registers.A + value;
+    
+    if (tmp > 255) 
+        setFlag(CARRY_F);
+    else
+        resetFlag(CARRY_F);
+    
+    if (((registers.A & 0x0F) + (value & 0x0F)) > 0x0F)  //bobonis needs deskcheck
+        setFlag(HALF_CARRY_F);
+    else
+        resetFlag(HALF_CARRY_F);
+    
+    resetFlag(SUBSTRACT_F);
+    
+    registers.A = tmp & 0xFF;
+
+    if (registers.A == 0x00)  
+        setFlag(ZERO_F);
+    else
+        resetFlag(ZERO_F);    
+}
+
+/*
+ * ADD HL,n
+ * Description: Add n to HL.
+ * Use with: n = BC,DE,HL,SP
+ * Flags affected:
+ * Z - Not affected.
+ * N - Reset.
+ * H - Set if carry from bit 11.
+ * C - Set if carry from bit 15.
+ */
+void add16 (unsigned short value){
+    
+    unsigned long HL_long = registers.HL + value;
+    
+    if ((HL_long&0xffff0000) == 0)
+        resetFlag(CARRY_F);
+    else
+        setFlag(CARRY_F);
+    
+    if (((registers.HL & 0x0FFF) + (value & 0x0FFF)) > 0x0FFF)
+         setFlag(HALF_CARRY_F);
+    else
+         resetFlag(HALF_CARRY_F);
+
+    registers.HL = (unsigned short)(HL_long&0xffff);
+    
+    resetFlag(SUBSTRACT_F);
+}
+
+/*
+ * BIT b,r
+ * Description: Test bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if bit b of register r is 0.
+ * N - Reset.
+ * H - Set.
+ * C - Not affected.
+ */
+ void bit (unsigned char pos, unsigned char value){
     if ( (0x01 << pos) & value )
         resetFlag(ZERO_F);
     else
@@ -2006,8 +2194,14 @@ void bit(unsigned char pos, unsigned char value){
     setFlag(HALF_CARRY_F);
 }
 
-
-unsigned char res(unsigned char pos, unsigned char value){
+/*
+ * RES b,r
+ * Description: Reset bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * None.
+ */
+unsigned char res (unsigned char pos, unsigned char value){
     
     switch (pos){
         case 0:
@@ -2034,12 +2228,20 @@ unsigned char res(unsigned char pos, unsigned char value){
         case 7:
             value &= 0x7F;
             break;
-            
-    
     }
     return value;
 }
 
+/*
+ * SRL n
+ * Description: Shift n right into Carry. MSB set to 0.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
 unsigned char srl (unsigned char value){
     
     if (value & 0x01)
@@ -2058,14 +2260,24 @@ unsigned char srl (unsigned char value){
         setFlag(ZERO_F);
 
     return value;
-      
 }
 
+/*
+ * RR n
+ * Description: Rotate n right through Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
 unsigned char rr (unsigned char value){
     
     int carry = value & 0x01;
     
     value >>= 1;
+    
     if (testFlag(CARRY_F))
         value |= 0x80;
         
@@ -2083,12 +2295,22 @@ unsigned char rr (unsigned char value){
         resetFlag(CARRY_F);
 
     return value;
-      
 }
 
+/*
+ * SWAP n
+ * Description: Swap upper & lower nibles of n.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Reset.
+ */
 unsigned char swap (unsigned char value){
     
     value = ((value & 0xf) << 4) | ((value & 0xf0) >> 4);
+    
     if (value == 0)
        setFlag(ZERO_F);
     else
@@ -2101,7 +2323,14 @@ unsigned char swap (unsigned char value){
     return value;
 }
 
-unsigned char set(unsigned char pos, unsigned char value){
+/*
+ * SET b,r
+ * Description: Set bit b in register r.
+ * Use with: b = 0 - 7, r = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * None.
+ */
+unsigned char set (unsigned char pos, unsigned char value){
     
     switch (pos){
         case 0:
@@ -2128,91 +2357,102 @@ unsigned char set(unsigned char pos, unsigned char value){
         case 7:
             value |= 0x80;
             break;
-            
-    
     }
     return value;
 }
 
+/* RRC n
+ * Description: Rotate n right. Old bit 0 to Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
 unsigned char rrc (unsigned char value){
 
-    if (value & 0x01){
+    if (value & 0x01)
         setFlag(CARRY_F);
-    }
-    else{
+    else
         resetFlag(CARRY_F);
-    }
     
     value >>= 1;
     
-    if ( testFlag(CARRY_F) ){
+    if ( testFlag(CARRY_F) )
         value |= 0x80;
-    }
     
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
     
-    if (value == 0){
+    if (value == 0)
         setFlag(ZERO_F);
-    }
-    else{
+    else
         resetFlag(ZERO_F);
-    }
     
     return value;   
 }
 
+/* RLC n
+ * Description: Rotate n left. Old bit 7 to Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
 unsigned char rlc (unsigned char value){
     
-    if (value & 0x80){
+    if (value & 0x80)
         setFlag(CARRY_F);
-    }
-    else{
+    else
         resetFlag(CARRY_F);
-    }
     
     value <<= 1;
     
-    if ( testFlag(CARRY_F) ){
+    if ( testFlag(CARRY_F) )
         value |= 0x1;
-    }
     
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
     
-    if (value == 0){
+    if (value == 0)
         setFlag(ZERO_F);
-    }
-    else{
+    else
         resetFlag(ZERO_F);
-    }
     
     return value;
 }
 
+/*
+ * RL n
+ * Description: Rotate n left through Carry flag.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 7 data.
+ */
 unsigned char rl (unsigned char value){
     
     int carry = value & 0x80;
     
     value <<= 1;
     
-    if (testFlag(CARRY_F)){
+    if (testFlag(CARRY_F))
         value |= 0x01;
-    }
     
-    if (carry){
+    if (carry)
         setFlag(CARRY_F);
-    }
-    else{
+    else
         resetFlag(CARRY_F);
-    }
     
-    if (value){
+    if (value)
         resetFlag(ZERO_F);
-    }
-    else{
+    else
         setFlag(ZERO_F);
-    }
     
     resetFlag(HALF_CARRY_F);
     resetFlag(SUBSTRACT_F);
@@ -2220,62 +2460,77 @@ unsigned char rl (unsigned char value){
     return value;
 }
 
+/*
+ * SRA n
+ * Description: Shift n right into Carry. MSB doesn't change.
+ * Use with: n = A,B,C,D,E,H,L,(HL)
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Contains old bit 0 data.
+ */
 unsigned char sra (unsigned char value){
     
     int msb = value & 0x80;
     
-    if (value & 0x01){
+    if (value & 0x01)
         setFlag(CARRY_F);
-    }
-    else{
+    else
         resetFlag(CARRY_F);
-    }
     
     resetFlag(SUBSTRACT_F);
     resetFlag(HALF_CARRY_F);
     
     value = value >> 1;
     
-    if (msb){
+    if (msb)
         value |= 0x80; 
-    }
     
-    if (value){
+    if (value)
         resetFlag(ZERO_F);
-    }
-    else{
+    else
         setFlag(ZERO_F);
-    }
+
     return value;
 }
 
+/*
+ * SBC A,n
+ * Description: Subtract n + Carry flag from A.
+ * Use with: n = A,B,C,D,E,H,L,(HL),#
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set if no borrow.
+ */
 void sbc (unsigned char value){
     
     unsigned char result = registers.A - value - testFlag(CARRY_F);
     
-    if ((( registers.A & 0x0F ) - ( value & 0x0F ) - testFlag(CARRY_F)) < 0 ){
+    if ((( registers.A & 0x0F ) - ( value & 0x0F ) - testFlag(CARRY_F)) < 0 )
         setFlag(HALF_CARRY_F);
-    }
-    else{
+    else
         resetFlag(HALF_CARRY_F);
-    }
     
-    if (( registers.A - value - testFlag(CARRY_F)) < 0 ){
+    if (( registers.A - value - testFlag(CARRY_F)) < 0 )
         setFlag(CARRY_F);
-    }
-    else{
+    else
         resetFlag(CARRY_F);
-    }
     
     setFlag(SUBSTRACT_F);
     
-    if (result){
+    if (result)
         resetFlag(ZERO_F);
-    }
-    else{
+    else
         setFlag(ZERO_F);
-    }
-    
+
     registers.A = result;
-    
 }
+
+
+
+
+
+
