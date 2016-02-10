@@ -155,11 +155,11 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
-        memory[pos - 0x2000] = value;
+        writeMemory(pos - 0x2000, value) ;
     }
-    else if ( ( pos >= 0xC000 ) && (pos < 0xE000) ){ // writing to RAM also writes in ECHO RAM
+    else if ( ( pos >= 0xC000 ) && (pos < 0xE000) ){ // writing to RAM also writes in ECHO RAM or not???
         memory[pos] = value ;
-        memory[pos + 0x2000] = value;
+        //memory[pos + 0x2000] = value;
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
     }
@@ -226,210 +226,13 @@ int testFlag (unsigned char flag){
     return 0;
 }
 
-void add (unsigned char value1, unsigned char value2){
-    if ((value1 + value2) > 255) 
-        setFlag(CARRY_F);
-    else
-        resetFlag(CARRY_F);
-    if (((value1 & 0x0F) + (value2 & 0x0F)) > 0x0F)  //bobonis needs deskcheck
-        setFlag(HALF_CARRY_F);
-    else
-        resetFlag(HALF_CARRY_F);
-    
-    resetFlag(SUBSTRACT_F);
-    
-    registers.A = value1 + value2;
-
-    if (registers.A == 0x00)  
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);    
-}
-
-void add16 (unsigned short value1){
-    
-    unsigned long HL_long = registers.HL + value1;
-    
-    if ((HL_long&0xffff0000) == 0)
-        resetFlag(CARRY_F);
-    else
-        setFlag(CARRY_F);
-    
-    if (((registers.HL & 0x0FFF) + (value1 & 0x0FFF)) > 0x0FFF)
-         setFlag(HALF_CARRY_F);
-    else
-         resetFlag(HALF_CARRY_F);
-
-    registers.HL = (unsigned short)(HL_long&0xffff);
-    
-    resetFlag(SUBSTRACT_F);
-
-}
 
 
 
-void adc (unsigned char value1, unsigned char value2){
-    
-    registers.A = value1 + value2 + testFlag(CARRY_F);
 
-    if (((value1 & 0x0F) + (value2 & 0x0F) + testFlag(CARRY_F)) > 0x0F)  
-        setFlag(HALF_CARRY_F);
-    else
-        resetFlag(HALF_CARRY_F);
 
-    if ((value1 + value2 + testFlag(CARRY_F)) > 255) 
-        setFlag(CARRY_F);
-    else
-        resetFlag(CARRY_F);
 
-    
-    if (registers.A == 0)  
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
 
-    resetFlag(SUBSTRACT_F);
-
-    
-}
-
-void xor (unsigned char value1){
-    registers.A = registers.A ^ value1;
-    if (registers.A == 0)
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-    resetFlag(SUBSTRACT_F);
-    resetFlag(HALF_CARRY_F);
-    resetFlag(CARRY_F);
-}
-
-void cpu_and (unsigned char value1){
-    registers.A = registers.A & value1;
-    if (registers.A == 0)
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-    resetFlag(SUBSTRACT_F);
-    setFlag(HALF_CARRY_F);
-    resetFlag(CARRY_F);
-}
-
-void or (unsigned char value){
-    registers.A |= value;
-    if (registers.A == 0)
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-    
-    resetFlag(SUBSTRACT_F);
-    resetFlag(HALF_CARRY_F);
-    resetFlag(CARRY_F);
-    
-}
-
-void comp (unsigned char value){
-    if (registers.A == value)
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-        
-    setFlag(SUBSTRACT_F);
-    
-    if ((value & 0x0f) > (registers.A & 0x0f))
-        setFlag(HALF_CARRY_F);
-    else
-        resetFlag(HALF_CARRY_F);
-    
-    if (registers.A < value)
-        setFlag(CARRY_F);
-    else
-        resetFlag(CARRY_F);
-    
-}
-
-void sub (unsigned char value){
-
-    if (value > registers.A)
-        setFlag(CARRY_F);
-    else
-        resetFlag(CARRY_F);
-
-    setFlag(SUBSTRACT_F);
-    
-    if ((value & 0x0f) > (registers.A & 0x0f))
-        setFlag(HALF_CARRY_F);
-    else
-        resetFlag(HALF_CARRY_F);
-    
-    if (registers.A == value)
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-        
-    registers.A -= value;
-
-    
-}
-
-void inc (unsigned char *value1){
-    
-    if ((*value1 & 0x0F) == 0x0F)
-        setFlag(HALF_CARRY_F);
-    else 
-        resetFlag(HALF_CARRY_F);
-        
-    *value1 = *value1 + 1;
-    
-    if (*value1 == 0)
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-
-    resetFlag(SUBSTRACT_F);
-
-}
-
-void dec (unsigned char *value1){
-    
-    if (*value1 & 0x0F)
-        resetFlag(HALF_CARRY_F);
-    else 
-        setFlag(HALF_CARRY_F);
-        
-    *value1 = *value1 - 1;
-    
-    if (*value1 == 0)
-        setFlag(ZERO_F);
-    else
-        resetFlag(ZERO_F);
-
-    setFlag(SUBSTRACT_F);
-
-}
-
-unsigned char sla (unsigned char value){
-    
-    if (value & 0x80){
-        setFlag(CARRY_F);
-    }
-    else{
-        resetFlag(CARRY_F);
-    }
-    
-    resetFlag(SUBSTRACT_F);
-    resetFlag(HALF_CARRY_F);
-    
-    value = value << 1;
-    
-    if (value){
-        resetFlag(ZERO_F);
-    }
-    else{
-        setFlag(ZERO_F);
-    }
-    return value;
-}
 
 unsigned char readMemory (unsigned short pos){
     return memory[pos];

@@ -8,16 +8,7 @@ void reset (void);
 void setFlag (unsigned char flag);
 void resetFlag (unsigned char flag);
 int testFlag (unsigned char flag);
-void add (unsigned char value1, unsigned char value2);
-void adc (unsigned char value1, unsigned char value2);
-void xor (unsigned char value1);
-void cpu_and (unsigned char value1);
-void add16 (unsigned short value1);
-void or (unsigned char value);
-void comp (unsigned char value1);
-void sub (unsigned char value1);
-void inc (unsigned char *value1);
-void dec (unsigned char *value1);
+
 void writeMemory (unsigned short pos, unsigned char value);
 unsigned char readMemory (unsigned short pos);
 void setBit(unsigned short pos, unsigned char bit, bool value);
@@ -27,7 +18,7 @@ unsigned short stackPop16 (void);
 unsigned char readMemory8 (unsigned short address);
 unsigned short readMemory16 (unsigned short address);
 void directMemoryAccess(unsigned char value);
-unsigned char sla (unsigned char value);
+
 /* The GameBoy has eight 8-bit registers A,B,C,D,E,F,H,L 
  * and two 16-bit registers SP & PC.
  * Some instructions, however, allow you to use the 

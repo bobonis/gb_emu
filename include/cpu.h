@@ -18,21 +18,37 @@ extern int cpuSTOP;
 int execute (void);
 void tempfunction (void);
 void NOTVALID (void);
+
+/********************
+* CPU Microcode     *
+*********************/
 void bit (unsigned char pos, unsigned char value);
+void sbc (unsigned char value);
+void add (unsigned char value);
+void adc (unsigned char value);
+void xor (unsigned char value);
+void and (unsigned char value);
+void add16 (unsigned short value);
+void or (unsigned char value);
+void cp (unsigned char value);
+void sub (unsigned char value);
+void inc (unsigned char *value);
+void dec (unsigned char *value);
 unsigned char srl (unsigned char value);
 unsigned char rr (unsigned char value);
-unsigned char res(unsigned char pos, unsigned char value);
-unsigned char set(unsigned char pos, unsigned char value);
+unsigned char res (unsigned char pos, unsigned char value);
+unsigned char set (unsigned char pos, unsigned char value);
 unsigned char rrc (unsigned char value);
 unsigned char rlc (unsigned char value);
 unsigned char rl (unsigned char value);
 unsigned char swap (unsigned char value);
 unsigned char sra (unsigned char value);
-void sbc (unsigned char value);
- /********************
- * 8-Bit Loads       *
- *********************/
- //LD nn,n
+
+unsigned char sla (unsigned char value);    //Thug Life
+/********************
+* 8-Bit Loads       *
+*********************/
+//LD nn,n
 void LD_B_n (void);
 void LD_C_n (void);
 void LD_D_n (void);
@@ -127,7 +143,6 @@ void LDI_HL_A (void);
 void LDH_n_A (void);
 //LDH A,(n)
 void LDH_A_n (void);
-
 /********************
  * 16-Bit Loads     *
  ********************/
@@ -275,7 +290,7 @@ void ADD_HL_HL (void);
 void ADD_HL_SP (void);
 //ADD SP,n
 void ADD_SP_n (void);
- /*******************
+/*******************
  * ADD, INC, DEC    *
  ********************/
 /********************
@@ -297,6 +312,7 @@ void CCF (void);
 void SCF (void);
 void NOP (void);
 void HALT (void);
+void STOP (void);
 void DI (void);
 void EI (void); 
 /********************
@@ -635,7 +651,6 @@ void RET_Z (void);
 void RET_NC (void);
 void RET_C (void);
 void RETI (void);
-
 
 //Extended OPcodes
 void CB (void);
