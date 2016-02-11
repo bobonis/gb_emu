@@ -113,7 +113,7 @@ unsigned char readMemory8 (unsigned short address){
     }
     else if (( address >= 0xA000 ) && ( address <= 0xBFFF )){ //RAM Memory Bank
         address -= 0xA000;
-        address += 0x2000 * active_ROM_bank; //move address space to correct RAM Bank
+        address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
         return cart_RAM[address];
     }
     else if (address == 0xFF00){ //Read Joypad
@@ -153,6 +153,11 @@ void writeMemory (unsigned short pos, unsigned char value){
     else if (pos == LY){        // Writing will reset the counter
         memory[LY] = 0;
     }
+    else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
+        pos -= 0xA000;
+        pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+        cart_RAM[pos] = value;
+    }    
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
         writeMemory(pos - 0x2000, value) ;

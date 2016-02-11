@@ -469,20 +469,19 @@ void gpuDrawSprite (unsigned char sprite){
             palette = OBP0;
         }
         
+        draw_pixel = TRUE;
         //check sprite priority
         if (sprite_attributes & 0x80){ //no priority
             //If sprite pixel is in visible space
             if (sprite_X >= 8){
-                if (framebuffer[readMemory8(LY)][sprite_X][0] != 255)
-                    if (framebuffer[readMemory8(LY)][sprite_X][1] != 255)
-                        if (framebuffer[readMemory8(LY)][sprite_X][2] != 255)
+                if (framebuffer[readMemory8(LY)][sprite_X - 8][0] != 255)
+                    if (framebuffer[readMemory8(LY)][sprite_X - 8][1] != 255)
+                        if (framebuffer[readMemory8(LY)][sprite_X - 8][2] != 255)
                             draw_pixel = FALSE;
                 
             }
         }
-        else{
-            draw_pixel = TRUE;
-        }
+
     
         gpuPaintColour(colour, palette, &red, &green, &blue);
     
