@@ -246,16 +246,27 @@ int loadRom(const char *filename){
  */
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     
-    printf("[DEBUG] Switch bank, bank is %x\n",active_ROM_bank);
+    printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,",active_ROM_bank,address,value);
     
+    /* Before you can read or write to a RAM bank you have to enable
+     * it by writing a XXXX1010 into 0000-1FFF area*. To
+     * disable RAM bank operations write any value but
+     * XXXX1010 into 0000-1FFF area. Disabling a RAM bank
+     * probably protects that bank from false writes
+     * during power down of the GameBoy. (NOTE: Nintendo
+     * suggests values $0A to enable and $00 to disable
+     * RAM bank!!)
+     */
     if (address <= 0x1FFF){
         if (MBC1){
             if (( value & 0x0F ) == 0x0A ){
-                RAM_bank_enabled = TRUE;    //Enable external RAM
+                if (MBC_mode)   //RAM mode
+                    RAM_bank_enabled = TRUE;    //Enable external RAM
             }
             else{
-                RAM_bank_enabled = FALSE;   //Disable external RAM
-                //codeslinger checks if value & 0x0F == 0 ??
+                if (MBC_mode)   //RAM mode
+                    RAM_bank_enabled = FALSE;   //Disable external RAM
+                //codeslinger checks if value & 0x0F == 0 ?? Check above comment!
             }
         }
     }
@@ -274,8 +285,8 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
         if (MBC1){
             if (MBC_mode == 0){     //ROM mode
-                value &= 0xE0;  // keep 3 MSB
-                active_ROM_bank &= 0x1F;    // Turn off 3 MSB
+                value &= 0xC0;  // keep 3 MSB
+                active_ROM_bank &= 0x3F;    // Turn off 3 MSB
                 active_ROM_bank |= value; // merge value
 
                 if (active_ROM_bank == 0){ // Bank 0 is not allowed
@@ -299,5 +310,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             }
         }
         
-    }        
+    }
+    
+     printf("new bank is %x\n",active_ROM_bank);        
 }

@@ -10,7 +10,7 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-int debug = FALSE;
+int debug = TRUE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -551,14 +551,14 @@ int execute (void){
         cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
-        if (0)
+        if (debug)
             printf("[DEBUG] %9s,",extendedopCodes[instruction].function_name);
     }
     else{
         //instruction = memory[registers.PC];
         cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = opCodes[instruction].opLength;
-        if (0)
+        if (debug)
             printf("[DEBUG] %9s,",opCodes[instruction].function_name);
     }    
 
@@ -572,7 +572,7 @@ int execute (void){
             //    registers.PC -= 1;
             //    cpuHALT = FALSE;
             //}
-            if (0)
+            if (debug)
 			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
@@ -582,7 +582,7 @@ int execute (void){
             //    registers.PC -= 2;
             //    cpuHALT = FALSE;
             //}
-            if (0)
+            if (debug)
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
@@ -592,7 +592,7 @@ int execute (void){
             //    registers.PC -= 3;
             //    cpuHALT = FALSE;
             //}
-            if (0)
+            if (debug)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
 	};
@@ -1214,7 +1214,11 @@ void DAA (void){
  void CCF (void){
      resetFlag(SUBSTRACT_F);
      resetFlag(HALF_CARRY_F);
-     registers.F = (registers.F)|((~(registers.F & 0x10)) & 0x10);
+     //registers.F = (registers.F)|((~(registers.F & 0x10)) & 0x10);
+     if (testFlag(CARRY_F))
+        resetFlag(CARRY_F);
+     else
+        setFlag(CARRY_F);
  }
 /*
  * SCF
