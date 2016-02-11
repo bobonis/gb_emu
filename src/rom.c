@@ -246,7 +246,7 @@ int loadRom(const char *filename){
  */
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     
-    printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,",active_ROM_bank,address,value);
+    //printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,",active_ROM_bank,address,value);
     
     /* Before you can read or write to a RAM bank you have to enable
      * it by writing a XXXX1010 into 0000-1FFF area*. To
@@ -312,5 +312,5 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
         
     }
     
-     printf("new bank is %x\n",active_ROM_bank);        
+     //printf("new bank is %x\n",active_ROM_bank);        
 }

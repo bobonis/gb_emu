@@ -1,4 +1,8 @@
 bobonis
+    - Fix LD_nn_SP writting 16 bit instead of 8
+    - Most games boot now!!!
+
+bobonis
     - fix Stack reading / writing Most significant part first
 
 bobonis

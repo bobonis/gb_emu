@@ -3,13 +3,13 @@ CPU
 - [DONE] Implement all extended opcodes 
 - Execute the test roms to check accuracy
     01 - PASS
-    02 - Fais at EI
-    03 - Loops
+    02 - PASS
+    03 - PASS
     04 - PASS
     05 - PASS
     06 - PASS
-    07 - Loops
-    08 - Loops
+    07 - PASS
+    08 - PASS
     
  - Intend opcode structs
     

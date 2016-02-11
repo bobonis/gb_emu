@@ -10,6 +10,7 @@ void resetFlag (unsigned char flag);
 int testFlag (unsigned char flag);
 
 void writeMemory (unsigned short pos, unsigned char value);
+void writeMemory16 (unsigned short pos, unsigned short value);
 unsigned char readMemory (unsigned short pos);
 void setBit(unsigned short pos, unsigned char bit, bool value);
 bool testBit(unsigned short pos, unsigned char bit);

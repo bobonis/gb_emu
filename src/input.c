@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "interrupts.h"
 #include "display.h"
+#include "cpu.h"
 #include <stdio.h>
 
 /*
@@ -79,7 +80,12 @@ void inputPressKey(int key){
             joypad &= 0x7F;
             break;                                                
     }
-    triggerInterrupt(JOYPAD_INTERRUPT);
+    if (cpuSTOP){
+        cpuSTOP = FALSE;
+    }
+    else{
+        triggerInterrupt(JOYPAD_INTERRUPT);
+    }
 }
 
 void inputReleaseKey(int key){

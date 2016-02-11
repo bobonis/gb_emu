@@ -105,7 +105,7 @@ void reset (void){
 }
 
 unsigned char readMemory8 (unsigned short address){
-    
+
     if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
         address -= 0x4000;
         address += 0x4000 * active_ROM_bank; //move address space to correct Memory Bank
@@ -130,8 +130,15 @@ unsigned short readMemory16 (unsigned short address){
 
 }
 
-void writeMemory (unsigned short pos, unsigned char value){
+void writeMemory16 (unsigned short pos, unsigned short value){
     
+    writeMemory(pos, (value & 0xFF));
+    writeMemory(pos + 1, (value >> 8));
+
+}
+
+void writeMemory (unsigned short pos, unsigned char value){
+
 
     if (pos < 0x8000){
         cartridgeSwitchBanks(pos, value);

@@ -10,7 +10,8 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-int debug = TRUE;
+int debug = FALSE;
+int debug2 = FALSE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -544,6 +545,11 @@ int execute (void){
 
     instruction = readMemory8(registers.PC);
 
+    if (cpuSTOP){
+        cpuCycles = 0;
+        return cpuCycles;
+    }
+
     if (instruction == 0xCB){
         if (debug)
             printf("[DEBUG] CB \n");
@@ -551,19 +557,19 @@ int execute (void){
         cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
-        if (debug)
+        if (debug2)
             printf("[DEBUG] %9s,",extendedopCodes[instruction].function_name);
     }
     else{
         //instruction = memory[registers.PC];
         cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = opCodes[instruction].opLength;
-        if (debug)
+        if (debug2)
             printf("[DEBUG] %9s,",opCodes[instruction].function_name);
     }    
 
     if (debug)
-        printf(" OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 
 	switch (operand_length){
 		case 0 :
@@ -572,7 +578,7 @@ int execute (void){
             //    registers.PC -= 1;
             //    cpuHALT = FALSE;
             //}
-            if (debug)
+            if (debug2)
 			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
@@ -582,7 +588,7 @@ int execute (void){
             //    registers.PC -= 2;
             //    cpuHALT = FALSE;
             //}
-            if (debug)
+            if (debug2)
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
@@ -592,7 +598,7 @@ int execute (void){
             //    registers.PC -= 3;
             //    cpuHALT = FALSE;
             //}
-            if (debug)
+            if (debug2)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
 	};
@@ -842,7 +848,7 @@ void LDHL_SP_n (void){
  * Description: Put Stack Pointer (SP) at address n.
  * Use with: nn = two byte immediate address.
  */
- void LD_nn_SP (void) { writeMemory(operand16, registers.SP); }
+ void LD_nn_SP (void) { writeMemory16(operand16, registers.SP); }
 /*
  * PUSH nn
  * Description: Push register pair nn onto stack.
@@ -1270,8 +1276,7 @@ void HALT (void){
  * Description: Halt CPU & LCD display until button pressed.
  */
 void STOP (void){
-    printf("[DEBUG] STOP Reached\n");
-    exit(1);
+    cpuSTOP = TRUE;
 }
 
 /*
