@@ -6,4 +6,6 @@ void gpuRenderSprites(void);
 void gpuDrawSprite (unsigned char sprite);
 void gpuRenderBackground (void);
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue);
+void gpuStop (void);
+
 extern unsigned char framebuffer[144][160][3];

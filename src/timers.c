@@ -43,7 +43,7 @@ int maxCycles = CLOCKSPEED / FREQ_1;
 
 void updateFrequency(void){
 
-    unsigned char speed = readMemory(TAC);
+    unsigned char speed = readMemory8(TAC);
     speed = speed & 0x03;
     cycleCounter = 0;                        // clock is reset when frequency is changed
     

@@ -45,7 +45,13 @@ void gpu (int cycles){
 
     if (gpuCheckStatus() == FALSE){
         return;
-    }    
+    }
+    
+    if (cycles == 0){ // No cpu cycles fetched, CPU in stop MODE
+        gpuStop();
+        display();
+        return;
+    }
     
     gpu_cycles += cycles;
     
@@ -484,7 +490,8 @@ void gpuDrawSprite (unsigned char sprite){
 
     
         gpuPaintColour(colour, palette, &red, &green, &blue);
-    
+        //if (red == green == blue == 255)
+           // draw_pixel = FALSE;
         
         if (sprite_X <= 167 && sprite_X >= 8){
             if (draw_pixel){
@@ -521,7 +528,7 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
             printf("COLOUR1 = %d\n",colour);
             exit(1);
         }
-
+        
     //Set actuall dot colour
     switch (colour){
         case 0b00:
@@ -544,4 +551,21 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
             exit(1);                
         }
 
+}
+
+
+
+
+void gpuStop (void){
+    int y,x;
+    
+    for (y=143; y>=0; y--){
+        for (x=159; x>=0; x--){
+            framebuffer[y][x][0] = framebuffer[y][x][1] = framebuffer[y][x][2] = 255;  
+        }
+    }
+    
+    for (x=159; x>=0; x--){
+        framebuffer[72][x][0] = framebuffer[72][x][1] = framebuffer[72][x][2] = 0;
+    }
 }

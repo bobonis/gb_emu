@@ -106,10 +106,13 @@ void reset (void){
 
 unsigned char readMemory8 (unsigned short address){
 
+    int address_map;
+
     if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
-        address -= 0x4000;
-        address += 0x4000 * active_ROM_bank; //move address space to correct Memory Bank
-        return cart_ROM[address];
+        //address_map = address - 0x4000;
+        //address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
+        //printf("cart_ROM %x[%x]=%x\n",address_map,active_ROM_bank,cart_ROM[address_map]);
+        return cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
     }
     else if (( address >= 0xA000 ) && ( address <= 0xBFFF )){ //RAM Memory Bank
         address -= 0xA000;
@@ -238,17 +241,6 @@ int testFlag (unsigned char flag){
     return 0;
 }
 
-
-
-
-
-
-
-
-
-unsigned char readMemory (unsigned short pos){
-    return memory[pos];
-}
 
 void setBit(unsigned short pos, unsigned char bit, bool value){
     switch (bit){
