@@ -3,6 +3,7 @@
 #include "timers.h"
 #include "input.h"
 #include "rom.h"
+#include "gpu.h" 
 
 #define ZERO_F 			7
 #define SUBSTRACT_F		6
@@ -91,6 +92,7 @@ void reset (void){
 	   memory[0xFF25] = 0xF3;	// NR51
 	   memory[0xFF26] = 0xF1;	// NR52
 	   memory[0xFF40] = 0x91;	// LCDC
+       memory[0xFF41] = 0x80;   // LCDS
 	   memory[0xFF42] = 0x00;	// SCY
 	   memory[0xFF43] = 0x00;	// SCX
 	   memory[0xFF45] = 0x00;	// LYC
@@ -162,6 +164,10 @@ void writeMemory (unsigned short pos, unsigned char value){
     } 
     else if (pos == 0xFF46){    //DMA
         directMemoryAccess(value);
+    }
+    else if (pos == 0xFF40){    //LCD
+        gpuSetStatus(value);
+        memory[pos] = value;
     }
     else if (pos == LY){        // Writing will reset the counter
         memory[LY] = 0;

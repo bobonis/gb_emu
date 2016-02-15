@@ -10,12 +10,12 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-int debug = TRUE;
-int debug2 = TRUE;
+int debug = FALSE;
+int debug2 = FALSE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
-int cpuCycles = 0;                  //count internal cpu cycles
+int cpuCycles = 0;                  // count internal cpu cycles
 int cpuHALT = FALSE;                // CPU is in HALT state
 int cpuSTOP = FALSE;                // CPU is in STOP state
 
@@ -44,7 +44,7 @@ const struct opCode opCodes[256] = {
 	{DEC_D,     0,  4, "DEC_D"},		// 0x15
 	{LD_D_n,	1,	8, "LD_D_n"},		// 0x16
 	{RLA,       0,  4, "RLA"},  		// 0x17
-	{JR_n,		1,	8, "JR_n"},		    // 0x18
+	{JR_n,		1,	12, "JR_n"},		// 0x18
 	{ADD_HL_DE, 0,  8, "ADD_HL_DE"},	// 0x19
 	{LD_A_DE,   0,  8, "LD_A_DE"},		// 0x1A
 	{DEC_DE,    0,  8, "DEC_DE"},		// 0x1B
@@ -215,7 +215,7 @@ const struct opCode opCodes[256] = {
 	{RET_NZ,     0,  8, "RET_NZ"},	    // 0xC0
 	{POP_BC,     0,  12, "POP_BC"},		// 0xC1
 	{JP_NZ_nn,	2,	12, "JP_NZ_nn"},	// 0xC2
-	{JP_nn,		2,	12, "JP_nn"},	    // 0xC3
+	{JP_nn,		2,	16, "JP_nn"},	    // 0xC3
 	{CALL_NZ_nn,2,   12, "CALL_NZ_nn"}, // 0xC4
 	{PUSH_BC,   0,  16, "PUSH_BC"},		// 0xC5
 	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
@@ -274,7 +274,7 @@ const struct opCode opCodes[256] = {
 	{EI,        0, 4,  "EI"},   		// 0xFB
 	{NOTVALID,  0,   0, "NOTVALID"},	// 0xFC
 	{NOTVALID,  0,   0, "NOTVALID"},	// 0xFD
-	{CP_n,       1,  4, "CP_n"},		// 0xFE
+	{CP_n,       1,  8, "CP_n"},		// 0xFE
 	{RST38,      0,   32, "RST38"},		// 0xFF
 };
 

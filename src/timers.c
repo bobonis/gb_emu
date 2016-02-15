@@ -14,10 +14,11 @@
 #define TMA  0xFF06
 #define TAC  0xFF07 
 
-int timeCounter = 0;
-int cycleCounter = 0;
+unsigned int timeCounter = 0;
+unsigned int cycleCounter = 0;
 int divideCounter = 0;
-int maxCycles = CLOCKSPEED / FREQ_1;
+unsigned int maxCycles = CLOCKSPEED / FREQ_1;
+int transition = FALSE;
 
 
 /* 
@@ -45,7 +46,13 @@ void updateFrequency(unsigned char value){
 
     unsigned char speed_old = readMemory8(TAC) & 0x03;
     unsigned char speed_new = value & 0x03;
-    
+
+    if (testBit(TAC,2) == 0){
+        if (value & 0x04){
+            transition = TRUE;
+        }
+    }
+        
     if (speed_new == speed_old){ // if no speed changed
         memory[TAC] = value & 0x07;
         printf("[DEBUG] Timer Updated - %x\n",speed_new);
@@ -78,19 +85,26 @@ void updateTimers(int cycles){
     
     divideCounter += cycles;
     
-    if (divideCounter >= 255){
-        divideCounter -= 255;
+    if (divideCounter >= 256){
+        divideCounter -= 256;
         memory[DIV]++;
     }
     
+   // printf("[DEBUG] DIV= %7d\n",memory[DIV]);    
     
     if (testBit(TAC,2) == 0){
+        //printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,readMemory8(TIMA));
         return;             // verify that master timer is enabled
     }
     
+    if (transition){
+        cycles=4;
+        transition = FALSE;
+    }
+   // printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,readMemory8(TIMA));
     cycleCounter += cycles;
     timeCounter = readMemory8(TIMA);    // Read current timer value
-    //printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,timeCounter);
+    
 
     while (cycleCounter >= maxCycles){
         if (timeCounter == 255){
@@ -103,6 +117,7 @@ void updateTimers(int cycles){
         cycleCounter -= maxCycles;
     }
     //printf("[DEBUG] Timers after    - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n\n",cycles,cycleCounter,maxCycles,timeCounter);
+   // printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,timeCounter);
     writeMemory(TIMA, timeCounter);
 }
 

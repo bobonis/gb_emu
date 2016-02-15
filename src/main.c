@@ -49,6 +49,7 @@ int main(int argc, char **argv){
 		cycles = execute();
         updateTimers(cycles);
 		gpu(cycles);
+        //printf("[DEBUG] LCD STATE=%d, GPU STATE=%d, scanline=%d, cycles=%d\n",memory[0xFF40],memory[0xFF41] & 3,memory[0xFF44],cycles);
 		inputHandleEvents(event);
 		handleInterrupts();
         //display();

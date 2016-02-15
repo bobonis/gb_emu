@@ -56,6 +56,8 @@ void gpu (int cycles){
     
     gpu_cycles += cycles;
     
+    gpu_state = readMemory8(STAT) & 0x03;
+    
     switch (gpu_state){
         
         case SCAN_OAM:
@@ -66,16 +68,16 @@ void gpu (int cycles){
             break;
 
         case SCAN_VRAM:
-            if (gpu_cycles >= 172){
+            if (gpu_cycles >= 176){ //realboy 176 //bobonis 172
                 gpuChangeMode(H_BLANK);
-                gpu_cycles -= 172;
+                gpu_cycles -= 176;
             } 
             break;
             
         case H_BLANK:
-            if (gpu_cycles >= 204){
+            if (gpu_cycles >= 200){ //realboy 200 //bobonis 204
                 gpuDrawScanline();
-                gpu_cycles -= 204;
+                gpu_cycles -= 200;
 
                 memory[LY] += 1;          //Scanning a line completed, move to next
                 //if (memory[LY] % 4 == 0)
@@ -91,9 +93,9 @@ void gpu (int cycles){
             break;
             
         case V_BLANK:
-            if (gpu_cycles >= 456){
+            if (gpu_cycles >= 459){ //realboy 459 //bobonis 456
                 memory[LY] += 1;
-                gpu_cycles -= 456;
+                gpu_cycles -= 459;
                 //gpu_cycles = 0;
                 
                 if (memory[LY] > 153){
@@ -106,6 +108,17 @@ void gpu (int cycles){
     }
 }
 
+void gpuSetStatus(unsigned char value){
+
+    if (gpu_state == V_BLANK){ //only in VBLANK
+        if ( !(memory[LCDC] & 0x80) && (value & 0x80)){ // switch on
+            memory[STAT] &= 0xFC; //set to H_BLANK
+            gpu_cycles = 80;
+            memory[LY] = 0;
+        }
+    }    
+}
+
 /*
  * Check if LCD has been turned off.
  * This can only occur during VBLANK period.
@@ -114,10 +127,10 @@ void gpu (int cycles){
 int gpuCheckStatus(void){
     
     if (testBit(LCDC,7) == FALSE){
-        gpu_cycles = 0;             //reset gpu timers
-        memory[LY] = 0;             //set first scanline
-        setBit(STAT,0,TRUE);
-        setBit(STAT,1,FALSE);
+        //gpu_cycles = 0;             //reset gpu timers
+        //memory[LY] = 0;             //set first scanline
+        //setBit(STAT,0,TRUE);    //bobonis set SCAN_OAM
+        //setBit(STAT,1,FALSE);   //realboy set H_BLANK
         return FALSE;
     }
     return TRUE;
