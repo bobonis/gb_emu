@@ -41,13 +41,21 @@ int maxCycles = CLOCKSPEED / FREQ_1;
  *       3-7  Unused
  */
 
-void updateFrequency(void){
+void updateFrequency(unsigned char value){
 
-    unsigned char speed = readMemory8(TAC);
-    speed = speed & 0x03;
-    cycleCounter = 0;                        // clock is reset when frequency is changed
+    unsigned char speed_old = readMemory8(TAC) & 0x03;
+    unsigned char speed_new = value & 0x03;
     
-    switch (speed){
+    if (speed_new == speed_old){ // if no speed changed
+        memory[TAC] = value & 0x07;
+        printf("[DEBUG] Timer Updated - %x\n",speed_new);
+        return;
+    }
+
+    //cycleCounter = 0;                        // clock is reset when frequency is changed
+    //writeMemory(TIMA, readMemory8(TMA));
+    
+    switch (speed_new){
         case 0:
             maxCycles = CLOCKSPEED / FREQ_1;
             break;
@@ -61,6 +69,9 @@ void updateFrequency(void){
             maxCycles = CLOCKSPEED / FREQ_2;
             break;
     }
+    
+    memory[TAC] = value & 0x07;
+   //printf("[DEBUG] Timer Updated - %x\n",speed_new);
 }
 
 void updateTimers(int cycles){
@@ -79,9 +90,9 @@ void updateTimers(int cycles){
     
     cycleCounter += cycles;
     timeCounter = readMemory8(TIMA);    // Read current timer value
-    //printf("[DEBUG] Timers    - Cycles=%07d,MaxCycles=%07d,Timer=%07d\n",cycleCounter,maxCycles,timeCounter);
+    //printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,timeCounter);
 
-    if (cycleCounter > maxCycles){
+    while (cycleCounter >= maxCycles){
         if (timeCounter == 255){
             timeCounter = readMemory8(TMA); // Start timer from modulo
             triggerInterrupt(TIMER_INTERRUPT);
@@ -91,7 +102,7 @@ void updateTimers(int cycles){
         }
         cycleCounter -= maxCycles;
     }
-    
+    //printf("[DEBUG] Timers after    - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n\n",cycles,cycleCounter,maxCycles,timeCounter);
     writeMemory(TIMA, timeCounter);
 }
 

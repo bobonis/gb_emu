@@ -147,8 +147,11 @@ void writeMemory (unsigned short pos, unsigned char value){
         cartridgeSwitchBanks(pos, value);
     }
     else if (pos == 0xFF07){
-        memory[pos] = value;    // forgot to write new value..
-        updateFrequency();
+        //memory[pos] = value;    // forgot to write new value..
+        updateFrequency(value);
+    }
+    else if (pos == 0xFF04){    // DIV Timer
+        memory[pos] = 0;
     }
     /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
      * and the first 256 bytes of the address space, where it effectively 

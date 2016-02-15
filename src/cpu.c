@@ -10,8 +10,8 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-int debug = FALSE;
-int debug2 = FALSE;
+int debug = TRUE;
+int debug2 = TRUE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;

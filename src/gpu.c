@@ -26,10 +26,11 @@
 #define WX      0xFF4B //Window X position
  
 unsigned char framebuffer[144][160][3];
-unsigned char spritebuffer[160][3];
+unsigned char spritebuffer[160][4];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles = 0;
+    int draw_pixel = TRUE;
 
 
 /*  Period  GPU mode          Time spent   (clocks)
@@ -186,6 +187,7 @@ void gpuDrawScanline(void){
     
     for (i=159;i>=0;i--){
         spritebuffer[i][0] = spritebuffer[i][1] = spritebuffer[i][2] = 255;
+        spritebuffer[i][3] = FALSE;
     }
     
     if (testBit(LCDC,0)){
@@ -197,7 +199,7 @@ void gpuDrawScanline(void){
 
     
     for (i=159;i>=0;i--){
-        if (spritebuffer[i][0] != 255){
+        if (spritebuffer[i][3] != 0){
             framebuffer[readMemory8(LY)][i][0] = spritebuffer[i][0];
             framebuffer[readMemory8(LY)][i][1] = spritebuffer[i][1];
             framebuffer[readMemory8(LY)][i][2] = spritebuffer[i][2];
@@ -409,7 +411,7 @@ void gpuDrawSprite (unsigned char sprite){
     unsigned short palette;
     int i;
     int red, green, blue;
-    int draw_pixel = TRUE;
+
     int flip_Y = FALSE;
     int flip_X = FALSE;
     //printf("[DEBUG] Sprite %d\n",sprite);
@@ -490,14 +492,18 @@ void gpuDrawSprite (unsigned char sprite){
 
     
         gpuPaintColour(colour, palette, &red, &green, &blue);
-        //if (red == green == blue == 255)
-           // draw_pixel = FALSE;
+        //if (red == 255)
+            //draw_pixel = FALSE;
         
         if (sprite_X <= 167 && sprite_X >= 8){
             if (draw_pixel){
                 spritebuffer[sprite_X - 8][0] = red;
                 spritebuffer[sprite_X - 8][1] = green;
                 spritebuffer[sprite_X - 8][2] = blue;
+                spritebuffer[sprite_X - 8][3] = draw_pixel;
+            }
+            else{
+                spritebuffer[sprite_X - 8][3] = draw_pixel;
             }
         }
         sprite_X +=1;
@@ -511,6 +517,7 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
     switch (colour){
         case 0b00:
             colour = testBit(palette,0) | (testBit(palette,1) << 1);
+            draw_pixel = FALSE;
             break;
             
         case 0b01:

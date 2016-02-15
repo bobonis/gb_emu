@@ -1,2 +1,2 @@
 void updateTimers(int cycles);
-void updateFrequency(void);
+void updateFrequency(unsigned char value);
