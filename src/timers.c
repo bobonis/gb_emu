@@ -44,7 +44,7 @@ int transition = FALSE;
 
 void updateFrequency(unsigned char value){
 
-    unsigned char speed_old = readMemory8(TAC) & 0x03;
+    unsigned char speed_old = memory[TAC] & 0x03;
     unsigned char speed_new = value & 0x03;
 
     if (testBit(TAC,2) == 0){
@@ -103,12 +103,12 @@ void updateTimers(int cycles){
     }
    // printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,readMemory8(TIMA));
     cycleCounter += cycles;
-    timeCounter = readMemory8(TIMA);    // Read current timer value
+    timeCounter = memory[TIMA];    // Read current timer value
     
 
     while (cycleCounter >= maxCycles){
         if (timeCounter == 255){
-            timeCounter = readMemory8(TMA); // Start timer from modulo
+            timeCounter = memory[TMA]; // Start timer from modulo
             triggerInterrupt(TIMER_INTERRUPT);
         }
         else{
@@ -118,7 +118,7 @@ void updateTimers(int cycles){
     }
     //printf("[DEBUG] Timers after    - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n\n",cycles,cycleCounter,maxCycles,timeCounter);
    // printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,timeCounter);
-    writeMemory(TIMA, timeCounter);
+    memory[TIMA] = timeCounter;
 }
 
 

@@ -1044,14 +1044,14 @@ void XOR_n (void) { xor (operand8); }
  * C - Not affected.
  */
  
- void INC_A (void) {inc (&registers.A);}
- void INC_B (void) {inc (&registers.B);}
- void INC_C (void) {inc (&registers.C);}
- void INC_D (void) {inc (&registers.D);}
- void INC_E (void) {inc (&registers.E);}
- void INC_H (void) {inc (&registers.H);}
- void INC_L (void) {inc (&registers.L);}
- void INC_MHL (void) {inc (&memory[registers.HL]);}
+ void INC_A (void) {registers.A = inc (registers.A);}
+ void INC_B (void) {registers.B = inc (registers.B);}
+ void INC_C (void) {registers.C = inc (registers.C);}
+ void INC_D (void) {registers.D = inc (registers.D);}
+ void INC_E (void) {registers.E = inc (registers.E);}
+ void INC_H (void) {registers.H = inc (registers.H);}
+ void INC_L (void) {registers.L = inc (registers.L);}
+ void INC_MHL (void) {writeMemory(registers.HL, inc (readMemory8(registers.HL)));}
 /*
  * DEC n
  * Description: Decrement register n.
@@ -1062,14 +1062,14 @@ void XOR_n (void) { xor (operand8); }
  * H - Set if no borrow from bit 4.
  * C - Not affected.
  */
-void DEC_A (void) {dec (&registers.A);}
-void DEC_B (void) {dec (&registers.B);}
-void DEC_C (void) {dec (&registers.C);}
-void DEC_D (void) {dec (&registers.D);}
-void DEC_E (void) {dec (&registers.E);}
-void DEC_H (void) {dec (&registers.H);}
-void DEC_L (void) {dec (&registers.L);}
-void DEC_MHL (void) {dec (&memory[registers.HL]);}
+void DEC_A (void) {registers.A = dec (registers.A);}
+void DEC_B (void) {registers.B = dec (registers.B);}
+void DEC_C (void) {registers.C = dec (registers.C);}
+void DEC_D (void) {registers.D = dec (registers.D);}
+void DEC_E (void) {registers.E = dec (registers.E);}
+void DEC_H (void) {registers.H = dec (registers.H);}
+void DEC_L (void) {registers.L = dec (registers.L);}
+void DEC_MHL (void) {writeMemory(registers.HL, dec (readMemory8(registers.HL)));}
 /********************
  * 16-Bit Arithmetic*
  ********************/
@@ -2045,21 +2045,23 @@ void sub (unsigned char value){
  * H - Set if carry from bit 3.
  * C - Not affected.
  */
-void inc (unsigned char *value1){
+unsigned char inc (unsigned char value){
     
-    if ((*value1 & 0x0F) == 0x0F)
+    if ((value & 0x0F) == 0x0F)
         setFlag(HALF_CARRY_F);
     else 
         resetFlag(HALF_CARRY_F);
         
-    *value1 = *value1 + 1;
+    value = value + 1;
     
-    if (*value1 == 0)
+    if (value == 0)
         setFlag(ZERO_F);
     else
         resetFlag(ZERO_F);
 
     resetFlag(SUBSTRACT_F);
+    
+    return value;
 }
 
 /*
@@ -2072,21 +2074,23 @@ void inc (unsigned char *value1){
  * H - Set if no borrow from bit 4.
  * C - Not affected.
  */
-void dec (unsigned char *value1){
+unsigned char dec (unsigned char value){
     
-    if (*value1 & 0x0F)
+    if (value & 0x0F)
         resetFlag(HALF_CARRY_F);
     else 
         setFlag(HALF_CARRY_F);
         
-    *value1 = *value1 - 1;
+    value = value - 1;
     
-    if (*value1 == 0)
+    if (value == 0)
         setFlag(ZERO_F);
     else
         resetFlag(ZERO_F);
 
     setFlag(SUBSTRACT_F);
+    
+    return value;
 }
 
 /*

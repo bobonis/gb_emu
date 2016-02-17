@@ -10,3 +10,5 @@ void gpuStop (void);
 void gpuSetStatus(unsigned char value);
 
 extern unsigned char framebuffer[144][160][3];
+
+extern int gpu_reading;

@@ -19,6 +19,8 @@ struct registers registers;
 unsigned char memory[0xFFFF];
 unsigned char memory_backup[256];
 
+int gpu_reading = 0;
+
 const unsigned char bios[256] = {
 //0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
 
@@ -108,25 +110,34 @@ void reset (void){
 
 unsigned char readMemory8 (unsigned short address){
 
+
+        
+    unsigned char temp;
+    
     int address_map;
 
     if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
         //address_map = address - 0x4000;
         //address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
         //printf("cart_ROM %x[%x]=%x\n",address_map,active_ROM_bank,cart_ROM[address_map]);
-        return cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
+        temp = cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
     }
     else if (( address >= 0xA000 ) && ( address <= 0xBFFF )){ //RAM Memory Bank
         address -= 0xA000;
         address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-        return cart_RAM[address];
+        temp = cart_RAM[address];
     }
     else if (address == 0xFF00){ //Read Joypad
-        return inputReadKeys();
+        temp = inputReadKeys();
     }
     else {
-        return memory[address];
+        temp = memory[address];
     }
+    
+    //if (!gpu_reading)
+    //    updateTimers(4);   
+    
+    return temp;
 }
 
 unsigned short readMemory16 (unsigned short address){
@@ -194,6 +205,8 @@ void writeMemory (unsigned short pos, unsigned char value){
     else{ //default
         memory[pos] = value;
     }
+    //    if (!gpu_reading)
+    //    updateTimers(4);
 
 }
 
