@@ -10,11 +10,12 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-int debug = TRUE;
+int debug = FALSE;
+int debug2 = FALSE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
-int cpuCycles = 0;                  //count internal cpu cycles
+int cpuCycles = 0;                  // count internal cpu cycles
 int cpuHALT = FALSE;                // CPU is in HALT state
 int cpuSTOP = FALSE;                // CPU is in STOP state
 
@@ -43,7 +44,7 @@ const struct opCode opCodes[256] = {
 	{DEC_D,     0,  4, "DEC_D"},		// 0x15
 	{LD_D_n,	1,	8, "LD_D_n"},		// 0x16
 	{RLA,       0,  4, "RLA"},  		// 0x17
-	{JR_n,		1,	8, "JR_n"},		    // 0x18
+	{JR_n,		1,	12, "JR_n"},		// 0x18
 	{ADD_HL_DE, 0,  8, "ADD_HL_DE"},	// 0x19
 	{LD_A_DE,   0,  8, "LD_A_DE"},		// 0x1A
 	{DEC_DE,    0,  8, "DEC_DE"},		// 0x1B
@@ -214,7 +215,7 @@ const struct opCode opCodes[256] = {
 	{RET_NZ,     0,  8, "RET_NZ"},	    // 0xC0
 	{POP_BC,     0,  12, "POP_BC"},		// 0xC1
 	{JP_NZ_nn,	2,	12, "JP_NZ_nn"},	// 0xC2
-	{JP_nn,		2,	12, "JP_nn"},	    // 0xC3
+	{JP_nn,		2,	16, "JP_nn"},	    // 0xC3
 	{CALL_NZ_nn,2,   12, "CALL_NZ_nn"}, // 0xC4
 	{PUSH_BC,   0,  16, "PUSH_BC"},		// 0xC5
 	{ADD_A_n,	1,	 8, "ADD_A_n"},	    // 0xC6
@@ -273,7 +274,7 @@ const struct opCode opCodes[256] = {
 	{EI,        0, 4,  "EI"},   		// 0xFB
 	{NOTVALID,  0,   0, "NOTVALID"},	// 0xFC
 	{NOTVALID,  0,   0, "NOTVALID"},	// 0xFD
-	{CP_n,       1,  4, "CP_n"},		// 0xFE
+	{CP_n,       1,  8, "CP_n"},		// 0xFE
 	{RST38,      0,   32, "RST38"},		// 0xFF
 };
 
@@ -544,6 +545,11 @@ int execute (void){
 
     instruction = readMemory8(registers.PC);
 
+    if (cpuSTOP){
+        cpuCycles = 0;
+        return cpuCycles;
+    }
+
     if (instruction == 0xCB){
         if (debug)
             printf("[DEBUG] CB \n");
@@ -551,19 +557,19 @@ int execute (void){
         cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
-        if (debug)
+        if (debug2)
             printf("[DEBUG] %9s,",extendedopCodes[instruction].function_name);
     }
     else{
         //instruction = memory[registers.PC];
         cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = opCodes[instruction].opLength;
-        if (debug)
+        if (debug2)
             printf("[DEBUG] %9s,",opCodes[instruction].function_name);
     }    
 
     if (debug)
-        printf(" OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
+        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
 
 	switch (operand_length){
 		case 0 :
@@ -572,7 +578,7 @@ int execute (void){
             //    registers.PC -= 1;
             //    cpuHALT = FALSE;
             //}
-            if (debug)
+            if (debug2)
 			     printf("ARG-0x0000, ");
 			break;
 		case 1 :
@@ -582,7 +588,7 @@ int execute (void){
             //    registers.PC -= 2;
             //    cpuHALT = FALSE;
             //}
-            if (debug)
+            if (debug2)
 			     printf("ARG-0x%04x, ",operand8);
 			break;
 		case 2 :
@@ -592,7 +598,7 @@ int execute (void){
             //    registers.PC -= 3;
             //    cpuHALT = FALSE;
             //}
-            if (debug)
+            if (debug2)
 			     printf("ARG-0x%04x, ",operand16);
 			break;
 	};
@@ -842,7 +848,7 @@ void LDHL_SP_n (void){
  * Description: Put Stack Pointer (SP) at address n.
  * Use with: nn = two byte immediate address.
  */
- void LD_nn_SP (void) { writeMemory(operand16, registers.SP); }
+ void LD_nn_SP (void) { writeMemory16(operand16, registers.SP); }
 /*
  * PUSH nn
  * Description: Push register pair nn onto stack.
@@ -1038,14 +1044,14 @@ void XOR_n (void) { xor (operand8); }
  * C - Not affected.
  */
  
- void INC_A (void) {inc (&registers.A);}
- void INC_B (void) {inc (&registers.B);}
- void INC_C (void) {inc (&registers.C);}
- void INC_D (void) {inc (&registers.D);}
- void INC_E (void) {inc (&registers.E);}
- void INC_H (void) {inc (&registers.H);}
- void INC_L (void) {inc (&registers.L);}
- void INC_MHL (void) {inc (&memory[registers.HL]);}
+ void INC_A (void) {registers.A = inc (registers.A);}
+ void INC_B (void) {registers.B = inc (registers.B);}
+ void INC_C (void) {registers.C = inc (registers.C);}
+ void INC_D (void) {registers.D = inc (registers.D);}
+ void INC_E (void) {registers.E = inc (registers.E);}
+ void INC_H (void) {registers.H = inc (registers.H);}
+ void INC_L (void) {registers.L = inc (registers.L);}
+ void INC_MHL (void) {writeMemory(registers.HL, inc (readMemory8(registers.HL)));}
 /*
  * DEC n
  * Description: Decrement register n.
@@ -1056,14 +1062,14 @@ void XOR_n (void) { xor (operand8); }
  * H - Set if no borrow from bit 4.
  * C - Not affected.
  */
-void DEC_A (void) {dec (&registers.A);}
-void DEC_B (void) {dec (&registers.B);}
-void DEC_C (void) {dec (&registers.C);}
-void DEC_D (void) {dec (&registers.D);}
-void DEC_E (void) {dec (&registers.E);}
-void DEC_H (void) {dec (&registers.H);}
-void DEC_L (void) {dec (&registers.L);}
-void DEC_MHL (void) {dec (&memory[registers.HL]);}
+void DEC_A (void) {registers.A = dec (registers.A);}
+void DEC_B (void) {registers.B = dec (registers.B);}
+void DEC_C (void) {registers.C = dec (registers.C);}
+void DEC_D (void) {registers.D = dec (registers.D);}
+void DEC_E (void) {registers.E = dec (registers.E);}
+void DEC_H (void) {registers.H = dec (registers.H);}
+void DEC_L (void) {registers.L = dec (registers.L);}
+void DEC_MHL (void) {writeMemory(registers.HL, dec (readMemory8(registers.HL)));}
 /********************
  * 16-Bit Arithmetic*
  ********************/
@@ -1270,8 +1276,7 @@ void HALT (void){
  * Description: Halt CPU & LCD display until button pressed.
  */
 void STOP (void){
-    printf("[DEBUG] STOP Reached\n");
-    exit(1);
+    cpuSTOP = TRUE;
 }
 
 /*
@@ -2040,21 +2045,23 @@ void sub (unsigned char value){
  * H - Set if carry from bit 3.
  * C - Not affected.
  */
-void inc (unsigned char *value1){
+unsigned char inc (unsigned char value){
     
-    if ((*value1 & 0x0F) == 0x0F)
+    if ((value & 0x0F) == 0x0F)
         setFlag(HALF_CARRY_F);
     else 
         resetFlag(HALF_CARRY_F);
         
-    *value1 = *value1 + 1;
+    value = value + 1;
     
-    if (*value1 == 0)
+    if (value == 0)
         setFlag(ZERO_F);
     else
         resetFlag(ZERO_F);
 
     resetFlag(SUBSTRACT_F);
+    
+    return value;
 }
 
 /*
@@ -2067,21 +2074,23 @@ void inc (unsigned char *value1){
  * H - Set if no borrow from bit 4.
  * C - Not affected.
  */
-void dec (unsigned char *value1){
+unsigned char dec (unsigned char value){
     
-    if (*value1 & 0x0F)
+    if (value & 0x0F)
         resetFlag(HALF_CARRY_F);
     else 
         setFlag(HALF_CARRY_F);
         
-    *value1 = *value1 - 1;
+    value = value - 1;
     
-    if (*value1 == 0)
+    if (value == 0)
         setFlag(ZERO_F);
     else
         resetFlag(ZERO_F);
 
     setFlag(SUBSTRACT_F);
+    
+    return value;
 }
 
 /*

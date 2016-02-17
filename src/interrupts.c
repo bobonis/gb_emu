@@ -27,6 +27,9 @@ void handleInterrupts(void){
                    if (interruptMaster == TRUE){ // Check that Interrupts are enabled
                     
                         interruptMaster = FALSE;   // Disable master Interrupt
+                        if (cpuHALT)
+                            registers.PC++;
+                            
                         stackPush16(registers.PC); // Push program counter in the stack
                 
                         switch (bit){              // Set program counter to intterupt address

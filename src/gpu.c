@@ -26,10 +26,11 @@
 #define WX      0xFF4B //Window X position
  
 unsigned char framebuffer[144][160][3];
-unsigned char spritebuffer[160][3];
+unsigned char spritebuffer[160][4];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles = 0;
+    int draw_pixel = TRUE;
 
 
 /*  Period  GPU mode          Time spent   (clocks)
@@ -45,9 +46,17 @@ void gpu (int cycles){
 
     if (gpuCheckStatus() == FALSE){
         return;
-    }    
+    }
+    
+    if (cycles == 0){ // No cpu cycles fetched, CPU in stop MODE
+        gpuStop();
+        display();
+        return;
+    }
     
     gpu_cycles += cycles;
+    
+    gpu_state = readMemory8(STAT) & 0x03;
     
     switch (gpu_state){
         
@@ -59,16 +68,16 @@ void gpu (int cycles){
             break;
 
         case SCAN_VRAM:
-            if (gpu_cycles >= 172){
+            if (gpu_cycles >= 176){ //realboy 176 //bobonis 172
                 gpuChangeMode(H_BLANK);
-                gpu_cycles -= 172;
+                gpu_cycles -= 176;
             } 
             break;
             
         case H_BLANK:
-            if (gpu_cycles >= 204){
+            if (gpu_cycles >= 200){ //realboy 200 //bobonis 204
                 gpuDrawScanline();
-                gpu_cycles -= 204;
+                gpu_cycles -= 200;
 
                 memory[LY] += 1;          //Scanning a line completed, move to next
                 //if (memory[LY] % 4 == 0)
@@ -84,9 +93,9 @@ void gpu (int cycles){
             break;
             
         case V_BLANK:
-            if (gpu_cycles >= 456){
+            if (gpu_cycles >= 459){ //realboy 459 //bobonis 456
                 memory[LY] += 1;
-                gpu_cycles -= 456;
+                gpu_cycles -= 459;
                 //gpu_cycles = 0;
                 
                 if (memory[LY] > 153){
@@ -99,6 +108,17 @@ void gpu (int cycles){
     }
 }
 
+void gpuSetStatus(unsigned char value){
+
+    if (gpu_state == V_BLANK){ //only in VBLANK
+        if ( !(memory[LCDC] & 0x80) && (value & 0x80)){ // switch on
+            memory[STAT] &= 0xFC; //set to H_BLANK
+            gpu_cycles = 80;
+            memory[LY] = 0;
+        }
+    }    
+}
+
 /*
  * Check if LCD has been turned off.
  * This can only occur during VBLANK period.
@@ -107,10 +127,10 @@ void gpu (int cycles){
 int gpuCheckStatus(void){
     
     if (testBit(LCDC,7) == FALSE){
-        gpu_cycles = 0;             //reset gpu timers
-        memory[LY] = 0;             //set first scanline
-        setBit(STAT,0,TRUE);
-        setBit(STAT,1,FALSE);
+        //gpu_cycles = 0;             //reset gpu timers
+        //memory[LY] = 0;             //set first scanline
+        //setBit(STAT,0,TRUE);    //bobonis set SCAN_OAM
+        //setBit(STAT,1,FALSE);   //realboy set H_BLANK
         return FALSE;
     }
     return TRUE;
@@ -180,6 +200,7 @@ void gpuDrawScanline(void){
     
     for (i=159;i>=0;i--){
         spritebuffer[i][0] = spritebuffer[i][1] = spritebuffer[i][2] = 255;
+        spritebuffer[i][3] = FALSE;
     }
     
     if (testBit(LCDC,0)){
@@ -191,7 +212,7 @@ void gpuDrawScanline(void){
 
     
     for (i=159;i>=0;i--){
-        if (spritebuffer[i][0] != 255){
+        if (spritebuffer[i][3] != 0){
             framebuffer[readMemory8(LY)][i][0] = spritebuffer[i][0];
             framebuffer[readMemory8(LY)][i][1] = spritebuffer[i][1];
             framebuffer[readMemory8(LY)][i][2] = spritebuffer[i][2];
@@ -403,7 +424,7 @@ void gpuDrawSprite (unsigned char sprite){
     unsigned short palette;
     int i;
     int red, green, blue;
-    int draw_pixel = TRUE;
+
     int flip_Y = FALSE;
     int flip_X = FALSE;
     //printf("[DEBUG] Sprite %d\n",sprite);
@@ -484,13 +505,18 @@ void gpuDrawSprite (unsigned char sprite){
 
     
         gpuPaintColour(colour, palette, &red, &green, &blue);
-    
+        //if (red == 255)
+            //draw_pixel = FALSE;
         
         if (sprite_X <= 167 && sprite_X >= 8){
             if (draw_pixel){
                 spritebuffer[sprite_X - 8][0] = red;
                 spritebuffer[sprite_X - 8][1] = green;
                 spritebuffer[sprite_X - 8][2] = blue;
+                spritebuffer[sprite_X - 8][3] = draw_pixel;
+            }
+            else{
+                spritebuffer[sprite_X - 8][3] = draw_pixel;
             }
         }
         sprite_X +=1;
@@ -504,6 +530,7 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
     switch (colour){
         case 0b00:
             colour = testBit(palette,0) | (testBit(palette,1) << 1);
+            draw_pixel = FALSE;
             break;
             
         case 0b01:
@@ -521,7 +548,7 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
             printf("COLOUR1 = %d\n",colour);
             exit(1);
         }
-
+        
     //Set actuall dot colour
     switch (colour){
         case 0b00:
@@ -544,4 +571,21 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
             exit(1);                
         }
 
+}
+
+
+
+
+void gpuStop (void){
+    int y,x;
+    
+    for (y=143; y>=0; y--){
+        for (x=159; x>=0; x--){
+            framebuffer[y][x][0] = framebuffer[y][x][1] = framebuffer[y][x][2] = 255;  
+        }
+    }
+    
+    for (x=159; x>=0; x--){
+        framebuffer[72][x][0] = framebuffer[72][x][1] = framebuffer[72][x][2] = 0;
+    }
 }

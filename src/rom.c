@@ -246,7 +246,7 @@ int loadRom(const char *filename){
  */
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     
-    printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,",active_ROM_bank,address,value);
+    //printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,",active_ROM_bank,address,value);
     
     /* Before you can read or write to a RAM bank you have to enable
      * it by writing a XXXX1010 into 0000-1FFF area*. To
@@ -257,6 +257,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
      * suggests values $0A to enable and $00 to disable
      * RAM bank!!)
      */
+     	  //printf("address %x, mode %x\n",address,MBC_mode); 
     if (address <= 0x1FFF){
         if (MBC1){
             if (( value & 0x0F ) == 0x0A ){
@@ -272,9 +273,15 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     }
     else if (( address >= 0x2000 ) && ( address <= 0x3FFF )){
         if (MBC1){
-            value &= 0x1F; // keep 5 LSB
-            active_ROM_bank &= 0xE0; // Turn off 5 LSB
-            active_ROM_bank |= value; // merge value
+            if (MBC_mode == 0){     //ROM mode 16/8
+                value &= 0x1F; // keep 5 LSB
+                active_ROM_bank &= 0x60; // Turn off 5 LSB 0XX00000
+                active_ROM_bank |= value; // merge value
+            }
+            else{     //ROM mode 4/32
+                value &= 0x1F; // keep 5 LSB
+                active_ROM_bank = value;
+            }
             
             if (active_ROM_bank == 0){ // Bank 0 is not allowed
                 active_ROM_bank = 1;
@@ -284,10 +291,11 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     }
     else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
         if (MBC1){
-            if (MBC_mode == 0){     //ROM mode
-                value &= 0xC0;  // keep 3 MSB
-                active_ROM_bank &= 0x3F;    // Turn off 3 MSB
-                active_ROM_bank |= value; // merge value
+            if (MBC_mode == 0){     //ROM mode  16/8
+                value &= 0x03;  // keep 2 LSB 000000BB
+                value <<= 5; // Move LSB to MSB 0BB00000
+                active_ROM_bank &= 0x9F;    // Turn off 2 MSB X00XXXXX
+                active_ROM_bank |= value; // merge value XBBXXXXX
 
                 if (active_ROM_bank == 0){ // Bank 0 is not allowed
                     active_ROM_bank = 1;
@@ -312,5 +320,5 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
         
     }
     
-     printf("new bank is %x\n",active_ROM_bank);        
+     //printf("new bank is %x\n",active_ROM_bank);        
 }

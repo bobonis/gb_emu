@@ -3,6 +3,7 @@
 #include "timers.h"
 #include "input.h"
 #include "rom.h"
+#include "gpu.h" 
 
 #define ZERO_F 			7
 #define SUBSTRACT_F		6
@@ -17,6 +18,8 @@ unsigned short test;
 struct registers registers;
 unsigned char memory[0xFFFF];
 unsigned char memory_backup[256];
+
+int gpu_reading = 0;
 
 const unsigned char bios[256] = {
 //0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
@@ -91,6 +94,7 @@ void reset (void){
 	   memory[0xFF25] = 0xF3;	// NR51
 	   memory[0xFF26] = 0xF1;	// NR52
 	   memory[0xFF40] = 0x91;	// LCDC
+       memory[0xFF41] = 0x80;   // LCDS
 	   memory[0xFF42] = 0x00;	// SCY
 	   memory[0xFF43] = 0x00;	// SCX
 	   memory[0xFF45] = 0x00;	// LYC
@@ -105,23 +109,35 @@ void reset (void){
 }
 
 unsigned char readMemory8 (unsigned short address){
+
+
+        
+    unsigned char temp;
     
+    int address_map;
+
     if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
-        address -= 0x4000;
-        address += 0x4000 * active_ROM_bank; //move address space to correct Memory Bank
-        return cart_ROM[address];
+        //address_map = address - 0x4000;
+        //address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
+        //printf("cart_ROM %x[%x]=%x\n",address_map,active_ROM_bank,cart_ROM[address_map]);
+        temp = cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
     }
     else if (( address >= 0xA000 ) && ( address <= 0xBFFF )){ //RAM Memory Bank
         address -= 0xA000;
         address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-        return cart_RAM[address];
+        temp = cart_RAM[address];
     }
     else if (address == 0xFF00){ //Read Joypad
-        return inputReadKeys();
+        temp = inputReadKeys();
     }
     else {
-        return memory[address];
+        temp = memory[address];
     }
+    
+    //if (!gpu_reading)
+    //    updateTimers(4);   
+    
+    return temp;
 }
 
 unsigned short readMemory16 (unsigned short address){
@@ -130,15 +146,25 @@ unsigned short readMemory16 (unsigned short address){
 
 }
 
-void writeMemory (unsigned short pos, unsigned char value){
+void writeMemory16 (unsigned short pos, unsigned short value){
     
+    writeMemory(pos, (value & 0xFF));
+    writeMemory(pos + 1, (value >> 8));
+
+}
+
+void writeMemory (unsigned short pos, unsigned char value){
+
 
     if (pos < 0x8000){
         cartridgeSwitchBanks(pos, value);
     }
     else if (pos == 0xFF07){
-        memory[pos] = value;    // forgot to write new value..
-        updateFrequency();
+        //memory[pos] = value;    // forgot to write new value..
+        updateFrequency(value);
+    }
+    else if (pos == 0xFF04){    // DIV Timer
+        memory[pos] = 0;
     }
     /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
      * and the first 256 bytes of the address space, where it effectively 
@@ -149,6 +175,10 @@ void writeMemory (unsigned short pos, unsigned char value){
     } 
     else if (pos == 0xFF46){    //DMA
         directMemoryAccess(value);
+    }
+    else if (pos == 0xFF40){    //LCD
+        gpuSetStatus(value);
+        memory[pos] = value;
     }
     else if (pos == LY){        // Writing will reset the counter
         memory[LY] = 0;
@@ -175,6 +205,8 @@ void writeMemory (unsigned short pos, unsigned char value){
     else{ //default
         memory[pos] = value;
     }
+    //    if (!gpu_reading)
+    //    updateTimers(4);
 
 }
 
@@ -231,17 +263,6 @@ int testFlag (unsigned char flag){
     return 0;
 }
 
-
-
-
-
-
-
-
-
-unsigned char readMemory (unsigned short pos){
-    return memory[pos];
-}
 
 void setBit(unsigned short pos, unsigned char bit, bool value){
     switch (bit){
