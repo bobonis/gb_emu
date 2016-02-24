@@ -134,8 +134,8 @@ unsigned char readMemory8 (unsigned short address){
         temp = memory[address];
     }
     
-    //if (!gpu_reading)
-    //    updateTimers(4);   
+    if (!gpu_reading)
+        updateTimers(4);   
     
     return temp;
 }
@@ -205,8 +205,9 @@ void writeMemory (unsigned short pos, unsigned char value){
     else{ //default
         memory[pos] = value;
     }
-    //    if (!gpu_reading)
-    //    updateTimers(4);
+    
+    if (!gpu_reading)
+        updateTimers(4);
 
 }
 
@@ -331,6 +332,10 @@ bool testBit(unsigned short pos, unsigned char bit){
 }
 
 void stackPush16 (unsigned short value){
+
+    if (!gpu_reading)
+        updateTimers(4);
+        
     registers.SP--;                            // Decrease stack pointer
     writeMemory( registers.SP, (value & 0xFF00) >> 8); // Push high part in the stack
     registers.SP--;                            // Decrease stack pointer again
@@ -339,8 +344,11 @@ void stackPush16 (unsigned short value){
 
 unsigned short stackPop16 (void){
     unsigned short value = 0;
-
-    value = (readMemory8(registers.SP) | (readMemory8(registers.SP + 1) << 8));
+    
+    //reading is done this way to support correct timing
+    unsigned short temp1 = readMemory8(registers.SP);
+    unsigned short temp2 = readMemory8(registers.SP + 1) << 8;
+    value =  temp1 | temp2;
     registers.SP += 2;
     return value;
 }

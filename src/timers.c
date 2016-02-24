@@ -15,7 +15,7 @@
 #define TAC  0xFF07 
 
 unsigned int timeCounter = 0;
-unsigned int cycleCounter = 0;
+unsigned int cycleCounter = 4; //???????????????????
 int divideCounter = 0;
 unsigned int maxCycles = CLOCKSPEED / FREQ_1;
 int transition = FALSE;
@@ -90,18 +90,18 @@ void updateTimers(int cycles){
         memory[DIV]++;
     }
     
-   // printf("[DEBUG] DIV= %7d\n",memory[DIV]);    
+    //printf("[DEBUG] counter=%2d  DIV= %2d\n",divideCounter,memory[DIV]);    
     
     if (testBit(TAC,2) == 0){
-        //printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,readMemory8(TIMA));
+        //printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,memory[TIMA]);
         return;             // verify that master timer is enabled
     }
     
     if (transition){
-        cycles=4;
+        cycles += 4;
         transition = FALSE;
     }
-   // printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,readMemory8(TIMA));
+    //printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,memory[TIMA]);
     cycleCounter += cycles;
     timeCounter = memory[TIMA];    // Read current timer value
     
@@ -116,7 +116,7 @@ void updateTimers(int cycles){
         }
         cycleCounter -= maxCycles;
     }
-    //printf("[DEBUG] Timers after    - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n\n",cycles,cycleCounter,maxCycles,timeCounter);
+   // printf("[DEBUG] Timers after    - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n\n",cycles,cycleCounter,maxCycles,timeCounter);
    // printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,timeCounter);
     memory[TIMA] = timeCounter;
 }
