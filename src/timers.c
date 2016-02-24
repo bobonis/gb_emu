@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "timers.h"
 #include "interrupts.h"
+#include "gpu.h"
 
 #define CLOCKSPEED 4194304
 #define FREQ_1   4096 //1024 cycles
@@ -82,7 +83,10 @@ void updateFrequency(unsigned char value){
 }
 
 void updateTimers(int cycles){
-    
+
+        gpu_reading = 1;
+		gpu(cycles);
+        gpu_reading = 0;    
     divideCounter += cycles;
     
     if (divideCounter >= 256){
@@ -90,7 +94,8 @@ void updateTimers(int cycles){
         memory[DIV]++;
     }
     
-    //printf("[DEBUG] counter=%2d  DIV= %2d\n",divideCounter,memory[DIV]);    
+    //printf("[DEBUG] counter=%2d  DIV= %2d\n",divideCounter,memory[DIV]);
+    printf("tick\n");    
     
     if (testBit(TAC,2) == 0){
         //printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,memory[TIMA]);

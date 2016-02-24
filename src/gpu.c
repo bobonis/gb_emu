@@ -61,16 +61,16 @@ void gpu (int cycles){
     switch (gpu_state){
         
         case SCAN_OAM:
-            if (gpu_cycles >= 80){
+            if (gpu_cycles >= 84){ //bobonis 80 //mooneye 84
                 gpuChangeMode(SCAN_VRAM);
-                gpu_cycles -= 80;
+                gpu_cycles -= 84;
             }
             break;
 
         case SCAN_VRAM:
-            if (gpu_cycles >= 176){ //realboy 176 //bobonis 172
+            if (gpu_cycles >= 172){ //realboy 176 //bobonis 172
                 gpuChangeMode(H_BLANK);
-                gpu_cycles -= 176;
+                gpu_cycles -= 172;
             } 
             break;
             
@@ -93,9 +93,9 @@ void gpu (int cycles){
             break;
             
         case V_BLANK:
-            if (gpu_cycles >= 459){ //realboy 459 //bobonis 456
+            if (gpu_cycles >= 456){ //realboy 459 //bobonis 456
                 memory[LY] += 1;
-                gpu_cycles -= 459;
+                gpu_cycles -= 456;
                 //gpu_cycles = 0;
                 
                 if (memory[LY] > 153){
@@ -109,14 +109,14 @@ void gpu (int cycles){
 }
 
 void gpuSetStatus(unsigned char value){
-
-    if (gpu_state == V_BLANK){ //only in VBLANK
+    //printf("set status");
+    //if (gpu_state == V_BLANK){ //only in VBLANK
         if ( !(memory[LCDC] & 0x80) && (value & 0x80)){ // switch on
             memory[STAT] &= 0xFC; //set to H_BLANK
-            gpu_cycles = 80;
+            gpu_cycles = 84;
             memory[LY] = 0;
         }
-    }    
+    //}    
 }
 
 /*

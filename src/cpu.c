@@ -11,9 +11,9 @@
 #define HALF_CARRY_F	5
 #define CARRY_F			4
 
-int debug = TRUE;
-int debug2 = TRUE;
-int debug_mooneye = FALSE;
+int debug = FALSE;
+int debug2 = FALSE;
+int debug_mooneye = TRUE;
 unsigned char instruction = 0x00;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -563,9 +563,9 @@ int execute (void){
         if (debug_mooneye)
             printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x DIV=%d\n",
             instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff04]);    
-        //instruction = readMemory8(++registers.PC);
-        instruction = memory[++registers.PC];
-        //cpuCycles = extendedopCodes[instruction].cycles + 4; //init cpuCycles, it may be increased after opcode execution
+        instruction = readMemory8(++registers.PC);
+        //instruction = memory[++registers.PC];
+        cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
         if (debug2)
@@ -630,8 +630,8 @@ int execute (void){
            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
     }
     
-    if (extended_opcode)
-        updateTimers(4);
+    //if (extended_opcode)
+    //    updateTimers(4);
     
 	return cpuCycles;
 }
