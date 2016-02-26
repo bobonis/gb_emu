@@ -95,7 +95,7 @@ void updateTimers(int cycles){
     }
     
     //printf("[DEBUG] counter=%2d  DIV= %2d\n",divideCounter,memory[DIV]);
-    printf("tick\n");    
+    //printf("tick\n");    
     
     if (testBit(TAC,2) == 0){
         //printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,memory[TIMA]);

@@ -13,8 +13,6 @@
 #define LY      0xFF44 //Vertical line counter
 
 
-unsigned short test;
-
 struct registers registers;
 unsigned char memory[0xFFFF];
 unsigned char memory_backup[256];
