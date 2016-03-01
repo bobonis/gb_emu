@@ -1,6 +1,7 @@
 #include "interrupts.h"
 #include "memory.h"
 #include "cpu.h"
+#include "timers.h"
 #include <stdio.h>
 
 unsigned char interruptMaster;
@@ -27,6 +28,11 @@ void handleInterrupts(void){
                    if (interruptMaster == TRUE){ // Check that Interrupts are enabled
                     
                         interruptMaster = FALSE;   // Disable master Interrupt
+                        
+                        //updateTimers(12);
+                        updateTimers(4);
+                        updateTimers(4);
+                        updateTimers(4);
                         if (cpuHALT)
                             registers.PC++;
                             
