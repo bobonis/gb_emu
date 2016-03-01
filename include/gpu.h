@@ -8,7 +8,9 @@ void gpuRenderBackground (void);
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue);
 void gpuStop (void);
 void gpuSetStatus(unsigned char value);
+void gpuCompareLine (void);
 
 extern unsigned char framebuffer[144][160][3];
 
 extern int gpu_reading;
+int gpuAdjustCycles (void);

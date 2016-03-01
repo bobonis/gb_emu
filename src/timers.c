@@ -82,11 +82,22 @@ void updateFrequency(unsigned char value){
    //printf("[DEBUG] Timer Updated - %x\n",speed_new);
 }
 
+void updateDivider(void){
+    divideCounter = 0;
+    memory[DIV] = 0;
+}
+
 void updateTimers(int cycles){
 
         gpu_reading = 1;
-		gpu(cycles);
-        gpu_reading = 0;    
+        int temp = cycles;
+        while (temp > 0){
+            gpu(temp);
+            temp -= 4;
+        }
+		
+        gpu_reading = 0;
+        
     divideCounter += cycles;
     
     if (divideCounter >= 256){

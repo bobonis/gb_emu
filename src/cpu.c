@@ -1120,7 +1120,9 @@ void ADD_SP_n (void){
     
     resetFlag(ZERO_F);
     resetFlag(SUBSTRACT_F);
-    updateTimers(8);
+    //updateTimers(8);
+    updateTimers(4);
+    updateTimers(4);
 } 
 /*
  * INC nn

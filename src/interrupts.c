@@ -29,7 +29,10 @@ void handleInterrupts(void){
                     
                         interruptMaster = FALSE;   // Disable master Interrupt
                         
-                        updateTimers(12);
+                        //updateTimers(12);
+                        updateTimers(4);
+                        updateTimers(4);
+                        updateTimers(4);
                         if (cpuHALT)
                             registers.PC++;
                             

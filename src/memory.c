@@ -162,7 +162,7 @@ void writeMemory (unsigned short pos, unsigned char value){
         updateFrequency(value);
     }
     else if (pos == 0xFF04){    // DIV Timer
-        memory[pos] = 0;
+        updateDivider();
     }
     /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
      * and the first 256 bytes of the address space, where it effectively 
