@@ -558,8 +558,8 @@ int execute (void){
             printf("[DEBUG] CB \n");
        
         if (debug_mooneye)
-            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x DIV=%d\n",
-            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff04]);    
+            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d\n",
+            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07]);   
         instruction = readMemory8(++registers.PC);
         
         cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
@@ -580,8 +580,8 @@ int execute (void){
         printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
         
    if (debug_mooneye && extended_opcode == 0)
-        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x DIV=%d\n",
-        instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff04]);
+        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d\n",
+        instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07]);
    
     switch ( operand_length ){
         case 0 :

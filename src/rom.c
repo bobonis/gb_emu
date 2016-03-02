@@ -228,6 +228,9 @@ int loadRom(const char *filename){
 	fclose(pFile);
 	//free(buffer);
 	printf("[INFO] Rom loaded correctly\n");
+    
+    //init values
+    memory[0xFF07] = 0xF8;
 	return 0;
 }
 
