@@ -558,8 +558,9 @@ int execute (void){
             printf("[DEBUG] CB \n");
        
         if (debug_mooneye)
-            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d\n",
-            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07]);   
+            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d\n",
+            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f]);   
+        
         instruction = readMemory8(++registers.PC);
         
         cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
@@ -579,9 +580,9 @@ int execute (void){
     if (debug)
         printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
         
-   if (debug_mooneye && extended_opcode == 0)
-        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d\n",
-        instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07]);
+        if (debug_mooneye && extended_opcode == 0)
+            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d\n",
+            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f]);   
    
     switch ( operand_length ){
         case 0 :
@@ -1476,7 +1477,7 @@ void RRA (void){registers.A = rr(registers.A); resetFlag(ZERO_F);}
 /********************
  * Jumps            *
  ********************/
-void JP_nn (void)   { registers.PC = operand16; }
+void JP_nn (void)   { registers.PC = operand16; cpuCycles += 4; updateTimers(4); }
 void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0){ registers.PC = operand16; cpuCycles += 4; updateTimers(4); }}
 void JP_Z_nn (void) { if (testFlag(ZERO_F)  == 1){ registers.PC = operand16; cpuCycles += 4; updateTimers(4); }}
 void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0){ registers.PC = operand16; cpuCycles += 4; updateTimers(4); }}
@@ -1552,42 +1553,42 @@ void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC +
  * Use with: n = $00,$08,$10,$18,$20,$28,$30,$38
  */
  void RST00 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x00;
 }
  void RST08 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x08;
 }
  void RST10 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x10;
 }
  void RST18 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x18;
 }
  void RST20 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x20;
 }
  void RST28 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x28;
 }
  void RST30 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x30;
 }
  void RST38 (void) {
-     updateTimers(4);
+     //updateTimers(4);
      stackPush16(registers.PC);
      registers.PC = 0x38;
 }

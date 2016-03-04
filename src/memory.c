@@ -108,7 +108,8 @@ void reset (void){
 
 unsigned char readMemory8 (unsigned short address){
 
-
+    if (!gpu_reading)
+        updateTimers(4);   
         
     unsigned char temp;
     
@@ -132,8 +133,7 @@ unsigned char readMemory8 (unsigned short address){
         temp = memory[address];
     }
     
-    if (!gpu_reading)
-        updateTimers(4);   
+
     
     return temp;
 }
@@ -153,6 +153,8 @@ void writeMemory16 (unsigned short pos, unsigned short value){
 
 void writeMemory (unsigned short pos, unsigned char value){
 
+    if (!gpu_reading)
+        updateTimers(4);
 
     if (pos < 0x8000){
         cartridgeSwitchBanks(pos, value);
@@ -200,12 +202,21 @@ void writeMemory (unsigned short pos, unsigned char value){
         //printf("[DEBUG] Write at palette 0x%2x\n",value);
         memory[pos] = value;
     }
+    else if (pos == 0xFF0F){ //interrupt flag
+        memory[pos] &= 0xE0;
+        value &= 0x1F;
+        memory[pos] |= value;
+    }
+    else if (pos == 0xFFFF){ //interrupt flag
+        memory[pos] &= 0xE0;
+        value &= 0x1F;
+        memory[pos] |= value;
+    }          
     else{ //default
         memory[pos] = value;
     }
     
-    if (!gpu_reading)
-        updateTimers(4);
+
 
 }
 
