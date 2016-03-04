@@ -16,7 +16,7 @@
 #define TAC  0xFF07 
 
 unsigned int timeCounter = 0;
-unsigned int cycleCounter = 4; //???????????????????
+unsigned int cycleCounter = 0; //???????????????????
 int divideCounter = 0;
 unsigned int maxCycles = CLOCKSPEED / FREQ_1;
 int transition = FALSE;
@@ -45,23 +45,11 @@ int transition = FALSE;
 
 void updateFrequency(unsigned char value){
 
-    unsigned char speed_old = memory[TAC] & 0x03;
+
     unsigned char speed_new = value & 0x03;
-
-    if (testBit(TAC,2) == 0){
-        if (value & 0x04){
-            transition = TRUE;
-        }
-    }
         
-    if (speed_new == speed_old){ // if no speed changed
-        memory[TAC] = value & 0x07;
-        printf("[DEBUG] Timer Updated - %x\n",speed_new);
-        return;
-    }
-
-    //cycleCounter = 0;                        // clock is reset when frequency is changed
-    //writeMemory(TIMA, readMemory8(TMA));
+    memory[TAC] = (value & 0x07) | memory[TAC];
+    cycleCounter = 0;                        // clock is reset when frequency is changed
     
     switch (speed_new){
         case 0:
@@ -77,9 +65,6 @@ void updateFrequency(unsigned char value){
             maxCycles = CLOCKSPEED / FREQ_2;
             break;
     }
-    
-    memory[TAC] = value & 0x07;
-   //printf("[DEBUG] Timer Updated - %x\n",speed_new);
 }
 
 void updateDivider(void){
@@ -89,14 +74,13 @@ void updateDivider(void){
 
 void updateTimers(int cycles){
 
-        gpu_reading = 1;
-        int temp = cycles;
-        while (temp > 0){
-            gpu(temp);
-            temp -= 4;
-        }
-		
-        gpu_reading = 0;
+    gpu_reading = 1;
+    int temp = cycles;
+    while (temp > 0){
+        gpu(temp);
+        temp -= 4;
+    }
+    gpu_reading = 0;
         
     divideCounter += cycles;
     
@@ -106,17 +90,12 @@ void updateTimers(int cycles){
     }
     
     //printf("[DEBUG] counter=%2d  DIV= %2d\n",divideCounter,memory[DIV]);
-    //printf("tick\n");    
     
     if (testBit(TAC,2) == 0){
         //printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,memory[TIMA]);
         return;             // verify that master timer is enabled
     }
     
-    if (transition){
-        cycles += 4;
-        transition = FALSE;
-    }
     //printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,memory[TIMA]);
     cycleCounter += cycles;
     timeCounter = memory[TIMA];    // Read current timer value
