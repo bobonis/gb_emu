@@ -69,32 +69,7 @@ struct registers{
 }extern registers;
 //alam
 extern unsigned short test;
-/*
- * Interrupt Enable Register
- * ---------------------------  FFFF
- * Internal RAM
- * ---------------------------  FF80
- * Empty but unusable for I/O
- * ---------------------------  FFC4
- * I/O ports
- * ---------------------------  FF00
- * Empty but unusable for I/O
- * ---------------------------  FEA0
- * Sprite Attrib Memory (OAM)
- * ---------------------------  FE00
- * Echo of 8kB Internal RAM
- * ---------------------------  E000
- * 8kB Internal RAM
- * ---------------------------  C000
- * 8kB switchable RAM bank
- * ---------------------------  A000
- * 8kB Video RAM
- * ---------------------------  8000  --
- * 16kB switchable ROM bank             |
- * ---------------------------  4000    | -- 32 kB Cartrige
- * 16kB ROM bank #0                     |
- * ---------------------------  0000  --
- */
+
  
 extern unsigned char crom[0x8000];
 //extern unsigned char vram[0x2000];
