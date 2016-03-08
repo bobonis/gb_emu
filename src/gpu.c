@@ -240,6 +240,16 @@ void gpuChangeMode(int mode){
     }
 }
 
+/*
+void gpuWriteOAM(){
+    
+    if (gpu_state == SCAN_OAM || gpu_state == SCAN_VRAM){
+        return;
+    }
+    //todo: sprite ram
+}
+*/
+
 /* Check LCDC register
  * Decide to render the background
  * and the sprites on current scanline

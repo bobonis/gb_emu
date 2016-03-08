@@ -14,10 +14,37 @@
 
 
 struct registers registers;
+/*
+ * Interrupt Enable Register
+ * ---------------------------  FFFF
+ * Internal RAM
+ * ---------------------------  FF80
+ * Empty but unusable for I/O
+ * ---------------------------  FFC4
+ * I/O ports
+ * ---------------------------  FF00
+ * Empty but unusable for I/O
+ * ---------------------------  FEA0
+ * Sprite Attrib Memory (OAM)
+ * ---------------------------  FE00
+ * Echo of 8kB Internal RAM
+ * ---------------------------  E000
+ * 8kB Internal RAM
+ * ---------------------------  C000
+ * 8kB switchable RAM bank
+ * ---------------------------  A000
+ * 8kB Video RAM
+ * ---------------------------  8000  --
+ * 16kB switchable ROM bank             |
+ * ---------------------------  4000    | -- 32 kB Cartrige
+ * 16kB ROM bank #0                     |
+ * ---------------------------  0000  --
+ */
 unsigned char memory[0xFFFF];
 unsigned char memory_backup[256];
 
 int gpu_reading = 0;
+int dma_timer = 0;
 
 const unsigned char bios[256] = {
 //0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
@@ -60,7 +87,7 @@ void reset (void){
             memory_backup[i] = memory[i];   // backup address space that is overwitten from bios
             memory[i] = bios[i];
         }
-        
+        memory[0xFF26] = 0xF1;	// NR52
     }
     else
     {
@@ -109,12 +136,201 @@ void reset (void){
 unsigned char readMemory8 (unsigned short address){
 
     if (!gpu_reading)
-        updateTimers(4);   
+        updateTimers(4);
         
     unsigned char temp;
     
     int address_map;
 
+    switch (address & 0xFF00){
+        case 0xFF00 :
+            if (address == 0xFF00){         //P1 
+                temp = inputReadKeys();
+            }
+            else if (address == 0xFF01){    //SB
+                temp = memory[address];
+            }            
+            else if (address == 0xFF02){    //SC
+                temp = memory[address];
+                temp |= 0x7E;               //BIT 6,5,4,3,2,1 Not Used
+            }
+            else if (address == 0xFF04){    //DIV
+                temp = memory[address];
+            }
+            else if (address == 0xFF05){    //TIMA
+                temp = memory[address];
+            }
+            else if (address == 0xFF06){    //TIMA
+                temp = memory[address];
+            }                         
+            else if (address == 0xFF07){    //TAC
+                temp = memory[address];                
+                temp |= 0xF8;               //BIT 7,6,5,4,3 Not Used
+            }
+            else if (address == 0xFF0F){    //IF 
+                temp = memory[address];
+                temp |= 0xE0;               //BIT 7,6,5 Not Used
+            }
+            else if (address == 0xFF10){    //NR10
+                temp = memory[address];
+                temp |= 0x80;               //BIT 7 Not Used
+            }
+            else if (address == 0xFF11){    //NR11
+                temp = memory[address];
+                temp |= 0x3F;               //Only Bits 7-6 can be read
+            }
+            else if (address == 0xFF12){    //NR12
+                temp = memory[address];
+            }
+            else if (address == 0xFF13){    //NR13
+                temp = memory[address];
+                temp |= 0xFF;               //Cant be read
+            }
+            else if (address == 0xFF14){    //NR14
+                temp = memory[address];
+                temp |= 0xBF;               //Only Bit 6 can be read
+            }
+            else if (address == 0xFF16){    //NR21
+                temp = memory[address];
+                temp |= 0x3F;               //Only bits 7-6 can be read
+            }
+            else if (address == 0xFF17){    //NR22
+                temp = memory[address];
+            }
+            else if (address == 0xFF18){    //NR23
+                temp = memory[address];
+                temp |= 0xFF;               //Cant be read
+            }
+            else if (address == 0xFF19){    //NR24
+                temp = memory[address];
+                temp |= 0xBF;               //Only Bit 6 can be read
+            }
+            else if (address == 0xFF1A){    //NR30
+                temp = memory[address];
+                temp |= 0x7F;               //BIT 6,5,4,3,2,1,0 Not Used
+            }
+            else if (address == 0xFF1B){    //NR31
+                temp = memory[address];
+                temp |= 0xFF;               //Cant be read
+            }
+            else if (address == 0xFF1C){    //NR32
+                temp = memory[address];
+                temp |= 0x9F;               //BIT 7,4,3,2,1,0 Not Used
+            }
+            else if (address == 0xFF1D){    //NR33
+                temp = memory[address];
+                temp |= 0xFF;               //Cant be read
+            }
+            else if (address == 0xFF1E){    //NR34
+                temp = memory[address];
+                temp |= 0xBF;               //Only Bit 6 can be read
+            }
+            else if (address == 0xFF20){    //NR41
+                temp = memory[address];
+                temp |= 0xFF;               //Cant be read
+            }
+            else if (address == 0xFF21){    //NR42
+                temp = memory[address];
+            }
+            else if (address == 0xFF22){    //NR43
+                temp = memory[address];
+            }
+            else if (address == 0xFF23){    //NR44
+                temp = memory[address];
+                temp |= 0xBF;               //Only Bit 6 can be read
+            }
+            else if (address == 0xFF24){    //NR50
+                temp = memory[address];
+            }
+            else if (address == 0xFF25){    //NR51
+                temp = memory[address];
+            }
+            else if (address == 0xFF26){    //NR52
+                temp = memory[address];
+                temp |= 0x70;               //Only Bit 7,3,2,1,0 can be read
+            }
+            else if (address >= 0xFF30 && address <= 0xFF3F){   //WAVE pattern RAM
+                temp = memory[address];
+            }                                           
+            else if (address == 0xFF40){    //LCDC
+                temp = memory[address];
+            }            
+            else if (address == 0xFF41){    //STAT
+                temp = memory[address];
+                temp |= 0x80;               //BIT 7 Not Used
+            }
+            else if (address == 0xFF42){    //SCY
+                temp = memory[address];
+            }
+            else if (address == 0xFF43){    //SCX
+                temp = memory[address];
+            }
+            else if (address == 0xFF44){    //LY
+                temp = memory[address];
+            }
+            else if (address == 0xFF45){    //LYC
+                temp = memory[address];
+            }            
+            else if (address == 0xFF46){    //DMA
+                temp = memory[address];
+            }
+            else if (address == 0xFF47){    //BGP
+                temp = memory[address];
+            }
+            else if (address == 0xFF48){    //OBP0
+                temp = memory[address];
+            }
+            else if (address == 0xFF49){    //OBP1
+                temp = memory[address];
+            }
+            else if (address == 0xFF4A){    //WY
+                temp = memory[address];
+            }
+            else if (address == 0xFF4B){    //WX
+                temp = memory[address];
+            }
+            else if (address == 0xFF4F){    //????
+                temp = memory[address];
+                temp |= 0xFE;               //BIT 7,6,5,4,3,2,1 Not Used
+            }
+            else if (address == 0xFF68){    //????
+                temp = memory[address];
+                temp |= 0xC8;               //BIT 7,6,3 Not Used
+            }
+            else if (address == 0xFF6A){    //????
+                temp = memory[address];
+                temp |= 0xD0;               //BIT 7,6,4 Not Used
+            }
+            else if (address == 0xFF72){    //????
+                temp = memory[address];
+            }
+            else if (address == 0xFF73){    //????
+                temp = memory[address];
+            }
+            else if (address == 0xFF75){    //????
+                temp = memory[address];
+                temp |= 0x8F;               //BIT 7,3,2,1,0 Not Used
+            }
+            else if (address == 0xFF76){    //????
+                temp = memory[address];
+                temp &= 0x00;               //Not Readable
+            }
+            else if (address == 0xFF77){    //????
+                temp = memory[address];
+                temp &= 0x00;               //Not Readable
+            }            
+            else if (address >= 0xFF80 && address <= 0xFFFE){   //Usable RAM
+                temp = memory[address];
+            }
+            else if (address == 0xFFFF){    //IE
+                temp = memory[address];
+            }
+            else{
+                temp = 0xFF;
+            }
+            return temp;
+    }
+    
     if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
         //address_map = address - 0x4000;
         //address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
@@ -128,6 +344,14 @@ unsigned char readMemory8 (unsigned short address){
     }
     else if (address == 0xFF00){ //Read Joypad
         temp = inputReadKeys();
+    }
+    else if (address >= 0xFE00 && address < 0xFEA0){
+        if (dma_timer){
+            temp = 0xFF;
+        }
+        else{
+            temp = memory[address];
+        }
     }
     else {
         temp = memory[address];
@@ -153,35 +377,201 @@ void writeMemory16 (unsigned short pos, unsigned short value){
 
 void writeMemory (unsigned short pos, unsigned char value){
 
+    unsigned short address = pos;
+
     if (!gpu_reading)
         updateTimers(4);
 
+    switch (address & 0xFF00){
+        case 0xFF00 : 
+            if (address == 0xFF00){         //P1 
+                value |= 0xC0;              //BIT 7,6 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF01){    //SB
+                //memory[address] = value;  hack to pass a test
+            }            
+            else if (address == 0xFF02){    //SC
+                value |= 0x7E;              //BIT 6,5,4,3,2,1 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF04){    //DIV
+                updateDivider();
+            }
+            else if (address == 0xFF05){    //TIMA
+                memory[address] = value;
+            }
+            else if (address == 0xFF06){    //TMA
+                memory[address] = value;
+            }                                  
+            else if (address == 0xFF07){    //TAC
+                updateFrequency(value);
+                value |= 0xF8;              //BIT 7,6,5,4,3 Not Used
+                memory[address] = value;                
+            }
+            else if (address == 0xFF0F){    //IF 
+                value |= 0xE0;              //BIT 7,6,5 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF10){    //NR10
+                value |= 0x80;              //BIT 7 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF11){    //NR11
+                memory[address] = value;
+            }
+            else if (address == 0xFF12){    //NR12
+                memory[address] = value;
+            }
+            else if (address == 0xFF13){    //NR13
+                memory[address] = value;
+            }
+            else if (address == 0xFF14){    //NR14
+                memory[address] = value;
+            }
+            else if (address == 0xFF16){    //NR21
+                memory[address] = value;
+            }
+            else if (address == 0xFF17){    //NR22
+                memory[address] = value;
+            }
+            else if (address == 0xFF18){    //NR23
+                memory[address] = value;
+            }
+            else if (address == 0xFF19){    //NR24
+                memory[address] = value;
+            }
+            else if (address == 0xFF1A){    //NR30
+                value |= 0x7F;              //BIT 6,5,4,3,2,1,0 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF1B){    //NR31
+                memory[address] = value;
+            }
+            else if (address == 0xFF1C){    //NR32
+                value |= 0x9F;              //BIT 7,4,3,2,1,0 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF1D){    //NR33
+                memory[address] = value;
+            }
+            else if (address == 0xFF1E){    //NR34
+                memory[address] = value;
+            }
+            else if (address == 0xFF20){    //NR41
+                value |= 0xC0;              //BIT 7,6 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF21){    //NR42
+                memory[address] = value;
+            }
+            else if (address == 0xFF22){    //NR43
+                memory[address] = value;
+            }
+            else if (address == 0xFF23){    //NR44
+                value |= 0x3F;              //BIT 5,4,3,2,1,0 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF24){    //NR50
+                memory[address] = value;
+            }
+            else if (address == 0xFF25){    //NR51
+                memory[address] = value;
+            }
+            else if (address == 0xFF26){    //NR52
+                value |= 0x70;              //BIT 6,5,4 Not Used
+                memory[address] = value | 0x01; // Nasty Hack
+            }
+            else if (address >= 0xFF30 && address <= 0xFF3F){   //WAVE pattern RAM
+                memory[address] = value;
+            }                                           
+            else if (address == 0xFF40){    //LCDC
+                gpuSetStatus(value);
+                memory[address] = value;
+            }            
+            else if (address == 0xFF41){    //STAT
+                value |= 0x80;              //BIT 7 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF42){    //SCY
+                memory[address] = value;
+            }
+            else if (address == 0xFF43){    //SCX
+                memory[address] = value;
+            }
+            else if (address == 0xFF44){    //LY
+                memory[address] = 0x00;     //Writing will reset the counter
+            }
+            else if (address == 0xFF45){    //LYC
+                memory[address] = value;
+            }            
+            else if (address == 0xFF46){    //DMA
+                directMemoryAccess(value);
+            }
+            else if (address == 0xFF47){    //BGP
+                memory[address] = value;
+            }
+            else if (address == 0xFF48){    //OBP0
+                memory[address] = value;
+            }
+            else if (address == 0xFF49){    //OBP1
+                memory[address] = value;
+            }
+            else if (address == 0xFF4A){    //WY
+                memory[address] = value;
+            }
+            else if (address == 0xFF4B){    //WX
+                memory[address] = value;
+            }
+            else if (address == 0xFF4F){    //????
+                value |= 0xFE;              //BIT 7,6,5,4,3,2,1 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF68){    //????
+                value |= 0x40;              //BIT 6 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF6A){    //????
+                value |= 0x40;              //BIT 6 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF72){    //????
+                memory[address] = value;
+            }
+            else if (address == 0xFF73){    //????
+                memory[address] = value;
+            }
+            else if (address == 0xFF75){    //????
+                value |= 0x8F;              //BIT 7,3,2,1,0 Not Used
+                memory[address] = value;
+            }
+            else if (address == 0xFF76){    //????
+                memory[address] = 0x00;     //Not Readable
+            }
+            else if (address == 0xFF77){    //????
+                memory[address] = 0x00;     //Not Readable
+            }            
+            /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
+            * and the first 256 bytes of the address space, where it effectively 
+            * was mapped, now gets mapped to the beginning of the cartridge’s ROM.
+            */
+            else if ((address == 0xFF50) && (value == 0x01)){
+                memCopy(memory, 0x0000, memory_backup, 0xFF);
+            }
+            else if (address >= 0xFF80 && address <= 0xFFFE){   //Usable RAM
+                memory[address] = value;
+            }
+            else if (address == 0xFFFF){    //IE
+                memory[address] = value;
+            }
+            else{
+                memory[address] = 0xFF;
+            }
+            return;
+    }
+
     if (pos < 0x8000){
         cartridgeSwitchBanks(pos, value);
-    }
-    else if (pos == 0xFF07){
-        //memory[pos] = value;    // forgot to write new value..
-        updateFrequency(value);
-    }
-    else if (pos == 0xFF04){    // DIV Timer
-        updateDivider();
-    }
-    /* Writing the value of 1 to the address 0xFF50 unmaps the boot ROM, 
-     * and the first 256 bytes of the address space, where it effectively 
-     * was mapped, now gets mapped to the beginning of the cartridge’s ROM.
-     */
-    else if ((pos == 0xFF50) && (value == 0x01)){
-        memCopy(memory, 0x0000, memory_backup, 0xFF);
-    } 
-    else if (pos == 0xFF46){    //DMA
-        directMemoryAccess(value);
-    }
-    else if (pos == 0xFF40){    //LCD
-        gpuSetStatus(value);
-        memory[pos] = value;
-    }
-    else if (pos == LY){        // Writing will reset the counter
-        memory[LY] = 0;
     }
     else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
         pos -= 0xA000;
@@ -190,7 +580,9 @@ void writeMemory (unsigned short pos, unsigned char value){
     }    
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
+        gpu_reading = 1;
         writeMemory(pos - 0x2000, value) ;
+        gpu_reading = 0;
     }
     else if ( ( pos >= 0xC000 ) && (pos < 0xE000) ){ // writing to RAM also writes in ECHO RAM or not???
         memory[pos] = value ;
@@ -198,20 +590,13 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
     }
-    else if (pos == 0xFF47){
-        //printf("[DEBUG] Write at palette 0x%2x\n",value);
-        memory[pos] = value;
+    else if (address >= 0xFE00 && address < 0xFEA0){
+        if (dma_timer){
+        }
+        else{
+            memory[pos] = value;
+        }
     }
-    else if (pos == 0xFF0F){ //interrupt flag
-        memory[pos] &= 0xE0;
-        value &= 0x1F;
-        memory[pos] |= value;
-    }
-    else if (pos == 0xFFFF){ //interrupt flag
-        memory[pos] &= 0xE0;
-        value &= 0x1F;
-        memory[pos] |= value;
-    }          
     else{ //default
         memory[pos] = value;
     }
@@ -366,7 +751,12 @@ unsigned short stackPop16 (void){
 void directMemoryAccess(unsigned char value){
     int i;
     unsigned short address = value << 8 ; // source address is data * 100
+    gpu_reading = 1;
     for (i = 0 ; i < 0xA0; i++){
         writeMemory(0xFE00+i, readMemory8(address+i)) ;
     }
+    gpu_reading = 0;
+    
+    dma_timer = 648;
+    
 } 
