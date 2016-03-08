@@ -44,6 +44,7 @@ unsigned char memory[0xFFFF];
 unsigned char memory_backup[256];
 
 int gpu_reading = 0;
+int dma_timer = 0;
 
 const unsigned char bios[256] = {
 //0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
@@ -135,7 +136,7 @@ void reset (void){
 unsigned char readMemory8 (unsigned short address){
 
     if (!gpu_reading)
-        updateTimers(4);   
+        updateTimers(4);
         
     unsigned char temp;
     
@@ -343,6 +344,14 @@ unsigned char readMemory8 (unsigned short address){
     }
     else if (address == 0xFF00){ //Read Joypad
         temp = inputReadKeys();
+    }
+    else if (address >= 0xFE00 && address < 0xFEA0){
+        if (dma_timer){
+            temp = 0xFF;
+        }
+        else{
+            temp = memory[address];
+        }
     }
     else {
         temp = memory[address];
@@ -571,13 +580,22 @@ void writeMemory (unsigned short pos, unsigned char value){
     }    
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
+        gpu_reading = 1;
         writeMemory(pos - 0x2000, value) ;
+        gpu_reading = 0;
     }
     else if ( ( pos >= 0xC000 ) && (pos < 0xE000) ){ // writing to RAM also writes in ECHO RAM or not???
         memory[pos] = value ;
         //memory[pos + 0x2000] = value;
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
+    }
+    else if (address >= 0xFE00 && address < 0xFEA0){
+        if (dma_timer){
+        }
+        else{
+            memory[pos] = value;
+        }
     }
     else{ //default
         memory[pos] = value;
@@ -733,7 +751,12 @@ unsigned short stackPop16 (void){
 void directMemoryAccess(unsigned char value){
     int i;
     unsigned short address = value << 8 ; // source address is data * 100
+    gpu_reading = 1;
     for (i = 0 ; i < 0xA0; i++){
         writeMemory(0xFE00+i, readMemory8(address+i)) ;
     }
+    gpu_reading = 0;
+    
+    dma_timer = 648;
+    
 } 

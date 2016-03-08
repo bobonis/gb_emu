@@ -1,16 +1,6 @@
 CPU 
-- Implement all opcodes 
+- [DONE] Implement all opcodes 
 - [DONE] Implement all extended opcodes 
-- Execute the test roms to check accuracy
-    01 - PASS
-    02 - PASS
-    03 - PASS
-    04 - PASS
-    05 - PASS
-    06 - PASS
-    07 - PASS
-    08 - PASS
-    
  - Intend opcode structs
     
 - Create main SDL Loop
@@ -33,8 +23,8 @@ DISPLAY
 - Support Full screen 
 - Support resize 
 
-INPUT 
-- Everything 
+INPUT
+- [DONE] Everything
 
 SOUND 
 - Everything 
@@ -45,3 +35,92 @@ PRINTOUTS
 GUI 
 - Everything 
 
+STATUS - TEST ROMS
+    BLARGG
+    -   OK  cpu_instrs
+    -   OK  instr_timing
+    -   OK  mem_timing
+    -       cgb_sound
+    -       dmg_sound
+    -       dmg_sound-2
+    -       mem_timing-2
+    -       oam_bug
+    -       oam_bug-2
+    
+    
+    
+    MOONEYE
+        acceptance
+            bits
+            -       mem_oam
+            -       reg_f
+            -       unused_hwio-GS
+            
+            gpu
+            -       hblank_ly_scx_timing-GS
+            -       intr_1_2_timing-GS
+            -       intr_2_0_timing
+            -       intr_2_mode0_timing
+            -       intr_2_mode0_timing_sprites
+            -       intr_2_mode3_timing
+            -       intr_2_oam_ok_timing
+            -       vblank_stat_intr-GS
+            
+            timer
+            -       div_write
+            -       rapid_toggle
+
+        -       add_sp_e_timing
+        -       boot_hwio-G
+        -       boot_regs-dmg
+        -       call_cc_timing
+        -       call_cc_timing2
+        -       call_timing
+        -       call_timing2
+        -       di_timing-GS
+        -       div_timing
+        -       ei_timing
+        -       halt_ime0_ei
+        -       halt_ime0_nointr_timing
+        -       halt_ime1_timing
+        -       halt_ime1_timing2-GS
+        -       if_ie_registers
+        -       intr_timing
+        -       jp_cc_timing
+        -       jp_timing
+        -       ld_hl_sp_e_timing
+        -       oam_dma_restart
+        -       oam_dma_start
+        -       oam_dma_timing
+        -       pop_timing
+        -       push_timing
+        -       rapid_di_ei
+        -       ret_cc_timing
+        -       reti_intr_timing
+        -       reti_timing
+        -       ret_timing
+        -       rst_timing
+
+        emulator-only
+        -       mbc1_rom_4banks
+
+        manual-only
+        -       sprite_priority
+        
+        misc
+            bits
+            -       unused_hwio-C
+            
+            gpu
+            -       vblank_stat_intr-C
+        
+        -       boot_hwio-C
+        -       boot_hwio-S
+        -       boot_regs-A
+        -       boot_regs-cgb
+        -       boot_regs-mgb
+        -       boot_regs-sgb
+        -       boot_regs-sgb2
+            
+            
+            
