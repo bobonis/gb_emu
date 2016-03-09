@@ -73,7 +73,7 @@ STATUS - TEST ROMS
             bits
             -   OK  mem_oam
             -   OK  reg_f
-            -       unused_hwio-GS
+            -   OK  unused_hwio-GS
             
             gpu
             -       hblank_ly_scx_timing-GS
@@ -89,15 +89,15 @@ STATUS - TEST ROMS
             -       div_write
             -       rapid_toggle
 
-        -       add_sp_e_timing
-        -       boot_hwio-G
+        -   OK  add_sp_e_timing
+        -   OK  boot_hwio-G
         -   OK  boot_regs-dmg
-        -       call_cc_timing
-        -       call_cc_timing2
-        -       call_timing
-        -       call_timing2
-        -       di_timing-GS
-        -       div_timing
+        -   OK  call_cc_timing
+        -   OK  call_cc_timing2
+        -   OK  call_timing
+        -   OK  call_timing2
+        -   OK  di_timing-GS
+        -   OK  div_timing
         -       ei_timing
         -       halt_ime0_ei
         -       halt_ime0_nointr_timing

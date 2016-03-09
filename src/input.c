@@ -34,23 +34,13 @@ unsigned char joypad = 0xFF; //Initial value, no keys are pressed
 unsigned char inputReadKeys(){
 
     unsigned char joypad_state = memory[0xFF00];
-
     
-    if (testBit(0xFF00, 4) == 0){    //Direction Keys selected
-        joypad_state = joypad & 0x0F;   //Get 4 lower bits that represent direction keys
-        joypad_state = joypad_state | 0xF0;
-        joypad_state &= 0xEF; //Set BIT 4 = 0
-        //resetBit(joypad_state,4);
+    if ((joypad_state & 0x10) == 0 ){                   //Bit 4: Direction Keys selected
+        joypad_state = joypad_state | (joypad & 0x0F);  //Get 4 lower bits that represent direction keys
     }
-    else if (testBit(0xFF00, 5) == 0){ //Standard keys selected
-        joypad_state = joypad & 0xF0;   //Get 4 lower bits that represent button keys
-        joypad_state = (joypad_state >> 4) | 0xF0; //Set bits in H1 to 1
-        joypad_state &= 0xDF; //Set BIT 5 = 0
-        //resetBit(joypad_state,5);
+    else if ((joypad_state & 0x20) == 0 ){                    //Bit 5: Standard keys selected
+        joypad_state = joypad_state | ((joypad & 0xF0) >> 4); //Get 4 higher bits that represent button keys
     }
-    //printf ("\nJoypad = %d\n",joypad_state);
-    //joypad = 0xFF;
-    memory[0xFF00] = joypad_state;
     return joypad_state;
 }
 
