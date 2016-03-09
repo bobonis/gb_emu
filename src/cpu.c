@@ -545,13 +545,19 @@ int execute (void){
     unsigned char instruction;                  // Instruction to be exectued
     int extended_opcode = FALSE;                // Extended opcode FLAG
 
+    if (cpuHALT){
+        updateTimers(4);
+        cpuCycles = 4;
+        return cpuCycles;
+    }
+    
     if (cpuSTOP){
         cpuCycles = 0;
         return cpuCycles;
     }
     
-    //if (registers.PC+1 == 0x0101)
-    //    debug_mooneye = TRUE;
+    if (registers.PC+1 == 0x0101)
+        debug_mooneye = TRUE;
     
     instruction = readMemory8( registers.PC );  // Fetch next opcode
 
@@ -1260,12 +1266,12 @@ void SCF (void){
 /*
  * DI
  * Description:
- * This instruction disables interrupts but not immediately. Interrupts are disabled after
- * instruction after DI is executed.
+ * This instruction disables interrupts but not immediately. 
+ * Interrupts are disabled after instruction DI is executed.
  * Flags affected: None.
  *
 */
- void DI (void)     { interruptMaster = FALSE; }
+ void DI (void)     {  interruptMaster = FALSE; }
 
 /*
  * HALT
@@ -1621,7 +1627,7 @@ void RET_C  (void){ updateTimers(4); if (testFlag(CARRY_F) == 1){ RET(); }}
  * Description: Pop two bytes from stack & jump to that address then
  * enable interrupts.
  */
-void RETI   (void){ interruptMaster = TRUE; RET(); }
+void RETI (void){ interruptMaster = TRUE; RET(); }
 
 /************************
  * Extended instructions*

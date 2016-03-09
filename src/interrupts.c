@@ -32,7 +32,8 @@ void handleInterrupts(void){
                         //updateTimers(12);
                         updateTimers(4);
                         updateTimers(4);
-                        updateTimers(4);
+                        if (!cpuHALT) //hack hack hack ????
+                            updateTimers(4);
                         if (cpuHALT)
                             registers.PC++;
                             

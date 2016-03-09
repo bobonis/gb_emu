@@ -228,16 +228,7 @@ int loadRom(const char *filename){
 	fclose(pFile);
 	//free(buffer);
 	printf("[INFO] Rom loaded correctly\n");
-    
-    //init values
-    memory[0xFF00] = 0xFE;    
-    memory[0xFF07] = 0xF8;
-    memory[0xFF0F] = 0xE0;
-    memory[0xFFFF] = 0xE0;
-    memory[0xFF02] = 0x7E;
-    memory[0xFF41] = 0x80;
-    memory[0xFF10] = 0x80;
-    memory[0xFF1A] = 0x7F;
+
 	return 0;
 }
 

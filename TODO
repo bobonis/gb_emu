@@ -34,9 +34,28 @@ PRINTOUTS
 
 GUI 
 - Everything 
+*******************
+HELP EMULATORS
+*******************
+gb_emu      https://github.com/bobonis/gb_emu/
+Codeslinger http://www.codeslinger.co.uk/pages/projects/gameboy.html
+imrannazar  http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU
+mooneyegb   https://github.com/Gekkio/mooneye-gb/blob/master/
+gearboy     https://github.com/drhelius/Gearboy/tree/master/src
 
+
+
+opcdes      http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
+mooneye     https://github.com/Gekkio/mooneye-gb/blob/v0.1.0/docs/accuracy.markdown
+            http://www.coranac.com/documents/taptngba/#sec-ch7
+            
+            https://github.com/sinamas/gambatte/tree/master/test
+
+
+*******************
 STATUS - TEST ROMS
-    BLARGG
+*******************
+    BLARGG http://gbdev.gg8.se/files/roms/blargg-gb-tests/
     -   OK  cpu_instrs
     -   OK  instr_timing
     -   OK  mem_timing
@@ -49,12 +68,12 @@ STATUS - TEST ROMS
     
     
     
-    MOONEYE
+    MOONEYE http://gekkio.fi/files/mooneye-gb/nightly/
         acceptance
             bits
-            -       mem_oam
-            -       reg_f
-            -       unused_hwio-GS
+            -   OK  mem_oam
+            -   OK  reg_f
+            -   OK  unused_hwio-GS
             
             gpu
             -       hblank_ly_scx_timing-GS
@@ -70,15 +89,15 @@ STATUS - TEST ROMS
             -       div_write
             -       rapid_toggle
 
-        -       add_sp_e_timing
-        -       boot_hwio-G
-        -       boot_regs-dmg
-        -       call_cc_timing
-        -       call_cc_timing2
-        -       call_timing
-        -       call_timing2
-        -       di_timing-GS
-        -       div_timing
+        -   OK  add_sp_e_timing
+        -   OK  boot_hwio-G
+        -   OK  boot_regs-dmg
+        -   OK  call_cc_timing
+        -   OK  call_cc_timing2
+        -   OK  call_timing
+        -   OK  call_timing2
+        -   OK  di_timing-GS
+        -   OK  div_timing
         -       ei_timing
         -       halt_ime0_ei
         -       halt_ime0_nointr_timing

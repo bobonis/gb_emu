@@ -77,7 +77,7 @@ void updateTimers(int cycles){
     if (dma_timer > 0){
         dma_timer -= cycles;
     }
-    //printf("tick\n");
+    printf("tick\n");
     gpu_reading = 1;
     int temp = cycles;
     while (temp > 0){

@@ -87,7 +87,26 @@ void reset (void){
             memory_backup[i] = memory[i];   // backup address space that is overwitten from bios
             memory[i] = bios[i];
         }
-        memory[0xFF26] = 0xF1;	// NR52
+        //memory[0xFF26] = 0xF1;	// NR52
+        memory[0xFF00] = 0xCF;    
+        memory[0xFF07] = 0xF8;
+        memory[0xFF0F] = 0xE0;
+        memory[0xFFFF] = 0xE0;
+        //memory[0xFF02] = 0x7E;
+        //memory[0xFF41] = 0x80;
+        //memory[0xFF10] = 0x80;
+        //memory[0xFF1A] = 0x7F;
+        memory[0xFF46] = 0xFF;
+        memory[0xFF48] = 0xFF;
+        memory[0xFF49] = 0xFF;
+        memory[0xFF4F] = 0xFF;
+        memory[0xFF68] = 0xFF;
+        memory[0xFF6A] = 0xFF;
+        memory[0xFF72] = 0xFF;
+        memory[0xFF73] = 0xFF;
+        memory[0xFF75] = 0xFF;
+        memory[0xFF76] = 0xFF;
+        memory[0xFF77] = 0xFF;
     }
     else
     {
@@ -146,6 +165,7 @@ unsigned char readMemory8 (unsigned short address){
         case 0xFF00 :
             if (address == 0xFF00){         //P1 
                 temp = inputReadKeys();
+                memory[0xFF00] = temp;
             }
             else if (address == 0xFF01){    //SB
                 temp = memory[address];
@@ -272,7 +292,10 @@ unsigned char readMemory8 (unsigned short address){
                 temp = memory[address];
             }            
             else if (address == 0xFF46){    //DMA
-                temp = memory[address];
+                if (dma_timer)
+                    temp = 0xFF;
+                else
+                    temp = memory[address];
             }
             else if (address == 0xFF47){    //BGP
                 temp = memory[address];
@@ -289,35 +312,13 @@ unsigned char readMemory8 (unsigned short address){
             else if (address == 0xFF4B){    //WX
                 temp = memory[address];
             }
-            else if (address == 0xFF4F){    //????
-                temp = memory[address];
-                temp |= 0xFE;               //BIT 7,6,5,4,3,2,1 Not Used
-            }
-            else if (address == 0xFF68){    //????
-                temp = memory[address];
-                temp |= 0xC8;               //BIT 7,6,3 Not Used
-            }
-            else if (address == 0xFF6A){    //????
-                temp = memory[address];
-                temp |= 0xD0;               //BIT 7,6,4 Not Used
-            }
-            else if (address == 0xFF72){    //????
-                temp = memory[address];
-            }
-            else if (address == 0xFF73){    //????
-                temp = memory[address];
-            }
-            else if (address == 0xFF75){    //????
-                temp = memory[address];
-                temp |= 0x8F;               //BIT 7,3,2,1,0 Not Used
-            }
             else if (address == 0xFF76){    //????
                 temp = memory[address];
-                temp &= 0x00;               //Not Readable
+                temp |= 0xFF;               //Not Readable
             }
             else if (address == 0xFF77){    //????
                 temp = memory[address];
-                temp &= 0x00;               //Not Readable
+                temp |= 0xFF;               //Not Readable
             }            
             else if (address >= 0xFF80 && address <= 0xFFFE){   //Usable RAM
                 temp = memory[address];
@@ -386,6 +387,7 @@ void writeMemory (unsigned short pos, unsigned char value){
         case 0xFF00 : 
             if (address == 0xFF00){         //P1 
                 value |= 0xC0;              //BIT 7,6 Not Used
+                value &= 0xF0;              //BIT 3,2,1,0 Not Writable
                 memory[address] = value;
             }
             else if (address == 0xFF01){    //SB
@@ -523,28 +525,6 @@ void writeMemory (unsigned short pos, unsigned char value){
             else if (address == 0xFF4B){    //WX
                 memory[address] = value;
             }
-            else if (address == 0xFF4F){    //????
-                value |= 0xFE;              //BIT 7,6,5,4,3,2,1 Not Used
-                memory[address] = value;
-            }
-            else if (address == 0xFF68){    //????
-                value |= 0x40;              //BIT 6 Not Used
-                memory[address] = value;
-            }
-            else if (address == 0xFF6A){    //????
-                value |= 0x40;              //BIT 6 Not Used
-                memory[address] = value;
-            }
-            else if (address == 0xFF72){    //????
-                memory[address] = value;
-            }
-            else if (address == 0xFF73){    //????
-                memory[address] = value;
-            }
-            else if (address == 0xFF75){    //????
-                value |= 0x8F;              //BIT 7,3,2,1,0 Not Used
-                memory[address] = value;
-            }
             else if (address == 0xFF76){    //????
                 memory[address] = 0x00;     //Not Readable
             }
@@ -562,6 +542,7 @@ void writeMemory (unsigned short pos, unsigned char value){
                 memory[address] = value;
             }
             else if (address == 0xFFFF){    //IE
+                value |= 0xE0;              //BIT 7,6,5 Not Used
                 memory[address] = value;
             }
             else{
