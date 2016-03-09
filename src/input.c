@@ -33,7 +33,7 @@ unsigned char joypad = 0xFF; //Initial value, no keys are pressed
 */
 unsigned char inputReadKeys(){
 
-    unsigned char joypad_state = 0xFF;
+    unsigned char joypad_state = memory[0xFF00];
 
     
     if (testBit(0xFF00, 4) == 0){    //Direction Keys selected
@@ -50,6 +50,7 @@ unsigned char inputReadKeys(){
     }
     //printf ("\nJoypad = %d\n",joypad_state);
     //joypad = 0xFF;
+    memory[0xFF00] = joypad_state;
     return joypad_state;
 }
 

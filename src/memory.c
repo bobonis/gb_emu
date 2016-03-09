@@ -386,6 +386,7 @@ void writeMemory (unsigned short pos, unsigned char value){
         case 0xFF00 : 
             if (address == 0xFF00){         //P1 
                 value |= 0xC0;              //BIT 7,6 Not Used
+                value &= 0xF0;              //BIT 3,2,1,0 Not Writable
                 memory[address] = value;
             }
             else if (address == 0xFF01){    //SB
