@@ -17,8 +17,17 @@ int debug_mooneye = FALSE;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
 int cpuCycles = 0;                  // count internal cpu cycles
-int cpuHALT = FALSE;                // CPU is in HALT state
 int cpuSTOP = FALSE;                // CPU is in STOP state
+
+
+struct cpu cpustate = {
+    FALSE,      //halt
+    FALSE,      //stop
+    TRUE,       //ime
+    0,          //ime_delay
+    FALSE,      //interrupt
+    FALSE       //repeat
+};
 
 const struct opCode opCodes[256] = {
     { NOP,          0,  4,  "NOP"       },  // 0x00
@@ -539,27 +548,64 @@ const struct extendedopCode extendedopCodes[256] = {
     { SET_7_A,      0,  8               },  // 0xFF
 };
 
-int execute (void){
+void execute (void){
     
+/*  CPU STATE CHECK */
+
+/* Opcode that enables IME has an internal delay
+ * In order to emulate this behavior, we introduce
+ * an internal timer.
+ * After IE execution, the next opcode is executed
+ * as IME = 0.
+ */
+    if (cpustate.ime_delay > 0){            // IME is about to change
+        cpustate.ime_delay -= 1;            // Decrease IME delay timer
+        if (cpustate.ime_delay == 0){       // if timer expired
+            cpustate.ime = TRUE;            // Enable MASTER INTERRUPT
+        }        
+    }
+
+/* Opcode HALT halts cpu execution. Internal
+ * clock is ticking waiting for an interrupt to
+ * occur.
+ * In case IME = 1, execution continues with 
+ * handling the interrupt.
+ * In case IME = 0, execution continues with
+ * next opcode.
+ */
+    if (cpustate.halt == TRUE){             // CPU is HALTED
+        updateTimers(4);
+        return;
+    }
+
+/* If IME = 1, check for interrupts */
+    if (cpustate.ime == TRUE){
+        handleInterrupts();
+    }
+
+    
+    if (cpuSTOP){
+        cpuCycles = 0;
+        return;
+    }
+    
+/*  CPU OPERATION */
+
     int operand_length;                         // Decide how many octets to fetch after opcode
     unsigned char instruction;                  // Instruction to be exectued
     int extended_opcode = FALSE;                // Extended opcode FLAG
 
-    if (cpuHALT){
-        updateTimers(4);
-        cpuCycles = 4;
-        return cpuCycles;
-    }
-    
-    if (cpuSTOP){
-        cpuCycles = 0;
-        return cpuCycles;
-    }
-    
-    if (registers.PC+1 == 0x0101)
-        debug_mooneye = TRUE;
+    //if (registers.PC+1 == 0x0101)
+    //    debug_mooneye = TRUE;
     
     instruction = readMemory8( registers.PC );  // Fetch next opcode
+    
+/* TODO
+    if (cpustate.repeat == TRUE){
+        registers.PC -= 1;
+        cpustate.repeat = FALSE;
+    }
+ */   
 
     if (instruction == 0xCB){
         
@@ -567,8 +613,8 @@ int execute (void){
             printf("[DEBUG] CB \n");
        
         if (debug_mooneye)
-            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d\n",
-            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f]);   
+            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
+            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
         
         instruction = readMemory8(++registers.PC);
         
@@ -590,8 +636,8 @@ int execute (void){
         printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
         
         if (debug_mooneye && extended_opcode == 0)
-            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d\n",
-            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f]);   
+            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
+            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
    
     switch ( operand_length ){
         case 0 :
@@ -627,8 +673,10 @@ int execute (void){
             printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
            ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
     }
-    
-    return cpuCycles;
+
+
+        
+    return;
 }
 
 void NOTVALID(void){
@@ -1262,39 +1310,30 @@ void SCF (void){
  * NOP
  * Description: No operation.
  */
- void NOP (void){ };
+void NOP (void){ };
+
 /*
  * DI
  * Description:
  * This instruction disables interrupts but not immediately. 
  * Interrupts are disabled after instruction DI is executed.
  * Flags affected: None.
- *
 */
- void DI (void)     {  interruptMaster = FALSE; }
+void DI (void){ cpustate.ime = FALSE; cpustate.ime_delay = 0; }
 
 /*
  * HALT
  * Description: Power down CPU until an interrupt occurs. Use this
  * when ever possible to reduce energy consumption.
  */
-void HALT (void){
-    if (interruptMaster == TRUE){
-        cpuHALT = TRUE;
-        registers.PC--;
-    }
-    else{
-        cpuHALT = TRUE;
-        registers.PC--;
-    }
-}
+void HALT (void){ cpustate.halt = TRUE; }
 
 /*
  * STOP
  * Description: Halt CPU & LCD display until button pressed.
  */
 void STOP (void){
-    cpuSTOP = TRUE;
+    cpustate.stop = TRUE;
 }
 
 /*
@@ -1303,7 +1342,7 @@ void STOP (void){
  * but not immediately. Interrupts are enabled after instruction EI is executed.
  * Flags affected: None.
  */
- void EI (void) {interruptMaster = TRUE;}
+void EI (void){ cpustate.ime_delay = 2; }
 /********************
  * Rotates & Shifts *
  ********************/
@@ -1627,7 +1666,7 @@ void RET_C  (void){ updateTimers(4); if (testFlag(CARRY_F) == 1){ RET(); }}
  * Description: Pop two bytes from stack & jump to that address then
  * enable interrupts.
  */
-void RETI (void){ interruptMaster = TRUE; RET(); }
+void RETI (void){ cpustate.ime = TRUE; RET(); }
 
 /************************
  * Extended instructions*

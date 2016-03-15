@@ -12,10 +12,19 @@ const struct extendedopCode{
     char *function_name;
 }extern const extendedopCodes[256];
 
+struct cpu{
+    int halt;
+    int stop;
+    int ime;
+    int ime_delay;
+    int interrupt;
+    int repeat;
+}extern cpustate;
+
 extern int cpuHALT;
 extern int cpuSTOP;
 
-int execute (void);
+void execute (void);
 void tempfunction (void);
 void NOTVALID (void);
 

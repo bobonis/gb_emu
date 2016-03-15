@@ -98,27 +98,27 @@ STATUS - TEST ROMS
         -   OK  call_timing2
         -   OK  di_timing-GS
         -   OK  div_timing
-        -       ei_timing
-        -       halt_ime0_ei
-        -       halt_ime0_nointr_timing
-        -       halt_ime1_timing
-        -       halt_ime1_timing2-GS
+        -   OK  ei_timing
+        -   OK  halt_ime0_ei
+        -   OK  halt_ime0_nointr_timing
+        -   OK  halt_ime1_timing
+        -   OK  halt_ime1_timing2-GS
         -       if_ie_registers
         -       intr_timing
-        -       jp_cc_timing
-        -       jp_timing
+        -   OK  jp_cc_timing        Artifacts
+        -   OK  jp_timing           Artifacts
         -       ld_hl_sp_e_timing
         -       oam_dma_restart
         -       oam_dma_start
         -       oam_dma_timing
-        -       pop_timing
-        -       push_timing
-        -       rapid_di_ei
+        -   OK  pop_timing
+        -   OK  push_timing
+        -   OK  rapid_di_ei
         -       ret_cc_timing
         -       reti_intr_timing
         -       reti_timing
         -       ret_timing
-        -       rst_timing
+        -   OK  rst_timing
 
         emulator-only
         -       mbc1_rom_4banks

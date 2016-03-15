@@ -3,6 +3,7 @@
 #include "timers.h"
 #include "interrupts.h"
 #include "gpu.h"
+#include "cpu.h"
 
 #define CLOCKSPEED 4194304
 #define FREQ_1   4096 //1024 cycles
@@ -77,7 +78,7 @@ void updateTimers(int cycles){
     if (dma_timer > 0){
         dma_timer -= cycles;
     }
-    printf("tick\n");
+    //printf("tick\n");
     gpu_reading = 1;
     int temp = cycles;
     while (temp > 0){

@@ -37,7 +37,6 @@ int main(int argc, char **argv){
     printf("[INFO] SELECT    = w\n");
     printf("[INFO] DIRECTION = arrow keys\n");
     //display();
-    int cycles = 0;
     
 	while (!QUIT) {
         
@@ -52,16 +51,8 @@ int main(int argc, char **argv){
             }
         }       
               
-		cycles = execute();
-        //updateTimers(cycles);
-        gpu_reading = 1;
-		//gpu(cycles);
-        gpu_reading = 0;     
-        //printf("[DEBUG] LCD STATE=%d, GPU STATE=%d, scanline=%d, cycles=%d\n",memory[0xFF40],memory[0xFF41] & 3,memory[0xFF44],cycles);
+		execute();
 		inputHandleEvents(event);
-		handleInterrupts();
-
-        //display();
 	}
 
     displayEnd();
