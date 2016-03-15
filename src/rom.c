@@ -67,9 +67,12 @@ int loadRom(const char *filename){
 			break;			
 		case 0x02 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM\n",romtype);
-			break;		
+			memCopy(memory,0x0000,cart_ROM,0x3FFF);
+            MBC1 = TRUE;	
 		case 0x03 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM+BATT\n",romtype);
+            			memCopy(memory,0x0000,cart_ROM,0x3FFF);
+            MBC1 = TRUE;
 			break;
 		case 0x05 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC2\n",romtype);

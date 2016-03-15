@@ -6,4 +6,5 @@ int displayInit(void);
 void displayEnd(void);
 void setupTexture();
 void updateTexture();
+void fpsthink();
 

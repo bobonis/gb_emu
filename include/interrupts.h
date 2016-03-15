@@ -7,8 +7,5 @@
 #define SERIAL_INTERRUPT 3
 #define JOYPAD_INTERRUPT 4
 
-
-extern unsigned char interruptMaster; // Interrupt Master Enable
-
 void triggerInterrupt(int interrupt);
 void handleInterrupts(void);
