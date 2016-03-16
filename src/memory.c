@@ -333,10 +333,12 @@ unsigned char readMemory8 (unsigned short address){
     }
     
     if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
-        //address_map = address - 0x4000;
-        //address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
+        address_map = address - 0x4000;
+        //printf ("%x %x\n",address, address_map);
+        address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
+        temp = cart_ROM[address_map];
         //printf("cart_ROM %x[%x]=%x\n",address_map,active_ROM_bank,cart_ROM[address_map]);
-        temp = cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
+        //temp = cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
     }
     else if (( address >= 0xA000 ) && ( address <= 0xBFFF )){ //RAM Memory Bank
         address -= 0xA000;

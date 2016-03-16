@@ -13,8 +13,10 @@ const unsigned char bioslogo[48] = {
 unsigned char cart_RAM[0x8000];
 unsigned char *cart_ROM;
 unsigned char active_RAM_bank = 0;
+unsigned char total_RAM_banks = 0;
 int RAM_bank_enabled = FALSE;
 unsigned char active_ROM_bank = 1;
+unsigned char total_ROM_banks = 0;
 int MBC1 = FALSE;
 int MBC2 = FALSE;
 int MBC_mode = 0; // 0 - switch ROM bank, 1 - switch RAM bank
@@ -150,33 +152,43 @@ int loadRom(const char *filename){
 	switch (romsize){
 		case 0x00 :
 			printf("[INFO] ROM size is: 0x%02x - 256Kbit = 32KByte = 2 banks\n",romsize);
+            total_ROM_banks = 2;
 			break;
 		case 0x01 :
 			printf("[INFO] ROM size is: 0x%02x - 512Kbit = 64KByte = 4 banks\n",romsize);
+            total_ROM_banks = 4;
 			break;		
 		case 0x02 :
 			printf("[INFO] ROM size is: 0x%02x - 1Mbit = 128KByte = 8 banks\n",romsize);
+            total_ROM_banks = 8;
 			break;
 		case 0x03 :
 			printf("[INFO] ROM size is: 0x%02x - 2Mbit = 256KByte = 16 banks\n",romsize);
+            total_ROM_banks = 16;
 			break;			
 		case 0x04 :
 			printf("[INFO] ROM size is: 0x%02x - 4Mbit = 512KByte = 32 banks\n",romsize);
+            total_ROM_banks = 32;
 			break;			
 		case 0x05 :
 			printf("[INFO] ROM size is: 0x%02x - 8Mbit = 1MByte = 64 banks\n",romsize);
+            total_ROM_banks = 64;
 			break;				
 		case 0x06 :
 			printf("[INFO] ROM size is: 0x%02x - 16Mbit = 2MByte = 128 banks\n",romsize);
+            total_ROM_banks = 128;
 			break;				
 		case 0x52 :
 			printf("[INFO] ROM size is: 0x%02x - 9Mbit = 1.1MByte = 72 banks\n",romsize);
+            total_ROM_banks = 72;
 			break;			
 		case 0x53 :
 			printf("[INFO] ROM size is: 0x%02x - 10Mbit = 1.2MByte = 80 banks\n",romsize);
+            total_ROM_banks = 80;
 			break;			
 		case 0x54 :
 			printf("[INFO] ROM size is: 0x%02x - 12Mbit = 1.5MByte = 96 banks\n",romsize);
+            total_ROM_banks = 96;
 			break;
 		default:
 			printf("[ERROR] Unknown ROM size: 0x%02x\n",romsize);
@@ -188,18 +200,23 @@ int loadRom(const char *filename){
 	switch (ramsize){
 		case 0x00 :
 			printf("[INFO] RAM size is: 0x%02x - None\n",ramsize);
+            total_RAM_banks = 0;
 			break;
 		case 0x01 :
 			printf("[INFO] RAM size is: 0x%02x - 16Kbit = 2KByte = 1 bank\n",ramsize);
+            total_RAM_banks = 1;
 			break;		
 		case 0x02 :
 			printf("[INFO] RAM size is: 0x%02x - 64Kbit = 8KByte = 1 bank\n",ramsize);
+            total_RAM_banks = 1;
 			break;
 		case 0x03 :
 			printf("[INFO] RAM size is: 0x%02x - 256Kbit = 32KByte = 4 banks\n",ramsize);
+            total_RAM_banks = 4;
 			break;			
 		case 0x04 :
 			printf("[INFO] RAM size is: 0x%02x - 1Mbit = 128KByte = 16 banks\n",ramsize);
+            total_RAM_banks = 16;
 			break;			
 		default:
 			printf("[ERROR] Unknown RAM size: 0x%02x\n",ramsize);
@@ -287,9 +304,15 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                 active_ROM_bank = value;
             }
             
+            while (active_ROM_bank > total_ROM_banks){
+                active_ROM_bank = active_ROM_bank - total_ROM_banks;
+            }
+            
             if (active_ROM_bank == 0){ // Bank 0 is not allowed
                 active_ROM_bank = 1;
             }
+     		//printf("[DEBUG] rom_bank=%4x\n", active_ROM_bank);
+
         }
         
     }
@@ -301,12 +324,23 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                 active_ROM_bank &= 0x9F;    // Turn off 2 MSB X00XXXXX
                 active_ROM_bank |= value; // merge value XBBXXXXX
 
+                while (active_ROM_bank > total_ROM_banks){
+                    active_ROM_bank = active_ROM_bank - total_ROM_banks;
+                }
+
                 if (active_ROM_bank == 0){ // Bank 0 is not allowed
                     active_ROM_bank = 1;
                 }
+                //printf("[DEBUG] rom_bank=%4x\n", active_ROM_bank);
             }
             else{                   //RAM mode
                 active_RAM_bank = value & 0x03;
+
+                while (active_RAM_bank > total_RAM_banks){
+                    active_RAM_bank = active_RAM_bank - total_RAM_banks;
+                }
+
+                //printf("[DEBUG] ram_bank=%4x\n", active_RAM_bank);
             }
         }
         
