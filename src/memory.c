@@ -40,8 +40,8 @@ struct registers registers;
  * 16kB ROM bank #0                     |
  * ---------------------------  0000  --
  */
-unsigned char memory[0xFFFF];
-unsigned char memory_backup[256];
+unsigned char memory[0x10000];              /* 64KB System RAM Memory */
+unsigned char memory_backup[256];           /* Used when bios is loaded */
 
 int gpu_reading = 0;
 int dma_timer = 0;

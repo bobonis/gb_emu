@@ -51,18 +51,26 @@ void handleInterrupts(void){
 
             switch (bit){                   // Set program counter to intterupt address
                 case VBLANK_INTERRUPT:
-                    registers.PC = 0x40; break;
+                    registers.PC = 0x40; 
+                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    return;
                 case LCDC_INTERRUPT  :
-                    registers.PC = 0x48; break;
+                    registers.PC = 0x48;
+                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    return;
                 case TIMER_INTERRUPT :
-                    registers.PC = 0x50; break;
+                    registers.PC = 0x50;
+                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    return;
                 case SERIAL_INTERRUPT:
-                    registers.PC = 0x58; break;
+                    registers.PC = 0x58;
+                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    return;
                 case JOYPAD_INTERRUPT:
-                    registers.PC = 0x60; break;
-            }
-
-            setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    registers.PC = 0x60;
+                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    return;
+            }           
         }
     }
 }

@@ -12,7 +12,6 @@
 #define CARRY_F         4
 
 int debug = FALSE;
-int debug2 = FALSE;
 int debug_mooneye = FALSE;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
@@ -595,9 +594,9 @@ void execute (void){
     unsigned char instruction;                  // Instruction to be exectued
     int extended_opcode = FALSE;                // Extended opcode FLAG
 
-    if (registers.PC+1 == 0x0101)
+/*    if (registers.PC+1 == 0x0101)
         debug_mooneye = TRUE;
-    
+*/    
     instruction = readMemory8( registers.PC );  // Fetch next opcode
     
 /* TODO
@@ -621,15 +620,11 @@ void execute (void){
         cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
-        if (debug2)
-            printf("[DEBUG] %9s,",extendedopCodes[instruction].function_name);
     }
     else{
         //instruction = memory[registers.PC];
         cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = opCodes[instruction].opLength;
-        if (debug2)
-            printf("[DEBUG] %9s,",opCodes[instruction].function_name);
     }    
 
     if (debug)
@@ -643,22 +638,16 @@ void execute (void){
         case 0 :
             registers.PC = registers.PC + 1;    // Increment PC to be ready for next cycle
 
-            if (debug2)
-                 printf("ARG-0x0000, ");
             break;
         case 1 :
             operand8 = readMemory8( registers.PC + 1 ); // Fetch 8-bit operand
             registers.PC = registers.PC + 2;    // Increment PC to be ready for next cycle
 
-            if (debug2)
-                 printf("ARG-0x%04x, ",operand8);
             break;
         case 2 :
             operand16 = readMemory16( registers.PC + 1 ); // Fetch 16-bit operand
             registers.PC = registers.PC + 3;    // Increment PC to be ready for next cycle
 
-            if (debug2)
-                 printf("ARG-0x%04x, ",operand16);
             break;
     };
 

@@ -313,7 +313,6 @@ void gpuRenderBackground(void){
  
     unsigned short tileset_start_addr;    //Tile Set start address in memory
     unsigned short tilemap_start_addr;    //Tile Map start address in memory
-    unsigned short window_start_addr;     //Window start address in memory
      
     unsigned short tileset_offset;
     unsigned short tilemap_offset;    
@@ -416,7 +415,6 @@ void gpuRenderSprites(void){
     unsigned char sprite_size = 8;
 
     if (testBit(LCDC,2) == TRUE){
-        //using_8x16_sprites = TRUE;
         sprite_size = 16;
     }
 
@@ -468,7 +466,6 @@ void gpuRenderSprites(void){
 
 
 void gpuDrawSprite (unsigned char sprite){
-    int using_8x16_sprites = FALSE;
     unsigned char sprite_size = 8;
     int sprite_line;
     unsigned char sprite_number;
@@ -499,7 +496,6 @@ void gpuDrawSprite (unsigned char sprite){
     
     //find sprite memory start adress    
     if (testBit(LCDC,2) == TRUE){
-        using_8x16_sprites = TRUE;
         sprite_size = 16;
         sprite_start_address = SPT + sprite_number * 32; 
         printf("[DEBUG] Using large sprites\n" );

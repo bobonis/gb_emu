@@ -37,12 +37,12 @@ int loadRom(const char *filename){
 
 	// Check file size
 	fseek(pFile , 0 , SEEK_END);
-	long lSize = ftell(pFile);
+	unsigned long lSize = ftell(pFile);
 	rewind(pFile);
 	printf("[INFO] Filesize: %d\n", (int)lSize);
 	
 	// Allocate memory to contain the whole file
-    cart_ROM = (char*)malloc(sizeof(char) * lSize);
+    cart_ROM = (unsigned char*)malloc(sizeof(unsigned char) * lSize);
 	if (cart_ROM == NULL){
 		printf("[ERROR] Memory error\n"); 
 		return 1;

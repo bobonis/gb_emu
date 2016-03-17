@@ -1,25 +1,25 @@
-const struct opCode{
+extern const struct opCode{
 	void *function;
 	unsigned char opLength;
 	unsigned char cycles;
     char *function_name;
-}extern const opCodes[256];
+}opCodes[256];
 
-const struct extendedopCode{
+extern const struct extendedopCode{
 	void *function;
 	unsigned char opLength;
 	unsigned char cycles;
-    char *function_name;
-}extern const extendedopCodes[256];
+    //char *function_name;
+}extendedopCodes[256];
 
-struct cpu{
+extern struct cpu{
     int halt;
     int stop;
     int ime;
     int ime_delay;
     int interrupt;
     int repeat;
-}extern cpustate;
+}cpustate;
 
 extern int cpuHALT;
 extern int cpuSTOP;
