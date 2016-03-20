@@ -15,7 +15,6 @@ int debug = FALSE;
 int debug_mooneye = FALSE;
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
-int cpuCycles = 0;                  // count internal cpu cycles
 int cpuSTOP = FALSE;                // CPU is in STOP state
 
 
@@ -584,7 +583,6 @@ void execute (void){
 
     
     if (cpuSTOP){
-        cpuCycles = 0;
         return;
     }
     
@@ -617,13 +615,10 @@ void execute (void){
         
         instruction = readMemory8(++registers.PC);
         
-        cpuCycles = extendedopCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
     }
     else{
-        //instruction = memory[registers.PC];
-        cpuCycles = opCodes[instruction].cycles; //init cpuCycles, it may be increased after opcode execution
         operand_length = opCodes[instruction].opLength;
     }    
 
@@ -1514,17 +1509,17 @@ void RRA (void){registers.A = rr(registers.A); resetFlag(ZERO_F);}
 /********************
  * Jumps            *
  ********************/
-void JP_nn (void)   { registers.PC = operand16; cpuCycles += 4; updateTimers(4); }
-void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0){ registers.PC = operand16; cpuCycles += 4; updateTimers(4); }}
-void JP_Z_nn (void) { if (testFlag(ZERO_F)  == 1){ registers.PC = operand16; cpuCycles += 4; updateTimers(4); }}
-void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0){ registers.PC = operand16; cpuCycles += 4; updateTimers(4); }}
-void JP_C_nn (void) { if (testFlag(CARRY_F) == 1){ registers.PC = operand16; cpuCycles += 4; updateTimers(4); }}
+void JP_nn (void)   { registers.PC = operand16; updateTimers(4); }
+void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0){ registers.PC = operand16; updateTimers(4); }}
+void JP_Z_nn (void) { if (testFlag(ZERO_F)  == 1){ registers.PC = operand16; updateTimers(4); }}
+void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0){ registers.PC = operand16; updateTimers(4); }}
+void JP_C_nn (void) { if (testFlag(CARRY_F) == 1){ registers.PC = operand16; updateTimers(4); }}
 void JP_HL (void)   { registers.PC = registers.HL; }
 void JR_n (void)    { registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }
-void JR_NZ_n (void) { if (testFlag(ZERO_F)  == 0){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4; updateTimers(4); }}
-void JR_Z_n (void)  { if (testFlag(ZERO_F)  == 1){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4; updateTimers(4); }}
-void JR_NC_n (void) { if (testFlag(CARRY_F) == 0){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4; updateTimers(4); }}
-void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + (signed char)operand8; cpuCycles += 4; updateTimers(4); }}
+void JR_NZ_n (void) { if (testFlag(ZERO_F)  == 0){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
+void JR_Z_n (void)  { if (testFlag(ZERO_F)  == 1){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
+void JR_NC_n (void) { if (testFlag(CARRY_F) == 0){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
+void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
 /********************
  * Calls            *
  ********************/
@@ -1555,28 +1550,24 @@ void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC +
      if (testFlag(ZERO_F)  == 0){
         stackPush16(registers.PC);
         registers.PC = operand16; 
-        cpuCycles += 12;
      }
  }
  void CALL_Z_nn (void){
      if (testFlag(ZERO_F)){
         stackPush16(registers.PC);
         registers.PC = operand16; 
-        cpuCycles += 12;
      }
  }
  void CALL_NC_nn (void){
      if (testFlag(CARRY_F)  == 0){
         stackPush16(registers.PC);
         registers.PC = operand16; 
-        cpuCycles += 12;
      }
  }
  void CALL_C_nn (void){
      if (testFlag(CARRY_F)){
         stackPush16(registers.PC);
         registers.PC = operand16; 
-        cpuCycles += 12;
      }
  }
 /********************

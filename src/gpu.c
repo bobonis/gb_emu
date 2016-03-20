@@ -50,13 +50,6 @@ int draw_pixel = TRUE;
  */
 void gpu (int cycles){
 
-/*
-    if (gpu_delay > 0){
-        gpu_delay -= cycles;
-        //printf("delay\n");
-        return;
-    }
-*/
     if (gpuCheckStatus() == FALSE){
         return;
     }
@@ -256,7 +249,7 @@ void gpuWriteOAM(){
  */
 void gpuDrawScanline(void){
     int i;
-    
+    //return;
     for (i=159;i>=0;i--){
         spritebuffer[i][0] = spritebuffer[i][1] = spritebuffer[i][2] = 255;
         spritebuffer[i][3] = FALSE;
@@ -266,15 +259,15 @@ void gpuDrawScanline(void){
         gpuRenderBackground();
     }
 
-    if (testBit(LCDC,0)){
+    if (testBit(LCDC,1)){
         gpuRenderSprites();
 
     
     for (i=159;i>=0;i--){
         if (spritebuffer[i][3] != 0){
-            framebuffer[readMemory8(LY)][i][0] = spritebuffer[i][0];
-            framebuffer[readMemory8(LY)][i][1] = spritebuffer[i][1];
-            framebuffer[readMemory8(LY)][i][2] = spritebuffer[i][2];
+            framebuffer[memory[LY]][i][0] = spritebuffer[i][0];
+            framebuffer[memory[LY]][i][1] = spritebuffer[i][1];
+            framebuffer[memory[LY]][i][2] = spritebuffer[i][2];
         }
     }
     
@@ -306,10 +299,10 @@ void gpuRenderBackground(void){
     int green;
     int blue;
      
-    unsigned char posX = readMemory8(SCX);
-    unsigned char posY = readMemory8(SCY) + readMemory8(LY);
-    unsigned char windowX = readMemory8(WX) - 7;
-    unsigned char windowY = readMemory8(WY);
+    unsigned char posX = memory[SCX];
+    unsigned char posY = memory[SCY] + memory[LY];
+    unsigned char windowX = memory[WX] - 7;
+    unsigned char windowY = memory[WY];
  
     unsigned short tileset_start_addr;    //Tile Set start address in memory
     unsigned short tilemap_start_addr;    //Tile Map start address in memory
@@ -319,9 +312,9 @@ void gpuRenderBackground(void){
 
     //Initialize flags and memory addresses
     if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
-        if (readMemory8(LY) >= readMemory8(WY)){//Current scanline is after window position
+        if (memory[LY] >= memory[WY]){//Current scanline is after window position
             using_window = TRUE;
-            posY = readMemory8(LY) - windowY;
+            posY = memory[LY] - windowY;
         }
     }
 
@@ -357,7 +350,7 @@ void gpuRenderBackground(void){
     for (pixel=0;pixel<160;pixel++){
         
         //should read tile for every pixel??
-        posX = pixel + readMemory8(SCX);
+        posX = pixel + memory[SCX];
         if (using_window){
             if (pixel >= windowX){
                 posX = pixel - windowX;
@@ -387,9 +380,9 @@ void gpuRenderBackground(void){
         
         gpuPaintColour(colour, BGP, &red, &green, &blue);
         
-        framebuffer[readMemory8(LY)][pixel][0] = red;
-        framebuffer[readMemory8(LY)][pixel][1] = green;
-        framebuffer[readMemory8(LY)][pixel][2] = blue;
+        framebuffer[memory[LY]][pixel][0] = red;
+        framebuffer[memory[LY]][pixel][1] = green;
+        framebuffer[memory[LY]][pixel][2] = blue;
      }
  }
 /* 4 bytes for each sprite starting at 0xFE00
@@ -407,7 +400,7 @@ void gpuRenderBackground(void){
 void gpuRenderSprites(void){
 
     int sprite;
-    int scanline = readMemory8(LY);
+    int scanline = memory[LY];
     unsigned char posY;
     unsigned char posX;
     int pixel;
@@ -436,7 +429,7 @@ void gpuRenderSprites(void){
             sprites_on_scanline++;  
         }
     }
-    //printf ("[DEBUG] %d sprites on scanline %d\n", sprites_on_scanline, readMemory8(LY));
+    //printf ("[DEBUG] %d sprites on scanline %d\n", sprites_on_scanline, memory[LY]);
 
     for (pixel = 167; pixel > 0; pixel--){
         for (sprite = 39; sprite >= 0; sprite--){
@@ -472,7 +465,7 @@ void gpuDrawSprite (unsigned char sprite){
     unsigned char sprite_attributes;
     unsigned char sprite_Y;
     unsigned char sprite_X;
-    unsigned char scanline = readMemory8(LY);
+    unsigned char scanline = memory[LY];
     unsigned short sprite_start_address;
     unsigned char bit_1;
     unsigned char bit_2;
@@ -550,9 +543,9 @@ void gpuDrawSprite (unsigned char sprite){
         if (sprite_attributes & 0x80){ //no priority
             //If sprite pixel is in visible space
             if (sprite_X >= 8){
-                if (framebuffer[readMemory8(LY)][sprite_X - 8][0] != 255)
-                    if (framebuffer[readMemory8(LY)][sprite_X - 8][1] != 255)
-                        if (framebuffer[readMemory8(LY)][sprite_X - 8][2] != 255)
+                if (framebuffer[memory[LY]][sprite_X - 8][0] != 255)
+                    if (framebuffer[memory[LY]][sprite_X - 8][1] != 255)
+                        if (framebuffer[memory[LY]][sprite_X - 8][2] != 255)
                             draw_pixel = FALSE;
                 
             }

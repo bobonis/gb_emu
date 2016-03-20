@@ -161,209 +161,209 @@ unsigned char readMemory8 (unsigned short address){
     
     int address_map;
 
-    switch (address & 0xFF00){
-        case 0xFF00 :
-            if (address == 0xFF00){         //P1 
-                temp = inputReadKeys();
-                memory[0xFF00] = temp;
-            }
-            else if (address == 0xFF01){    //SB
-                temp = memory[address];
-            }            
-            else if (address == 0xFF02){    //SC
-                temp = memory[address];
-                temp |= 0x7E;               //BIT 6,5,4,3,2,1 Not Used
-            }
-            else if (address == 0xFF04){    //DIV
-                temp = memory[address];
-            }
-            else if (address == 0xFF05){    //TIMA
-                temp = memory[address];
-            }
-            else if (address == 0xFF06){    //TIMA
-                temp = memory[address];
-            }                         
-            else if (address == 0xFF07){    //TAC
-                temp = memory[address];                
-                temp |= 0xF8;               //BIT 7,6,5,4,3 Not Used
-            }
-            else if (address == 0xFF0F){    //IF 
-                temp = memory[address];
-                temp |= 0xE0;               //BIT 7,6,5 Not Used
-            }
-            else if (address == 0xFF10){    //NR10
-                temp = memory[address];
-                temp |= 0x80;               //BIT 7 Not Used
-            }
-            else if (address == 0xFF11){    //NR11
-                temp = memory[address];
-                temp |= 0x3F;               //Only Bits 7-6 can be read
-            }
-            else if (address == 0xFF12){    //NR12
-                temp = memory[address];
-            }
-            else if (address == 0xFF13){    //NR13
-                temp = memory[address];
-                temp |= 0xFF;               //Cant be read
-            }
-            else if (address == 0xFF14){    //NR14
-                temp = memory[address];
-                temp |= 0xBF;               //Only Bit 6 can be read
-            }
-            else if (address == 0xFF16){    //NR21
-                temp = memory[address];
-                temp |= 0x3F;               //Only bits 7-6 can be read
-            }
-            else if (address == 0xFF17){    //NR22
-                temp = memory[address];
-            }
-            else if (address == 0xFF18){    //NR23
-                temp = memory[address];
-                temp |= 0xFF;               //Cant be read
-            }
-            else if (address == 0xFF19){    //NR24
-                temp = memory[address];
-                temp |= 0xBF;               //Only Bit 6 can be read
-            }
-            else if (address == 0xFF1A){    //NR30
-                temp = memory[address];
-                temp |= 0x7F;               //BIT 6,5,4,3,2,1,0 Not Used
-            }
-            else if (address == 0xFF1B){    //NR31
-                temp = memory[address];
-                temp |= 0xFF;               //Cant be read
-            }
-            else if (address == 0xFF1C){    //NR32
-                temp = memory[address];
-                temp |= 0x9F;               //BIT 7,4,3,2,1,0 Not Used
-            }
-            else if (address == 0xFF1D){    //NR33
-                temp = memory[address];
-                temp |= 0xFF;               //Cant be read
-            }
-            else if (address == 0xFF1E){    //NR34
-                temp = memory[address];
-                temp |= 0xBF;               //Only Bit 6 can be read
-            }
-            else if (address == 0xFF20){    //NR41
-                temp = memory[address];
-                temp |= 0xFF;               //Cant be read
-            }
-            else if (address == 0xFF21){    //NR42
-                temp = memory[address];
-            }
-            else if (address == 0xFF22){    //NR43
-                temp = memory[address];
-            }
-            else if (address == 0xFF23){    //NR44
-                temp = memory[address];
-                temp |= 0xBF;               //Only Bit 6 can be read
-            }
-            else if (address == 0xFF24){    //NR50
-                temp = memory[address];
-            }
-            else if (address == 0xFF25){    //NR51
-                temp = memory[address];
-            }
-            else if (address == 0xFF26){    //NR52
-                temp = memory[address];
-                temp |= 0x70;               //Only Bit 7,3,2,1,0 can be read
-            }
-            else if (address >= 0xFF30 && address <= 0xFF3F){   //WAVE pattern RAM
-                temp = memory[address];
-            }                                           
-            else if (address == 0xFF40){    //LCDC
-                temp = memory[address];
-            }            
-            else if (address == 0xFF41){    //STAT
-                temp = memory[address];
-                temp |= 0x80;               //BIT 7 Not Used
-            }
-            else if (address == 0xFF42){    //SCY
-                temp = memory[address];
-            }
-            else if (address == 0xFF43){    //SCX
-                temp = memory[address];
-            }
-            else if (address == 0xFF44){    //LY
-                temp = memory[address];
-            }
-            else if (address == 0xFF45){    //LYC
-                temp = memory[address];
-            }            
-            else if (address == 0xFF46){    //DMA
-                if (dma_timer)
-                    temp = 0xFF;
-                else
-                    temp = memory[address];
-            }
-            else if (address == 0xFF47){    //BGP
-                temp = memory[address];
-            }
-            else if (address == 0xFF48){    //OBP0
-                temp = memory[address];
-            }
-            else if (address == 0xFF49){    //OBP1
-                temp = memory[address];
-            }
-            else if (address == 0xFF4A){    //WY
-                temp = memory[address];
-            }
-            else if (address == 0xFF4B){    //WX
-                temp = memory[address];
-            }
-            else if (address == 0xFF76){    //????
-                temp = memory[address];
-                temp |= 0xFF;               //Not Readable
-            }
-            else if (address == 0xFF77){    //????
-                temp = memory[address];
-                temp |= 0xFF;               //Not Readable
-            }            
-            else if (address >= 0xFF80 && address <= 0xFFFE){   //Usable RAM
-                temp = memory[address];
-            }
-            else if (address == 0xFFFF){    //IE
-                temp = memory[address];
-            }
-            else{
-                temp = 0xFF;
-            }
-            return temp;
-    }
-    
-    if (( address >= 0x4000 ) && ( address <= 0x7FFF )){ //ROM Memory Bank
-        address_map = address - 0x4000;
-        //printf ("%x %x\n",address, address_map);
-        address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
-        temp = cart_ROM[address_map];
-        //printf("cart_ROM %x[%x]=%x\n",address_map,active_ROM_bank,cart_ROM[address_map]);
-        //temp = cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
-    }
-    else if (( address >= 0xA000 ) && ( address <= 0xBFFF )){ //RAM Memory Bank
-        address -= 0xA000;
-        address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-        temp = cart_RAM[address];
-    }
-    else if (address == 0xFF00){ //Read Joypad
-        temp = inputReadKeys();
-    }
-    else if (address >= 0xFE00 && address < 0xFEA0){
-        if (dma_timer){
-            temp = 0xFF;
-        }
-        else{
-            temp = memory[address];
-        }
-    }
-    else {
-        temp = memory[address];
-    }
-    
+    switch (address >> 12){                 /* Get most significant 4 bits */
+        case 0x4 ... 0x7:                   /* switchable ROM bank */
+            address_map = address - 0x4000;
+            address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
+            temp = cart_ROM[address_map];
+            //temp = cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
+            break;
+        case 0xA ... 0xB:                   /* switchable RAM bank */
+            address -= 0xA000;
+            address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+            temp = cart_RAM[address];
+            break;
+        case 0xF:
+            switch (address >> 8){                 /* Get most significant 8 bits */
+                case 0xFF:
+                    switch (address){
+                        case 0xFF00:         //P1 
+                            temp = inputReadKeys();
+                            memory[0xFF00] = temp;
+                            break;
+                        case 0xFF01:    //SB
+                            temp = memory[address];
+                            break;
 
-    
+                        case 0xFF02:    //SC
+                            temp = memory[address];
+                            temp |= 0x7E;               //BIT 6,5,4,3,2,1 Not Used
+                            break;
+                        case 0xFF04:    //DIV
+                            temp = memory[address];
+                            break;
+                        case 0xFF05:    //TIMA
+                            temp = memory[address];
+                            break;
+                        case 0xFF06:    //TIMA
+                            temp = memory[address];
+                            break;                        
+                        case 0xFF07:    //TAC
+                            temp = memory[address];                
+                            temp |= 0xF8;               //BIT 7,6,5,4,3 Not Used
+                            break;
+                        case 0xFF0F:    //IF 
+                            temp = memory[address];
+                            temp |= 0xE0;               //BIT 7,6,5 Not Used
+                            break;
+                        case 0xFF10:    //NR10
+                            temp = memory[address];
+                            temp |= 0x80;               //BIT 7 Not Used
+                            break;
+                        case 0xFF11:    //NR11
+                            temp = memory[address];
+                            temp |= 0x3F;               //Only Bits 7-6 can be read
+                            break;
+                        case 0xFF12:    //NR12
+                            temp = memory[address];
+                            break;
+                        case 0xFF13:    //NR13
+                            temp = memory[address];
+                            temp |= 0xFF;               //Cant be read
+                            break;
+                        case 0xFF14:    //NR14
+                            temp = memory[address];
+                            temp |= 0xBF;               //Only Bit 6 can be read
+                            break;
+                        case 0xFF16:    //NR21
+                            temp = memory[address];
+                            temp |= 0x3F;               //Only bits 7-6 can be read
+                            break;
+                        case 0xFF17:    //NR22
+                            temp = memory[address];
+                            break;
+                        case 0xFF18:    //NR23
+                            temp = memory[address];
+                            temp |= 0xFF;               //Cant be read
+                            break;
+                        case 0xFF19:    //NR24
+                            temp = memory[address];
+                            temp |= 0xBF;               //Only Bit 6 can be read
+                            break;
+                        case 0xFF1A:    //NR30
+                            temp = memory[address];
+                            temp |= 0x7F;               //BIT 6,5,4,3,2,1,0 Not Used
+                            break;
+                        case 0xFF1B:    //NR31
+                            temp = memory[address];
+                            temp |= 0xFF;               //Cant be read
+                            break;
+                        case 0xFF1C:    //NR32
+                            temp = memory[address];
+                            temp |= 0x9F;               //BIT 7,4,3,2,1,0 Not Used
+                            break;
+                        case 0xFF1D:    //NR33
+                            temp = memory[address];
+                            temp |= 0xFF;               //Cant be read
+                            break;
+                        case 0xFF1E:    //NR34
+                            temp = memory[address];
+                            temp |= 0xBF;               //Only Bit 6 can be read
+                            break;
+                        case 0xFF20:    //NR41
+                            temp = memory[address];
+                            temp |= 0xFF;               //Cant be read
+                            break;
+                        case 0xFF21:    //NR42
+                            temp = memory[address];
+                            break;
+                        case 0xFF22:    //NR43
+                            temp = memory[address];
+                            break;
+                        case 0xFF23:    //NR44
+                            temp = memory[address];
+                            temp |= 0xBF;               //Only Bit 6 can be read
+                            break;
+                        case 0xFF24:    //NR50
+                            temp = memory[address];
+                            break;
+                        case 0xFF25:    //NR51
+                            temp = memory[address];
+                            break;
+                        case 0xFF26:    //NR52
+                            temp = memory[address];
+                            temp |= 0x70;               //Only Bit 7,3,2,1,0 can be read
+                            break;
+                        case 0xFF30 ... 0xFF3F:   //WAVE pattern RAM
+                            temp = memory[address];
+                            break;                                           
+                        case 0xFF40:    //LCDC
+                            temp = memory[address];
+                            break;            
+                        case 0xFF41:    //STAT
+                            temp = memory[address];
+                            temp |= 0x80;               //BIT 7 Not Used
+                            break;
+                        case 0xFF42:    //SCY
+                            temp = memory[address];
+                            break;
+                        case 0xFF43:    //SCX
+                            temp = memory[address];
+                            break;
+                        case 0xFF44:    //LY
+                            temp = memory[address];
+                            break;
+                        case 0xFF45:    //LYC
+                            temp = memory[address];
+                            break;            
+                        case 0xFF46:    //DMA
+                            if (dma_timer)
+                                temp = 0xFF;
+                            else
+                                temp = memory[address];
+                            break;
+                        case 0xFF47:    //BGP
+                            temp = memory[address];
+                            break;
+                        case 0xFF48:    //OBP0
+                            temp = memory[address];
+                            break;
+                        case 0xFF49:    //OBP1
+                            temp = memory[address];
+                            break;
+                        case 0xFF4A:    //WY
+                            temp = memory[address];
+                            break;
+                        case 0xFF4B:    //WX
+                            temp = memory[address];
+                            break;
+                        case 0xFF76:    //????
+                            temp = memory[address];
+                            temp |= 0xFF;               //Not Readable
+                            break;
+                        case 0xFF77:    //????
+                            temp = memory[address];
+                            temp |= 0xFF;               //Not Readable
+                            break;
+                        case 0xFF80 ... 0xFFFE:   //Usable RAM
+                            temp = memory[address];
+                            break;
+                        case 0xFFFF:    //IE
+                            temp = memory[address];
+                            break;
+                        default:
+                            temp = 0xFF;
+                            break;
+                    }
+                case 0xFE:
+                    if (address < 0xFEA0 && dma_timer){
+                        temp = 0xFF;
+                    }
+                    else{
+                        temp = memory[address];
+                    }         
+                    break;
+                default:
+                    temp = memory[address];
+                    break;
+            }
+        default:
+            temp = memory[address];
+            break;
+    }
     return temp;
 }
+
 
 unsigned short readMemory16 (unsigned short address){
     
