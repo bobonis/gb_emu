@@ -30,6 +30,9 @@
 #define WY      0xFF4A //Window Y position
 #define WX      0xFF4B //Window X position
  
+struct sprite sprites[40];
+struct sprite sprites_shorted[40];
+int background_priority[160];
 unsigned char framebuffer[144][160][3];
 unsigned char spritebuffer[160][4];
 unsigned char gpu_state = SCAN_OAM;
@@ -252,6 +255,7 @@ void gpuDrawScanline(void){
     //return;
     for (i=159;i>=0;i--){
         spritebuffer[i][0] = spritebuffer[i][1] = spritebuffer[i][2] = 255;
+        background_priority[i] = 0;
         spritebuffer[i][3] = FALSE;
     }
     
@@ -260,9 +264,9 @@ void gpuDrawScanline(void){
     }
 
     if (testBit(LCDC,1)){
-        gpuRenderSprites();
+        gpuRenderSprites1();
 
-    
+/*    
     for (i=159;i>=0;i--){
         if (spritebuffer[i][3] != 0){
             framebuffer[memory[LY]][i][0] = spritebuffer[i][0];
@@ -270,7 +274,7 @@ void gpuDrawScanline(void){
             framebuffer[memory[LY]][i][2] = spritebuffer[i][2];
         }
     }
-    
+*/
 
     }
 }
@@ -378,6 +382,8 @@ void gpuRenderBackground(void){
         bit_2 = ((tile_2 << ( posX % 8 )) & 0x80 ) >> 7;
         colour = (bit_2 << 1) | bit_1;
         
+        background_priority[pixel] = colour != 0xFF;
+        
         gpuPaintColour(colour, BGP, &red, &green, &blue);
         
         framebuffer[memory[LY]][pixel][0] = red;
@@ -385,6 +391,109 @@ void gpuRenderBackground(void){
         framebuffer[memory[LY]][pixel][2] = blue;
      }
  }
+ 
+ void gpuRenderSprites1(void){
+     
+     /* UPDATE SPRITE MEMORY */
+     
+     unsigned char i;
+     unsigned char flags;
+     
+     for (i=0;i<40;i++){
+         sprites[i].Ypos = readMemory8(OAM + (i * 4));
+         sprites[i].Xpos = readMemory8(OAM + (i * 4) + 1);
+         sprites[i].pattern = readMemory8(OAM + (i * 4) + 2);
+         flags = readMemory8(OAM + (i * 4) + 3);
+         sprites[i].priority = (flags & 0x80) >> 7;
+         sprites[i].Yflip = (flags & 0x40) >> 6;
+         sprites[i].Xflip = (flags & 0x20) >> 5;
+         sprites[i].palette = (flags & 0x10) >> 4;
+     }
+     
+     
+    /* SHORT SPRITES */
+      
+    
+    /* DRAW SPRITES */
+    
+    //move scanline perspective to match sprites
+    int x;
+    int scanline = memory[LY] + 16;
+    int sprite_line;
+    unsigned char sprite_size = 8;
+    unsigned short sprite_start_address;
+    unsigned char bit_1;
+    unsigned char bit_2;
+    unsigned char colour;
+    unsigned short palette;
+    int red, green, blue;
+    
+    if (testBit(LCDC,2) == TRUE){
+        sprite_size = 16;
+    }
+
+   
+    for (i=0;i<40;i++){
+        if ((scanline >= sprites[i].Ypos) && (scanline < (sprites[i].Ypos + sprite_size))){
+            
+            if (sprites[i].palette){
+                palette = OBP1;
+            }
+            else{
+                palette = OBP0;
+            }
+            
+            sprite_line = scanline - sprites[i].Ypos;
+            if (sprites[i].Yflip){
+                sprite_line -= sprite_size - 1;
+                sprite_line *= -1;
+            }
+            
+            if (testBit(LCDC,2) == TRUE){
+                sprite_size = 16;
+                sprite_start_address = SPT + sprites[i].pattern * 32; 
+                printf("[DEBUG] Using large sprites\n" );
+            }
+            else{
+                sprite_start_address = SPT + sprites[i].pattern * 16;
+            }
+
+
+            unsigned char sprite_1 = readMemory8( sprite_start_address + ( sprite_line * 2 ) );
+            unsigned char sprite_2 = readMemory8( sprite_start_address + ( sprite_line * 2 ) + 1);         
+            
+            for (x=0;x<8;x++){
+                
+                if (sprites[i].Xflip){
+                    bit_1 = ((sprite_1 << ( (7 - x) % 8 )) & 0x80 ) >> 7;
+                    bit_2 = ((sprite_2 << ( (7 - x) % 8 )) & 0x80 ) >> 7;
+                    colour = (bit_2 << 1) | bit_1;            
+                }else{
+                    bit_1 = ((sprite_1 << ( x % 8 )) & 0x80 ) >> 7;
+                    bit_2 = ((sprite_2 << ( x % 8 )) & 0x80 ) >> 7;
+                    colour = (bit_2 << 1) | bit_1;
+                }
+                
+                gpuPaintColour(colour, palette, &red, &green, &blue);
+                
+                
+                if ((sprites[i].Xpos + x >= 8) && (sprites[i].Xpos + x <= 167)){
+                    if (colour != 0xFF){
+                        if (sprites[i].priority || background_priority[sprites[i].Xpos + x]){
+                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][0] = red;
+                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][1] = green;
+                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][2] = blue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+ }
+
+
+ 
 /* 4 bytes for each sprite starting at 0xFE00
  * byte 0 - sprite Y position
  * byte 1 - sprite X position 
