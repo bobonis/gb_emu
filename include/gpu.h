@@ -3,8 +3,6 @@ void gpuChangeMode(int mode);
 int gpuCheckStatus(void);
 void gpuDrawScanline(void);
 void gpuRenderSprites(void);
-void gpuRenderSprites1(void);
-void gpuDrawSprite (unsigned char sprite);
 void gpuRenderBackground (void);
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue);
 void gpuStop (void);

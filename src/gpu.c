@@ -34,7 +34,6 @@ struct sprite sprites[40];
 struct sprite sprites_shorted[40];
 int background_priority[160];
 unsigned char framebuffer[144][160][3];
-unsigned char spritebuffer[160][4];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles = 0;
@@ -133,16 +132,16 @@ void gpuSetStatus(unsigned char value){
         // switch on
         if ( !(memory[LCDC] & 0x80) && (value & 0x80) ){
             memory[STAT] &= 0xFC; //set to H_BLANK
-            memory[STAT] |= 0x02;
             gpu_state = H_BLANK;
             gpu_cycles = SCAN_OAM_CYCLES + gpuAdjustCycles(); //84
-            //printf("[DEBUG] GPU internal cycles when turned on %d\n",gpu_cycles);
             gpuCompareLine();
         }
         // switch off
         else if ( (memory[LCDC] & 0x80) && !(value & 0x80) ){ // switch off
             if ( gpu_state == V_BLANK ){
                 memory[LY] = 0;
+                memory[STAT] &= 0xFC; //set to H_BLANK
+                gpu_state = H_BLANK;
             }
             else{
                 printf("[ERROR] LCD turned off not in V_BLANK state\n");
@@ -254,9 +253,7 @@ void gpuDrawScanline(void){
     int i;
     //return;
     for (i=159;i>=0;i--){
-        spritebuffer[i][0] = spritebuffer[i][1] = spritebuffer[i][2] = 255;
         background_priority[i] = 0;
-        spritebuffer[i][3] = FALSE;
     }
     
     if (testBit(LCDC,0)){
@@ -264,18 +261,7 @@ void gpuDrawScanline(void){
     }
 
     if (testBit(LCDC,1)){
-        gpuRenderSprites1();
-
-/*    
-    for (i=159;i>=0;i--){
-        if (spritebuffer[i][3] != 0){
-            framebuffer[memory[LY]][i][0] = spritebuffer[i][0];
-            framebuffer[memory[LY]][i][1] = spritebuffer[i][1];
-            framebuffer[memory[LY]][i][2] = spritebuffer[i][2];
-        }
-    }
-*/
-
+        gpuRenderSprites();
     }
 }
 /*
@@ -382,17 +368,29 @@ void gpuRenderBackground(void){
         bit_2 = ((tile_2 << ( posX % 8 )) & 0x80 ) >> 7;
         colour = (bit_2 << 1) | bit_1;
         
-        background_priority[pixel] = colour != 0xFF;
-        
         gpuPaintColour(colour, BGP, &red, &green, &blue);
+        
+        background_priority[pixel] = colour == 0x00;
         
         framebuffer[memory[LY]][pixel][0] = red;
         framebuffer[memory[LY]][pixel][1] = green;
         framebuffer[memory[LY]][pixel][2] = blue;
      }
  }
- 
- void gpuRenderSprites1(void){
+
+/* 4 bytes for each sprite starting at 0xFE00
+ * byte 0 - sprite Y position
+ * byte 1 - sprite X position 
+ * byte 2 - pattern number 
+ * byte 3 - attributes
+ *   Bit7: Sprite to Background Priority
+ *   Bit6: Y flip
+ *   Bit5: X flip
+ *   Bit4: Palette number
+ *   Bit3: Not used in standard gameboy
+ *   Bit2-0: Not used in standard gameboy 
+ */ 
+ void gpuRenderSprites(void){
      
      /* UPDATE SPRITE MEMORY */
      
@@ -451,8 +449,8 @@ void gpuRenderBackground(void){
             
             if (testBit(LCDC,2) == TRUE){
                 sprite_size = 16;
-                sprite_start_address = SPT + sprites[i].pattern * 32; 
-                printf("[DEBUG] Using large sprites\n" );
+                sprite_start_address = SPT + (sprites[i].pattern & 0xFE)* 16; 
+                //printf("[DEBUG] Using large sprites\n" );
             }
             else{
                 sprite_start_address = SPT + sprites[i].pattern * 16;
@@ -478,8 +476,8 @@ void gpuRenderBackground(void){
                 
                 
                 if ((sprites[i].Xpos + x >= 8) && (sprites[i].Xpos + x <= 167)){
-                    if (colour != 0xFF){
-                        if (sprites[i].priority || background_priority[sprites[i].Xpos + x]){
+                    if (colour != 0x00){
+                        if (!sprites[i].priority || background_priority[sprites[i].Xpos + x]){
                             framebuffer[memory[LY]][sprites[i].Xpos + x - 8][0] = red;
                             framebuffer[memory[LY]][sprites[i].Xpos + x - 8][1] = green;
                             framebuffer[memory[LY]][sprites[i].Xpos + x - 8][2] = blue;
@@ -489,197 +487,7 @@ void gpuRenderBackground(void){
             }
         }
     }
-    
  }
-
-
- 
-/* 4 bytes for each sprite starting at 0xFE00
- * byte 0 - sprite Y position
- * byte 1 - sprite X position 
- * byte 2 - pattern number 
- * byte 3 - attributes
- *   Bit7: Sprite to Background Priority
- *   Bit6: Y flip
- *   Bit5: X flip
- *   Bit4: Palette number
- *   Bit3: Not used in standard gameboy
- *   Bit2-0: Not used in standard gameboy 
- */
-void gpuRenderSprites(void){
-
-    int sprite;
-    int scanline = memory[LY];
-    unsigned char posY;
-    unsigned char posX;
-    int pixel;
-    int sprites_on_scanline = 0;
-    unsigned char sprite_size = 8;
-
-    if (testBit(LCDC,2) == TRUE){
-        sprite_size = 16;
-    }
-
-    //move scanline perspective to match sprites
-    scanline +=16;
-        
-    //Count total sprites visible on current scanline   
-    for (sprite = 0; sprite < 40; sprite++){
-        
-        posY = readMemory8(OAM + (sprite * 4));
-        //posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
-        
-        /*for accurate emulation we have to check sprite priorites
-         *we will start checking from the last pixel in each scanline
-         */
-
-        //Check if part of sprite is visible in current scanline
-        if ((scanline >= posY) && (scanline < (posY + sprite_size))){
-            sprites_on_scanline++;  
-        }
-    }
-    //printf ("[DEBUG] %d sprites on scanline %d\n", sprites_on_scanline, memory[LY]);
-
-    for (pixel = 167; pixel > 0; pixel--){
-        for (sprite = 39; sprite >= 0; sprite--){
-
-            posY = readMemory8(OAM + (sprite * 4));
-            posX = readMemory8((OAM + (sprite * 4)) + 1 );
-            //printf("[DEBUG] sprite %d, scanline %d\n",sprite,scanline);
-             //if sprite is visible on current scanline
-            if ((scanline >= posY) && (scanline < (posY + sprite_size))){
-                //if sprite starts on current pixel
-               // printf ("[DEBUG] Sprite = %d, posX = %d, pixel = %d\n", sprite,posX,pixel);
-                if (pixel == posX){   
-                    if (sprites_on_scanline > 10){
-                        //limit of sprites reached on current scanline
-                    }
-                    else{
-                        //printf("[DEBUG] Draw sprite %d at scanline %d starting at pixel %d\n",sprite,scanline-16,pixel);
-                        gpuDrawSprite(sprite);//Draw sprite
-                    }                  
-                }
-
-            }
-            sprites_on_scanline--;
-        }
-    }
-}
-
-
-void gpuDrawSprite (unsigned char sprite){
-    unsigned char sprite_size = 8;
-    int sprite_line;
-    unsigned char sprite_number;
-    unsigned char sprite_attributes;
-    unsigned char sprite_Y;
-    unsigned char sprite_X;
-    unsigned char scanline = memory[LY];
-    unsigned short sprite_start_address;
-    unsigned char bit_1;
-    unsigned char bit_2;
-    unsigned char colour;
-    unsigned short palette;
-    int i;
-    int red, green, blue;
-
-    int flip_Y = FALSE;
-    int flip_X = FALSE;
-    //printf("[DEBUG] Sprite %d\n",sprite);
-    //sprite = 35;
-    //find sprite coordinates
-    sprite_Y = readMemory8(OAM + (sprite * 4));
-    sprite_X = readMemory8((OAM + (sprite * 4)) + 1 );    
-    //find sprite pattern number
-    sprite_number = readMemory8(OAM + (sprite * 4) + 2);
-    //find sprite attributes
-    sprite_attributes = readMemory8(OAM + (sprite * 4) + 3);
-
-    
-    //find sprite memory start adress    
-    if (testBit(LCDC,2) == TRUE){
-        sprite_size = 16;
-        sprite_start_address = SPT + sprite_number * 32; 
-        printf("[DEBUG] Using large sprites\n" );
-    }
-    else{
-        sprite_start_address = SPT + sprite_number * 16;
-    }
-    
-    if (sprite_attributes & 0x40){
-        flip_Y = TRUE;
-    }
-    if (sprite_attributes & 0x20){
-        flip_X = TRUE;
-    }
-
-    sprite_line = scanline + 16 - sprite_Y;
-    
-    if (flip_Y){
-        sprite_line -= sprite_size - 1;
-        sprite_line *= -1;
-    }
-
-    //read sprite row contents
-    //printf("[DEBUG] Sprite start address 0x%4x\n", sprite_start_address);
-    unsigned char sprite_1 = readMemory8( sprite_start_address + ( sprite_line * 2 ) );
-    unsigned char sprite_2 = readMemory8( sprite_start_address + ( sprite_line * 2 ) + 1);
-     //printf("[DEBUG] sprite_1 0x%2x sprite_2 0x%2x\n", sprite_1,sprite_2 );
-    
-    for (i=0;i<8;i++){
-
-        //read pixel from tile row
-        if (flip_X){
-            bit_1 = ((sprite_1 << ( (7 - i) % 8 )) & 0x80 ) >> 7;
-            bit_2 = ((sprite_2 << ( (7 - i) % 8 )) & 0x80 ) >> 7;
-            colour = (bit_2 << 1) | bit_1;            
-        }else{
-        
-            bit_1 = ((sprite_1 << ( i % 8 )) & 0x80 ) >> 7;
-            bit_2 = ((sprite_2 << ( i % 8 )) & 0x80 ) >> 7;
-            colour = (bit_2 << 1) | bit_1;
-        }
-        //find palete address
-        if (sprite_attributes & 0x10){
-            palette = OBP1;
-        }
-        else{
-            palette = OBP0;
-        }
-        
-        draw_pixel = TRUE;
-        //check sprite priority
-        if (sprite_attributes & 0x80){ //no priority
-            //If sprite pixel is in visible space
-            if (sprite_X >= 8){
-                if (framebuffer[memory[LY]][sprite_X - 8][0] != 255)
-                    if (framebuffer[memory[LY]][sprite_X - 8][1] != 255)
-                        if (framebuffer[memory[LY]][sprite_X - 8][2] != 255)
-                            draw_pixel = FALSE;
-                
-            }
-        }
-
-    
-        gpuPaintColour(colour, palette, &red, &green, &blue);
-        //if (red == 255)
-            //draw_pixel = FALSE;
-        
-        if (sprite_X <= 167 && sprite_X >= 8){
-            if (draw_pixel){
-                spritebuffer[sprite_X - 8][0] = red;
-                spritebuffer[sprite_X - 8][1] = green;
-                spritebuffer[sprite_X - 8][2] = blue;
-                spritebuffer[sprite_X - 8][3] = draw_pixel;
-            }
-            else{
-                spritebuffer[sprite_X - 8][3] = draw_pixel;
-            }
-        }
-        sprite_X +=1;
-    }
-
-}
 
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue){
 

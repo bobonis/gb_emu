@@ -563,12 +563,13 @@ void writeMemory (unsigned short pos, unsigned char value){
     }    
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
-        gpu_reading = 1;
-        writeMemory(pos - 0x2000, value) ;
-        gpu_reading = 0;
+        memory[pos - 0x2000] = value ;
     }
-    else if ( ( pos >= 0xC000 ) && (pos < 0xE000) ){ // writing to RAM also writes in ECHO RAM or not???
+    else if ( ( pos >= 0xC000 ) && (pos < 0xE000) ){ // writing to RAM also writes in ECHO RAM
         memory[pos] = value ;
+        if ((pos + 0x2000) < 0xFE00){
+            memory[pos + 0x2000] = value;
+        }
         //memory[pos + 0x2000] = value;
     }
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted

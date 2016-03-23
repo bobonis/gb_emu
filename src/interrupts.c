@@ -19,7 +19,7 @@ void triggerInterrupt(int interrupt){
     else{
         cpustate.halt = FALSE;
     }
-
+    cpustate.interrupt = TRUE;
     setBit(IFR, interrupt, TRUE);
 }
 
@@ -41,7 +41,8 @@ void handleInterrupts(void){
              * skipped from fetching next opcode
              */
             if (cpustate.interrupt == FALSE){
-                updateTimers(4);
+                //printf("GOTCHA\n");
+                //updateTimers(4);
             }
             else{
                 cpustate.interrupt = FALSE;

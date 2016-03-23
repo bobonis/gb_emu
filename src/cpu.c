@@ -23,7 +23,7 @@ struct cpu cpustate = {
     FALSE,      //stop
     TRUE,       //ime
     0,          //ime_delay
-    FALSE,      //interrupt
+    FALSE,      //interrupt Does nothing ATM
     FALSE       //repeat
 };
 
@@ -592,9 +592,10 @@ void execute (void){
     unsigned char instruction;                  // Instruction to be exectued
     int extended_opcode = FALSE;                // Extended opcode FLAG
 
-/*    if (registers.PC+1 == 0x0101)
-        debug_mooneye = TRUE;
-*/    
+
+   // if (registers.PC+1 == 0x0c30)
+   //     debug_mooneye = TRUE;
+    
     instruction = readMemory8( registers.PC );  // Fetch next opcode
     
 /* TODO
