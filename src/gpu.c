@@ -65,7 +65,7 @@ void gpu (int cycles){
     
     
     gpu_cycles -= cycles;   // Step GPU internal clock
-    //gpu_state = readMemory8(STAT) & 0x03;
+    gpu_state = readMemory8(STAT) & 0x03;
 
     // STAT mode=0 interrupt happens one cycle before the actual mode switch!
     if ( gpu_cycles == 4 && gpu_state == SCAN_VRAM){
@@ -102,15 +102,43 @@ void gpu (int cycles){
             break;
             
         case V_BLANK:
+        
             memory[LY] += 1;
+            if (memory[LY] > 0x99){
+                memory[LY] = 0;
+            }
+
+            switch (memory[LY]){
+                case 0x90 ... 0x98:
+                    gpu_cycles += V_BLANK_CYCLES;
+                    break;
+                case 0x99:
+                    gpu_cycles += 4;
+                    break;
+                case 0x00:
+                    gpu_cycles += (V_BLANK_CYCLES - 4);
+                    break;
+                default:
+                    memory[LY] = 0;
+                    gpuChangeMode(SCAN_OAM);
+                    display();
+                    break;
+            }                     
+ /*                   
+            }
             if (memory[LY] > 153){
                 memory[LY] = 0;
                 gpuChangeMode(SCAN_OAM);
                 display();           
             }
+            else if (memory[LY] == 153){
+                gpu_cycles += 56;
+                first_LY_period = TRUE;
+            }
             else{
                 gpu_cycles += V_BLANK_CYCLES;
             }
+            */
             gpuCompareLine();
             break;
     }

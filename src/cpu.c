@@ -593,8 +593,8 @@ void execute (void){
     int extended_opcode = FALSE;                // Extended opcode FLAG
 
 
-   // if (registers.PC+1 == 0x0c30)
-   //     debug_mooneye = TRUE;
+//    if (registers.PC+1 == 0x0c30)
+//        debug_mooneye = TRUE;
     
     instruction = readMemory8( registers.PC );  // Fetch next opcode
     

@@ -495,7 +495,11 @@ void writeMemory (unsigned short pos, unsigned char value){
             }            
             else if (address == 0xFF41){    //STAT
                 value |= 0x80;              //BIT 7 Not Used
+                /* bobonis assumes 3 LSB cannot be set */
+                value &= 0xFC;
+                value |= memory[address] & 0x03;
                 memory[address] = value;
+                
             }
             else if (address == 0xFF42){    //SCY
                 memory[address] = value;
