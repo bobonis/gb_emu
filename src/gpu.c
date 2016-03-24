@@ -30,8 +30,10 @@
 #define WY      0xFF4A //Window Y position
 #define WX      0xFF4B //Window X position
  
+struct sprite sprites[40];
+struct sprite sprites_shorted[40];
+int background_priority[160];
 unsigned char framebuffer[144][160][3];
-unsigned char spritebuffer[160][4];
 unsigned char gpu_state = SCAN_OAM;
 unsigned char gpu_line = 0;
 int gpu_cycles = 0;
@@ -50,13 +52,6 @@ int draw_pixel = TRUE;
  */
 void gpu (int cycles){
 
-/*
-    if (gpu_delay > 0){
-        gpu_delay -= cycles;
-        //printf("delay\n");
-        return;
-    }
-*/
     if (gpuCheckStatus() == FALSE){
         return;
     }
@@ -70,7 +65,7 @@ void gpu (int cycles){
     
     
     gpu_cycles -= cycles;   // Step GPU internal clock
-    //gpu_state = readMemory8(STAT) & 0x03;
+    gpu_state = readMemory8(STAT) & 0x03;
 
     // STAT mode=0 interrupt happens one cycle before the actual mode switch!
     if ( gpu_cycles == 4 && gpu_state == SCAN_VRAM){
@@ -107,15 +102,43 @@ void gpu (int cycles){
             break;
             
         case V_BLANK:
+        
             memory[LY] += 1;
+            if (memory[LY] > 0x99){
+                memory[LY] = 0;
+            }
+
+            switch (memory[LY]){
+                case 0x90 ... 0x98:
+                    gpu_cycles += V_BLANK_CYCLES;
+                    break;
+                case 0x99:
+                    gpu_cycles += 4;
+                    break;
+                case 0x00:
+                    gpu_cycles += (V_BLANK_CYCLES - 4);
+                    break;
+                default:
+                    memory[LY] = 0;
+                    gpuChangeMode(SCAN_OAM);
+                    display();
+                    break;
+            }                     
+ /*                   
+            }
             if (memory[LY] > 153){
                 memory[LY] = 0;
                 gpuChangeMode(SCAN_OAM);
                 display();           
             }
+            else if (memory[LY] == 153){
+                gpu_cycles += 56;
+                first_LY_period = TRUE;
+            }
             else{
                 gpu_cycles += V_BLANK_CYCLES;
             }
+            */
             gpuCompareLine();
             break;
     }
@@ -137,16 +160,16 @@ void gpuSetStatus(unsigned char value){
         // switch on
         if ( !(memory[LCDC] & 0x80) && (value & 0x80) ){
             memory[STAT] &= 0xFC; //set to H_BLANK
-            memory[STAT] |= 0x02;
             gpu_state = H_BLANK;
             gpu_cycles = SCAN_OAM_CYCLES + gpuAdjustCycles(); //84
-            //printf("[DEBUG] GPU internal cycles when turned on %d\n",gpu_cycles);
             gpuCompareLine();
         }
         // switch off
         else if ( (memory[LCDC] & 0x80) && !(value & 0x80) ){ // switch off
             if ( gpu_state == V_BLANK ){
                 memory[LY] = 0;
+                memory[STAT] &= 0xFC; //set to H_BLANK
+                gpu_state = H_BLANK;
             }
             else{
                 printf("[ERROR] LCD turned off not in V_BLANK state\n");
@@ -256,29 +279,17 @@ void gpuWriteOAM(){
  */
 void gpuDrawScanline(void){
     int i;
-    
+    //return;
     for (i=159;i>=0;i--){
-        spritebuffer[i][0] = spritebuffer[i][1] = spritebuffer[i][2] = 255;
-        spritebuffer[i][3] = FALSE;
+        background_priority[i] = 0;
     }
     
     if (testBit(LCDC,0)){
         gpuRenderBackground();
     }
 
-    if (testBit(LCDC,0)){
+    if (testBit(LCDC,1)){
         gpuRenderSprites();
-
-    
-    for (i=159;i>=0;i--){
-        if (spritebuffer[i][3] != 0){
-            framebuffer[readMemory8(LY)][i][0] = spritebuffer[i][0];
-            framebuffer[readMemory8(LY)][i][1] = spritebuffer[i][1];
-            framebuffer[readMemory8(LY)][i][2] = spritebuffer[i][2];
-        }
-    }
-    
-
     }
 }
 /*
@@ -306,23 +317,22 @@ void gpuRenderBackground(void){
     int green;
     int blue;
      
-    unsigned char posX = readMemory8(SCX);
-    unsigned char posY = readMemory8(SCY) + readMemory8(LY);
-    unsigned char windowX = readMemory8(WX) - 7;
-    unsigned char windowY = readMemory8(WY);
+    unsigned char posX = memory[SCX];
+    unsigned char posY = memory[SCY] + memory[LY];
+    unsigned char windowX = memory[WX] - 7;
+    unsigned char windowY = memory[WY];
  
     unsigned short tileset_start_addr;    //Tile Set start address in memory
     unsigned short tilemap_start_addr;    //Tile Map start address in memory
-    unsigned short window_start_addr;     //Window start address in memory
      
     unsigned short tileset_offset;
     unsigned short tilemap_offset;    
 
     //Initialize flags and memory addresses
     if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
-        if (readMemory8(LY) >= readMemory8(WY)){//Current scanline is after window position
+        if (memory[LY] >= memory[WY]){//Current scanline is after window position
             using_window = TRUE;
-            posY = readMemory8(LY) - windowY;
+            posY = memory[LY] - windowY;
         }
     }
 
@@ -358,7 +368,7 @@ void gpuRenderBackground(void){
     for (pixel=0;pixel<160;pixel++){
         
         //should read tile for every pixel??
-        posX = pixel + readMemory8(SCX);
+        posX = pixel + memory[SCX];
         if (using_window){
             if (pixel >= windowX){
                 posX = pixel - windowX;
@@ -388,11 +398,14 @@ void gpuRenderBackground(void){
         
         gpuPaintColour(colour, BGP, &red, &green, &blue);
         
-        framebuffer[readMemory8(LY)][pixel][0] = red;
-        framebuffer[readMemory8(LY)][pixel][1] = green;
-        framebuffer[readMemory8(LY)][pixel][2] = blue;
+        background_priority[pixel] = colour == 0x00;
+        
+        framebuffer[memory[LY]][pixel][0] = red;
+        framebuffer[memory[LY]][pixel][1] = green;
+        framebuffer[memory[LY]][pixel][2] = blue;
      }
  }
+
 /* 4 bytes for each sprite starting at 0xFE00
  * byte 0 - sprite Y position
  * byte 1 - sprite X position 
@@ -404,184 +417,105 @@ void gpuRenderBackground(void){
  *   Bit4: Palette number
  *   Bit3: Not used in standard gameboy
  *   Bit2-0: Not used in standard gameboy 
- */
-void gpuRenderSprites(void){
-
-    int sprite;
-    int scanline = readMemory8(LY);
-    unsigned char posY;
-    unsigned char posX;
-    int pixel;
-    int sprites_on_scanline = 0;
-    unsigned char sprite_size = 8;
-
-    if (testBit(LCDC,2) == TRUE){
-        //using_8x16_sprites = TRUE;
-        sprite_size = 16;
-    }
-
+ */ 
+ void gpuRenderSprites(void){
+     
+     /* UPDATE SPRITE MEMORY */
+     
+     unsigned char i;
+     unsigned char flags;
+     
+     for (i=0;i<40;i++){
+         sprites[i].Ypos = memory[OAM + (i * 4)];
+         sprites[i].Xpos = memory[OAM + (i * 4) + 1];
+         sprites[i].pattern = memory[OAM + (i * 4) + 2];
+         flags = memory[OAM + (i * 4) + 3];
+         sprites[i].priority = (flags & 0x80) >> 7;
+         sprites[i].Yflip = (flags & 0x40) >> 6;
+         sprites[i].Xflip = (flags & 0x20) >> 5;
+         sprites[i].palette = (flags & 0x10) >> 4;
+     }
+     
+     
+    /* SHORT SPRITES */
+      
+    
+    /* DRAW SPRITES */
+    
     //move scanline perspective to match sprites
-    scanline +=16;
-        
-    //Count total sprites visible on current scanline   
-    for (sprite = 0; sprite < 40; sprite++){
-        
-        posY = readMemory8(OAM + (sprite * 4));
-        //posX = readMemory8((OAM + (sprite * 4)) + 1 ) - 8;
-        
-        /*for accurate emulation we have to check sprite priorites
-         *we will start checking from the last pixel in each scanline
-         */
-
-        //Check if part of sprite is visible in current scanline
-        if ((scanline >= posY) && (scanline < (posY + sprite_size))){
-            sprites_on_scanline++;  
-        }
-    }
-    //printf ("[DEBUG] %d sprites on scanline %d\n", sprites_on_scanline, readMemory8(LY));
-
-    for (pixel = 167; pixel > 0; pixel--){
-        for (sprite = 39; sprite >= 0; sprite--){
-
-            posY = readMemory8(OAM + (sprite * 4));
-            posX = readMemory8((OAM + (sprite * 4)) + 1 );
-            //printf("[DEBUG] sprite %d, scanline %d\n",sprite,scanline);
-             //if sprite is visible on current scanline
-            if ((scanline >= posY) && (scanline < (posY + sprite_size))){
-                //if sprite starts on current pixel
-               // printf ("[DEBUG] Sprite = %d, posX = %d, pixel = %d\n", sprite,posX,pixel);
-                if (pixel == posX){   
-                    if (sprites_on_scanline > 10){
-                        //limit of sprites reached on current scanline
-                    }
-                    else{
-                        //printf("[DEBUG] Draw sprite %d at scanline %d starting at pixel %d\n",sprite,scanline-16,pixel);
-                        gpuDrawSprite(sprite);//Draw sprite
-                    }                  
-                }
-
-            }
-            sprites_on_scanline--;
-        }
-    }
-}
-
-
-void gpuDrawSprite (unsigned char sprite){
-    int using_8x16_sprites = FALSE;
-    unsigned char sprite_size = 8;
+    int x;
+    int scanline = memory[LY] + 16;
     int sprite_line;
-    unsigned char sprite_number;
-    unsigned char sprite_attributes;
-    unsigned char sprite_Y;
-    unsigned char sprite_X;
-    unsigned char scanline = readMemory8(LY);
+    unsigned char sprite_size = 8;
     unsigned short sprite_start_address;
     unsigned char bit_1;
     unsigned char bit_2;
     unsigned char colour;
     unsigned short palette;
-    int i;
     int red, green, blue;
-
-    int flip_Y = FALSE;
-    int flip_X = FALSE;
-    //printf("[DEBUG] Sprite %d\n",sprite);
-    //sprite = 35;
-    //find sprite coordinates
-    sprite_Y = readMemory8(OAM + (sprite * 4));
-    sprite_X = readMemory8((OAM + (sprite * 4)) + 1 );    
-    //find sprite pattern number
-    sprite_number = readMemory8(OAM + (sprite * 4) + 2);
-    //find sprite attributes
-    sprite_attributes = readMemory8(OAM + (sprite * 4) + 3);
-
     
-    //find sprite memory start adress    
     if (testBit(LCDC,2) == TRUE){
-        using_8x16_sprites = TRUE;
         sprite_size = 16;
-        sprite_start_address = SPT + sprite_number * 32; 
-        printf("[DEBUG] Using large sprites\n" );
-    }
-    else{
-        sprite_start_address = SPT + sprite_number * 16;
-    }
-    
-    if (sprite_attributes & 0x40){
-        flip_Y = TRUE;
-    }
-    if (sprite_attributes & 0x20){
-        flip_X = TRUE;
     }
 
-    sprite_line = scanline + 16 - sprite_Y;
-    
-    if (flip_Y){
-        sprite_line -= sprite_size - 1;
-        sprite_line *= -1;
-    }
-
-    //read sprite row contents
-    //printf("[DEBUG] Sprite start address 0x%4x\n", sprite_start_address);
-    unsigned char sprite_1 = readMemory8( sprite_start_address + ( sprite_line * 2 ) );
-    unsigned char sprite_2 = readMemory8( sprite_start_address + ( sprite_line * 2 ) + 1);
-     //printf("[DEBUG] sprite_1 0x%2x sprite_2 0x%2x\n", sprite_1,sprite_2 );
-    
-    for (i=0;i<8;i++){
-
-        //read pixel from tile row
-        if (flip_X){
-            bit_1 = ((sprite_1 << ( (7 - i) % 8 )) & 0x80 ) >> 7;
-            bit_2 = ((sprite_2 << ( (7 - i) % 8 )) & 0x80 ) >> 7;
-            colour = (bit_2 << 1) | bit_1;            
-        }else{
-        
-            bit_1 = ((sprite_1 << ( i % 8 )) & 0x80 ) >> 7;
-            bit_2 = ((sprite_2 << ( i % 8 )) & 0x80 ) >> 7;
-            colour = (bit_2 << 1) | bit_1;
-        }
-        //find palete address
-        if (sprite_attributes & 0x10){
-            palette = OBP1;
-        }
-        else{
-            palette = OBP0;
-        }
-        
-        draw_pixel = TRUE;
-        //check sprite priority
-        if (sprite_attributes & 0x80){ //no priority
-            //If sprite pixel is in visible space
-            if (sprite_X >= 8){
-                if (framebuffer[readMemory8(LY)][sprite_X - 8][0] != 255)
-                    if (framebuffer[readMemory8(LY)][sprite_X - 8][1] != 255)
-                        if (framebuffer[readMemory8(LY)][sprite_X - 8][2] != 255)
-                            draw_pixel = FALSE;
-                
-            }
-        }
-
-    
-        gpuPaintColour(colour, palette, &red, &green, &blue);
-        //if (red == 255)
-            //draw_pixel = FALSE;
-        
-        if (sprite_X <= 167 && sprite_X >= 8){
-            if (draw_pixel){
-                spritebuffer[sprite_X - 8][0] = red;
-                spritebuffer[sprite_X - 8][1] = green;
-                spritebuffer[sprite_X - 8][2] = blue;
-                spritebuffer[sprite_X - 8][3] = draw_pixel;
+   
+    for (i=0;i<40;i++){
+        if ((scanline >= sprites[i].Ypos) && (scanline < (sprites[i].Ypos + sprite_size))){
+            
+            if (sprites[i].palette){
+                palette = OBP1;
             }
             else{
-                spritebuffer[sprite_X - 8][3] = draw_pixel;
+                palette = OBP0;
+            }
+            
+            sprite_line = scanline - sprites[i].Ypos;
+            if (sprites[i].Yflip){
+                sprite_line -= sprite_size - 1;
+                sprite_line *= -1;
+            }
+            
+            if (testBit(LCDC,2) == TRUE){
+                sprite_size = 16;
+                sprite_start_address = SPT + (sprites[i].pattern & 0xFE)* 16; 
+                //printf("[DEBUG] Using large sprites\n" );
+            }
+            else{
+                sprite_start_address = SPT + sprites[i].pattern * 16;
+            }
+
+
+            unsigned char sprite_1 = readMemory8( sprite_start_address + ( sprite_line * 2 ) );
+            unsigned char sprite_2 = readMemory8( sprite_start_address + ( sprite_line * 2 ) + 1);         
+            
+            for (x=0;x<8;x++){
+                
+                if (sprites[i].Xflip){
+                    bit_1 = ((sprite_1 << ( (7 - x) % 8 )) & 0x80 ) >> 7;
+                    bit_2 = ((sprite_2 << ( (7 - x) % 8 )) & 0x80 ) >> 7;
+                    colour = (bit_2 << 1) | bit_1;            
+                }else{
+                    bit_1 = ((sprite_1 << ( x % 8 )) & 0x80 ) >> 7;
+                    bit_2 = ((sprite_2 << ( x % 8 )) & 0x80 ) >> 7;
+                    colour = (bit_2 << 1) | bit_1;
+                }
+                
+                gpuPaintColour(colour, palette, &red, &green, &blue);
+                
+                
+                if ((sprites[i].Xpos + x >= 8) && (sprites[i].Xpos + x <= 159)){
+                    if (colour != 0x00){
+                        if (!sprites[i].priority || background_priority[sprites[i].Xpos + x - 8]){
+                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][0] = red;
+                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][1] = green;
+                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][2] = blue;
+                        }
+                    }
+                }
             }
         }
-        sprite_X +=1;
     }
-
-}
+ }
 
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue){
 

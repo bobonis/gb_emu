@@ -35,7 +35,7 @@ void directMemoryAccess(unsigned char value);
  * 		|      PC      |
  *      ----------------
  */
-struct registers{
+extern struct registers{
 	union{
 		struct {
 			unsigned char F;
@@ -66,7 +66,7 @@ struct registers{
 	};
 	unsigned short SP;
 	unsigned short PC;
-}extern registers;
+}registers;
 //alam
 extern unsigned short test;
 
@@ -76,6 +76,6 @@ extern unsigned char crom[0x8000];
 //extern unsigned char sram[0x2000];
 //extern unsigned char iram[0x2000];
 
-extern unsigned char memory[0xFFFF];
+extern unsigned char memory[0x10000];
 
 

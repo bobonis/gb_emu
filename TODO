@@ -76,14 +76,14 @@ STATUS - TEST ROMS
             -   OK  unused_hwio-GS
             
             gpu
-            -       hblank_ly_scx_timing-GS
-            -       intr_1_2_timing-GS
-            -       intr_2_0_timing
-            -       intr_2_mode0_timing
-            -       intr_2_mode0_timing_sprites
-            -       intr_2_mode3_timing
+            -   OK  hblank_ly_scx_timing-GS
+            -   OK  intr_1_2_timing-GS
+            -   OK  intr_2_0_timing
+            -   OK  intr_2_mode0_timing
+            -       intr_2_mode0_timing_sprites     Same as mooneye
+            -   OK  intr_2_mode3_timing
             -       intr_2_oam_ok_timing
-            -       vblank_stat_intr-GS
+            -       vblank_stat_intr-GS             Same as mooneye
             
             timer
             -       div_write
@@ -103,25 +103,25 @@ STATUS - TEST ROMS
         -   OK  halt_ime0_nointr_timing
         -   OK  halt_ime1_timing
         -   OK  halt_ime1_timing2-GS
-        -       if_ie_registers
-        -       intr_timing
+        -   OK  if_ie_registers
+        -   OK  intr_timing
         -   OK  jp_cc_timing        Artifacts
         -   OK  jp_timing           Artifacts
-        -       ld_hl_sp_e_timing
-        -       oam_dma_restart
-        -       oam_dma_start
-        -       oam_dma_timing
+        -   OK  ld_hl_sp_e_timing
+        -   OK  oam_dma_restart
+        -       oam_dma_start       Same as mooneye
+        -   OK  oam_dma_timing
         -   OK  pop_timing
         -   OK  push_timing
         -   OK  rapid_di_ei
-        -       ret_cc_timing
-        -       reti_intr_timing
-        -       reti_timing
-        -       ret_timing
+        -   OK  ret_cc_timing
+        -   OK  reti_intr_timing
+        -   OK  reti_timing
+        -   OK  ret_timing
         -   OK  rst_timing
 
         emulator-only
-        -       mbc1_rom_4banks
+        -   OK  mbc1_rom_4banks
 
         manual-only
         -       sprite_priority
