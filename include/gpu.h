@@ -10,7 +10,7 @@ void gpuSetStatus(unsigned char value);
 void gpuCompareLine (void);
 
 extern unsigned char framebuffer[144][160][3];
-
+extern unsigned char gpu_state;
 extern int gpu_reading;
 extern int dma_timer;
 int gpuAdjustCycles (void);

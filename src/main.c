@@ -8,6 +8,8 @@
 #include "display.h"
 #include "input.h"
 
+#define version "0.84.1"
+
 
 int main(int argc, char **argv){
 
@@ -30,6 +32,7 @@ int main(int argc, char **argv){
     
 	
 	reset();
+    printf("[INFO] Version %s\n",version);
 	printf("[INFO] System reset done\n");
     printf("[INFO] BUTTON A  = a\n");
     printf("[INFO] BUTTON B  = s\n");

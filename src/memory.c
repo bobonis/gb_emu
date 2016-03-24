@@ -558,7 +558,9 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
 
     if (pos < 0x8000){
+        printf("OLD ROM= %d, RAM= %d",active_ROM_bank,active_RAM_bank);
         cartridgeSwitchBanks(pos, value);
+        printf("-- NEW ROM= %d, RAM= %d\n",active_ROM_bank,active_RAM_bank);
     }
     else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
         pos -= 0xA000;

@@ -426,10 +426,10 @@ void gpuRenderBackground(void){
      unsigned char flags;
      
      for (i=0;i<40;i++){
-         sprites[i].Ypos = readMemory8(OAM + (i * 4));
-         sprites[i].Xpos = readMemory8(OAM + (i * 4) + 1);
-         sprites[i].pattern = readMemory8(OAM + (i * 4) + 2);
-         flags = readMemory8(OAM + (i * 4) + 3);
+         sprites[i].Ypos = memory[OAM + (i * 4)];
+         sprites[i].Xpos = memory[OAM + (i * 4) + 1];
+         sprites[i].pattern = memory[OAM + (i * 4) + 2];
+         flags = memory[OAM + (i * 4) + 3];
          sprites[i].priority = (flags & 0x80) >> 7;
          sprites[i].Yflip = (flags & 0x40) >> 6;
          sprites[i].Xflip = (flags & 0x20) >> 5;
@@ -503,9 +503,9 @@ void gpuRenderBackground(void){
                 gpuPaintColour(colour, palette, &red, &green, &blue);
                 
                 
-                if ((sprites[i].Xpos + x >= 8) && (sprites[i].Xpos + x <= 167)){
+                if ((sprites[i].Xpos + x >= 8) && (sprites[i].Xpos + x <= 159)){
                     if (colour != 0x00){
-                        if (!sprites[i].priority || background_priority[sprites[i].Xpos + x]){
+                        if (!sprites[i].priority || background_priority[sprites[i].Xpos + x - 8]){
                             framebuffer[memory[LY]][sprites[i].Xpos + x - 8][0] = red;
                             framebuffer[memory[LY]][sprites[i].Xpos + x - 8][1] = green;
                             framebuffer[memory[LY]][sprites[i].Xpos + x - 8][2] = blue;
