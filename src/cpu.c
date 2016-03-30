@@ -11,11 +11,19 @@
 #define HALF_CARRY_F    5
 #define CARRY_F         4
 
-int debug = FALSE;
+/* DEBUG FLAGS */
 int debug_mooneye = FALSE;
+int debug_test_run = TRUE;
+unsigned short debug_pc = 0x0000;
+
+/* CPU VARIABLES */
+
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
 int cpuSTOP = FALSE;                // CPU is in STOP state
+
+unsigned char previous = 0;
+unsigned char current = 0;
 
 
 struct cpu cpustate = {
@@ -593,11 +601,24 @@ void execute (void){
     int extended_opcode = FALSE;                // Extended opcode FLAG
 
 
-//    if (registers.PC+1 == 0x0c30)
-//        debug_mooneye = TRUE;
+    if (registers.PC+1 == debug_pc)
+        debug_mooneye = TRUE;
     
     instruction = readMemory8( registers.PC );  // Fetch next opcode
+
+    previous = current;
+    current = instruction;
     
+    if (debug_test_run){
+        if (current == 0x00 && previous == 0x18){
+            if (registers.A == 0x00)
+                exit(0);
+            else
+                exit(1);
+        }
+    }
+
+
 /* TODO
     if (cpustate.repeat == TRUE){
         registers.PC -= 1;
@@ -607,9 +628,6 @@ void execute (void){
 
     if (instruction == 0xCB){
         
-        if (debug)
-            printf("[DEBUG] CB \n");
-       
         if (debug_mooneye)
             printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
             instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
@@ -623,9 +641,6 @@ void execute (void){
         operand_length = opCodes[instruction].opLength;
     }    
 
-    if (debug)
-        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
-        
         if (debug_mooneye && extended_opcode == 0)
             printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
             instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
@@ -654,12 +669,6 @@ void execute (void){
         ((void (*)(void))opCodes[instruction].function)();
     }
     
-    if (debug){
-            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-           ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-    }
-
-
         
     return;
 }

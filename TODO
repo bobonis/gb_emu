@@ -73,10 +73,10 @@ STATUS - TEST ROMS
             bits
             -   OK  mem_oam
             -   OK  reg_f
-            -   OK  unused_hwio-GS
+            -       unused_hwio-GS
             
             gpu
-            -   OK  hblank_ly_scx_timing-GS
+            -       hblank_ly_scx_timing-GS
             -   OK  intr_1_2_timing-GS
             -   OK  intr_2_0_timing
             -   OK  intr_2_mode0_timing
@@ -141,5 +141,31 @@ STATUS - TEST ROMS
         -       boot_regs-sgb
         -       boot_regs-sgb2
             
-            
-            
+
+OPEN QUESTIONS
+
+Does writing to DIV ($FF04) along with internal DIV counter, also resets the internal TIMA counter?
+Regarding test "rapid_toggle", you state that the timer circuit design causes some unexpected timer increases.
+Is it really random? I've tried stepping TIMA or internal counter when specific bits are set but with not luck.
+We should come with an idea for which register affects this random increase. 
+
+
+ERROR WITH ../../tests/mooneye/acceptance/timer/rapid_toggle.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_0_timing.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_oam_ok_timing.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode3_timing.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/hblank_ly_scx_timing-GS.gb
+ERROR WITH ../../tests/mooneye/acceptance/oam_dma_start.gb
+
+ERROR WITH ../../tests/mooneye/acceptance/timer/rapid_toggle.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_oam_ok_timing.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/hblank_ly_scx_timing-GS.gb
+ERROR WITH ../../tests/mooneye/acceptance/oam_dma_start.gb
+
+
+

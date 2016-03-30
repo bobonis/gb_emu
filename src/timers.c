@@ -45,32 +45,54 @@ int transition = FALSE;
  */
 
 void updateFrequency(unsigned char value){
-
-
+/*
+ *  1. starting or stopping the timer does *not* reset its internal counter,
+ *     so repeated starting and stopping does not prevent timer increments
+ *  2. the timer circuit design causes some unexpected timer increases
+ */
     unsigned char speed_new = value & 0x03;
-        
-    memory[TAC] = (value & 0x07) | memory[TAC];
-    cycleCounter = 0;                        // clock is reset when frequency is changed
+
+    /* Internal clock is reset when frequency changes */
+    if ( (memory[0xFF07] & 0x03) != speed_new ){
+        cycleCounter = 0;
     
-    switch (speed_new){
-        case 0:
-            maxCycles = CLOCKSPEED / FREQ_1;
-            break;
-        case 1:
-            maxCycles = CLOCKSPEED / FREQ_4;
-            break;
-        case 2:
-            maxCycles = CLOCKSPEED / FREQ_3;
-            break;
-        case 3:
-            maxCycles = CLOCKSPEED / FREQ_2;
-            break;
+        switch (speed_new){
+            case 0:
+                maxCycles = CLOCKSPEED / FREQ_1;
+                break;
+            case 1:
+                maxCycles = CLOCKSPEED / FREQ_4;
+                break;
+            case 2:
+                maxCycles = CLOCKSPEED / FREQ_3;
+                break;
+            case 3:
+                maxCycles = CLOCKSPEED / FREQ_2;
+                break;
+        }
     }
+
+/*
+    if ( (memory[0xFF07] & 0x04) != (value & 0x04) ){
+        
+        if (memory[TIMA] & 0x12){
+                    printf ("random increase\n");
+            memory[TIMA] += 1;
+            if (memory[TIMA] == 0){
+                triggerInterrupt(TIMER_INTERRUPT);
+                cycleCounter = 0;
+            }
+        }
+
+
+    }    
+*/    
 }
 
 void updateDivider(void){
     divideCounter = 0;
     memory[DIV] = 0;
+    cycleCounter = 0; /* Open Question */
 }
 
 void updateTimers(int cycles){

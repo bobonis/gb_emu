@@ -161,6 +161,9 @@ unsigned char readMemory8 (unsigned short address){
     
     int address_map;
 
+    if (address == 0xFF04)
+        printf("read2 div %x\n",memory[0xFF04]);
+
     switch (address >> 12){                 /* Get most significant 4 bits */
         case 0x4 ... 0x7:                   /* switchable ROM bank */
             address_map = address - 0x4000;
@@ -184,7 +187,6 @@ unsigned char readMemory8 (unsigned short address){
                         case 0xFF01:    //SB
                             temp = memory[address];
                             break;
-
                         case 0xFF02:    //SC
                             temp = memory[address];
                             temp |= 0x7E;               //BIT 6,5,4,3,2,1 Not Used
@@ -345,6 +347,7 @@ unsigned char readMemory8 (unsigned short address){
                             temp = 0xFF;
                             break;
                     }
+                    break;
                 case 0xFE:
                     if (address < 0xFEA0 && dma_timer){
                         temp = 0xFF;
@@ -357,6 +360,7 @@ unsigned char readMemory8 (unsigned short address){
                     temp = memory[address];
                     break;
             }
+            break;
         default:
             temp = memory[address];
             break;
@@ -548,7 +552,7 @@ void writeMemory (unsigned short pos, unsigned char value){
                 memory[address] = value;
             }
             else if (address == 0xFFFF){    //IE
-                value |= 0xE0;              //BIT 7,6,5 Not Used
+                //value |= 0xE0;              //BIT 7,6,5 Not Used
                 memory[address] = value;
             }
             else{
@@ -558,9 +562,9 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
 
     if (pos < 0x8000){
-        printf("OLD ROM= %d, RAM= %d",active_ROM_bank,active_RAM_bank);
+        //printf("OLD ROM= %d, RAM= %d",active_ROM_bank,active_RAM_bank);
         cartridgeSwitchBanks(pos, value);
-        printf("-- NEW ROM= %d, RAM= %d\n",active_ROM_bank,active_RAM_bank);
+        //printf("-- NEW ROM= %d, RAM= %d\n",active_ROM_bank,active_RAM_bank);
     }
     else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
         pos -= 0xA000;

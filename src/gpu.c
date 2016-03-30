@@ -39,6 +39,7 @@ unsigned char gpu_line = 0;
 int gpu_cycles = 0;
 int gpu_delay = 0;
 int draw_pixel = TRUE;
+int skip_LY = FALSE;
 
 
 /*  Period  GPU mode          Time spent   (clocks)
@@ -91,7 +92,15 @@ void gpu (int cycles){
             break;
             
         case H_BLANK:
-            memory[LY] += 1;          //Scanning a line completed, move to next
+            if (skip_LY){
+                skip_LY = FALSE;
+                gpuChangeMode(SCAN_VRAM);
+                break;
+            }
+            else{
+                memory[LY] += 1;          //Scanning a line completed, move to next
+            }
+            
             if (memory[LY] > 143){
                 gpuChangeMode(V_BLANK);
             }
@@ -123,22 +132,8 @@ void gpu (int cycles){
                     gpuChangeMode(SCAN_OAM);
                     display();
                     break;
-            }                     
- /*                   
             }
-            if (memory[LY] > 153){
-                memory[LY] = 0;
-                gpuChangeMode(SCAN_OAM);
-                display();           
-            }
-            else if (memory[LY] == 153){
-                gpu_cycles += 56;
-                first_LY_period = TRUE;
-            }
-            else{
-                gpu_cycles += V_BLANK_CYCLES;
-            }
-            */
+
             gpuCompareLine();
             break;
     }
@@ -159,17 +154,20 @@ void gpuCompareLine (void){
 void gpuSetStatus(unsigned char value){
         // switch on
         if ( !(memory[LCDC] & 0x80) && (value & 0x80) ){
-            memory[STAT] &= 0xFC; //set to H_BLANK
-            gpu_state = H_BLANK;
+            printf("[DEBUG] LCD turned on\n");
+            memory[LY] = 0;
+            skip_LY = TRUE;
+            gpuChangeMode(H_BLANK);
             gpu_cycles = SCAN_OAM_CYCLES + gpuAdjustCycles(); //84
             gpuCompareLine();
         }
         // switch off
         else if ( (memory[LCDC] & 0x80) && !(value & 0x80) ){ // switch off
             if ( gpu_state == V_BLANK ){
+                printf("[DEBUG] LCD turned off\n");
                 memory[LY] = 0;
-                memory[STAT] &= 0xFC; //set to H_BLANK
-                gpu_state = H_BLANK;
+                //memory[STAT] &= 0xFC; //set to H_BLANK
+                //gpu_state = H_BLANK;
             }
             else{
                 printf("[ERROR] LCD turned off not in V_BLANK state\n");
@@ -196,6 +194,8 @@ int gpuCheckStatus(void){
  *
  */
 int gpuAdjustCycles (void){
+    
+    //return 0;
     
     int temp = memory[0xFF43] % 0x08;
     
