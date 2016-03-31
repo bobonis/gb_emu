@@ -66,7 +66,7 @@ void gpu (int cycles){
     
     
     gpu_cycles -= cycles;   // Step GPU internal clock
-    gpu_state = readMemory8(STAT) & 0x03;
+    gpu_state = memory[STAT] & 0x03;
 
     // STAT mode=0 interrupt happens one cycle before the actual mode switch!
     if ( gpu_cycles == 4 && gpu_state == SCAN_VRAM){
@@ -165,9 +165,10 @@ void gpuSetStatus(unsigned char value){
         else if ( (memory[LCDC] & 0x80) && !(value & 0x80) ){ // switch off
             if ( gpu_state == V_BLANK ){
                 printf("[DEBUG] LCD turned off\n");
-                memory[LY] = 0;
-                //memory[STAT] &= 0xFC; //set to H_BLANK
-                //gpu_state = H_BLANK;
+                /* When the LCD is off this register is fixed at 00h */
+                memory[LY] = 0x00;
+                /* Bits 0-2 return '0' when the LCD is off */
+                memory[STAT] &= 0xFC;
             }
             else{
                 printf("[ERROR] LCD turned off not in V_BLANK state\n");
@@ -378,9 +379,9 @@ void gpuRenderBackground(void){
         tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
         
         if (using_signed == TRUE)   //find tileset number
-            tileset_number = (signed char)readMemory8(tilemap_start_addr + tilemap_offset);
+            tileset_number = (signed char)memory[tilemap_start_addr + tilemap_offset];
         else
-            tileset_number = readMemory8(tilemap_start_addr + tilemap_offset);
+            tileset_number = memory[tilemap_start_addr + tilemap_offset];
             
         if (using_signed == TRUE)   //find tile
             tileset_offset = tileset_start_addr + ((tileset_number + 128) * 16);
@@ -389,8 +390,8 @@ void gpuRenderBackground(void){
         
                 
         //read tile row contents
-        unsigned char tile_1 = readMemory8( tileset_offset + ( ( posY % 8 ) * 2 ) );
-        unsigned char tile_2 = readMemory8( tileset_offset + ( ( posY % 8 ) * 2) + 1);
+        unsigned char tile_1 = memory[ tileset_offset + ( ( posY % 8 ) * 2 ) ];
+        unsigned char tile_2 = memory[ tileset_offset + ( ( posY % 8 ) * 2) + 1];
         //read pixel from tile row
         bit_1 = ((tile_1 << ( posX % 8 )) & 0x80 ) >> 7;
         bit_2 = ((tile_2 << ( posX % 8 )) & 0x80 ) >> 7;
@@ -485,8 +486,8 @@ void gpuRenderBackground(void){
             }
 
 
-            unsigned char sprite_1 = readMemory8( sprite_start_address + ( sprite_line * 2 ) );
-            unsigned char sprite_2 = readMemory8( sprite_start_address + ( sprite_line * 2 ) + 1);         
+            unsigned char sprite_1 = memory[ sprite_start_address + ( sprite_line * 2 ) ];
+            unsigned char sprite_2 = memory[ sprite_start_address + ( sprite_line * 2 ) + 1];         
             
             for (x=0;x<8;x++){
                 

@@ -44,7 +44,14 @@ unsigned char memory[0x10000];              /* 64KB System RAM Memory */
 unsigned char memory_backup[256];           /* Used when bios is loaded */
 
 int gpu_reading = 0;
-int dma_timer = 0;
+
+struct dma dmastate = {
+    0,              //timer
+    FALSE,          //prepare
+    FALSE,          //start
+    FALSE,          //running
+    0x0000          //address
+};
 
 const unsigned char bios[256] = {
 //0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
@@ -151,7 +158,9 @@ void reset (void){
     }
 
 }
-
+/* During mode 0 and mode 1 the CPU can access both VRAM and OAM. During mode 2 the CPU
+ * can only access VRAM, not OAM. During mode 3 OAM and VRAM can't be accessed.
+ */
 unsigned char readMemory8 (unsigned short address){
 
     if (!gpu_reading)
@@ -161,15 +170,20 @@ unsigned char readMemory8 (unsigned short address){
     
     int address_map;
 
-    if (address == 0xFF04)
-        printf("read2 div %x\n",memory[0xFF04]);
-
     switch (address >> 12){                 /* Get most significant 4 bits */
         case 0x4 ... 0x7:                   /* switchable ROM bank */
             address_map = address - 0x4000;
             address_map = address_map + (0x4000 * active_ROM_bank); //move address space to correct Memory Bank
             temp = cart_ROM[address_map];
             //temp = cart_ROM[(active_ROM_bank << 14) + (address - 0x4000)]; //SHL 14 is the same than *16384 (but faster) thx ZBOY
+            break;
+        case 0x8 ... 0x9:                   /* VRAM */
+            if ((memory[0xFF41] & 0x03) == 0x03){
+                temp = 0xFF;
+            }
+            else{
+                temp = memory[address];
+            }
             break;
         case 0xA ... 0xB:                   /* switchable RAM bank */
             address -= 0xA000;
@@ -309,7 +323,7 @@ unsigned char readMemory8 (unsigned short address){
                             temp = memory[address];
                             break;            
                         case 0xFF46:    //DMA
-                            if (dma_timer)
+                            if (dmastate.running)
                                 temp = 0xFF;
                             else
                                 temp = memory[address];
@@ -349,7 +363,10 @@ unsigned char readMemory8 (unsigned short address){
                     }
                     break;
                 case 0xFE:
-                    if (address < 0xFEA0 && dma_timer){
+                    if (address < 0xFEA0 && dmastate.running){
+                        temp = 0xFF;
+                    }
+                    else if ((memory[0xFF41] & 0x02) == 0x02 && (address < 0xFEA0 )){ //Both OAM and VRAM
                         temp = 0xFF;
                     }
                     else{
@@ -518,7 +535,9 @@ void writeMemory (unsigned short pos, unsigned char value){
                 memory[address] = value;
             }            
             else if (address == 0xFF46){    //DMA
-                directMemoryAccess(value);
+                //directMemoryAccess(value);
+                dmastate.prepare = TRUE;
+                dmastate.address = value << 8;
             }
             else if (address == 0xFF47){    //BGP
                 memory[address] = value;
@@ -566,6 +585,13 @@ void writeMemory (unsigned short pos, unsigned char value){
         cartridgeSwitchBanks(pos, value);
         //printf("-- NEW ROM= %d, RAM= %d\n",active_ROM_bank,active_RAM_bank);
     }
+    else if (( pos >= 0x8000 ) && ( pos <= 0x9FFF )){ //VRAM
+        if ((memory[0xFF41] & 0x03) == 0x03){
+        }
+        else{
+            memory[pos] = value;
+        }
+    }
     else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
         pos -= 0xA000;
         pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
@@ -585,7 +611,7 @@ void writeMemory (unsigned short pos, unsigned char value){
     else if ( ( pos >= 0xFEA0 ) && (pos < 0xFEFF) ){ // this area is restricted
     }
     else if (address >= 0xFE00 && address < 0xFEA0){
-        if (dma_timer){
+        if (dmastate.running || (memory[0xFF41] & 0x02) == 0x02){ //Both OAM and VRAM
         }
         else{
             memory[pos] = value;
@@ -741,16 +767,44 @@ unsigned short stackPop16 (void){
     return value;
 }
 
+/*
+ * Expected timing (fresh DMA):
+ *  M = 0: write to $FF46 happens
+ *  M = 1: nothing (OAM still accessible)
+ *  M = 2: new DMA starts, OAM reads will return $FF
 
-void directMemoryAccess(unsigned char value){
-    int i;
-    unsigned short address = value << 8 ; // source address is data * 100
-    gpu_reading = 1;
-    for (i = 0 ; i < 0xA0; i++){
-        writeMemory(0xFE00+i, readMemory8(address+i)) ;
+ * Expected timing (restarted DMA):
+ *  M = 0: write to $FF46 happens. Previous DMA is running (OAM *not* accessible)
+ *  M = 1: previous DMA is running (OAM *not* accessible)
+ *  M = 2: new DMA starts, OAM reads will return $FF
+ */
+void updateDMA (){
+
+    if (dmastate.start){
+        //directMemoryAccess(dmastate.address);
+        dmastate.running = TRUE;
+        dmastate.start = FALSE;
+        dmastate.timer = 0;
+        //dmastate.timer = 640;
     }
-    gpu_reading = 0;
     
-    dma_timer = 648;
-    
-} 
+    if (dmastate.prepare){
+        dmastate.start = TRUE;
+        dmastate.prepare = FALSE;
+    }
+
+    if (dmastate.running){
+        
+        gpu_reading = 1;
+        memory[0xFE00 + dmastate.timer] = readMemory8(dmastate.address + dmastate.timer);
+        gpu_reading = 0;
+        
+        dmastate.timer += 1;
+
+        if (dmastate.timer > 160){
+            dmastate.running = FALSE;
+            dmastate.timer = 0;
+        }
+    }
+
+}
