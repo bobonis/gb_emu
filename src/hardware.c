@@ -10,5 +10,6 @@ void hardwareTick(void){
     gpu(4);
     gpu_reading = 0;
     
-    updateTimers(4);
+    //updateTimers(4);
+    timersTick();
 }

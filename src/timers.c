@@ -14,7 +14,12 @@
 #define DIV  0xFF04
 #define TIMA 0xFF05
 #define TMA  0xFF06
-#define TAC  0xFF07 
+#define TAC  0xFF07
+
+#define DELAY 3
+#define SOON 2
+#define NOW 1
+#define OFF 0
 
 unsigned int timeCounter = 0;
 unsigned int cycleCounter = 0; //???????????????????
@@ -22,6 +27,20 @@ int divideCounter = 0;
 unsigned int maxCycles = CLOCKSPEED / FREQ_1;
 int transition = FALSE;
 
+
+
+struct timer timerstate = {
+    0,          /* Internal register */
+    FALSE,      /* TAC Enable */
+    0,          /* Frequency */
+    FALSE,      /* TIMA overflow */
+    0,          /* TIMA */
+    0,          /* TMA */
+    0,          /* DIV */
+    0,          /* TAC */
+};
+
+const unsigned int clocks[4] = {9, 3, 5, 7};
 
 /* 
  * Address Register Details
@@ -44,86 +63,141 @@ int transition = FALSE;
  *       3-7  Unused
  */
 
-void updateFrequency(unsigned char value){
-/*
- *  1. starting or stopping the timer does *not* reset its internal counter,
- *     so repeated starting and stopping does not prevent timer increments
- *  2. the timer circuit design causes some unexpected timer increases
- */
-    unsigned char speed_new = value & 0x03;
 
-    /* Internal clock is reset when frequency changes */
-    if ( (memory[0xFF07] & 0x03) != speed_new ){
-        cycleCounter = 0;
+
+
+
+
+
+
+
+
+void timersTick(void){
+
+    //printf("[DEBUG] Internal = %4x\n",timerstate.internal);
+
+    unsigned int internal_old = timerstate.internal;
+    timerstate.internal += 4;           /* step internal register */
+
+    if (timerstate.internal >> 16){     /* treat internal register as 16bit */
+        timerstate.internal = 0;        /* handle internal register overflow */
+    }
+
     
-        switch (speed_new){
-            case 0:
-                maxCycles = CLOCKSPEED / FREQ_1;
-                break;
-            case 1:
-                maxCycles = CLOCKSPEED / FREQ_4;
-                break;
-            case 2:
-                maxCycles = CLOCKSPEED / FREQ_3;
-                break;
-            case 3:
-                maxCycles = CLOCKSPEED / FREQ_2;
-                break;
+    if (timerstate.overflow == DELAY){
+        timerstate.overflow = SOON;
+    }
+    else if (timerstate.overflow == SOON){
+        timerstate.overflow = NOW;
+        timerstate.tima = timerstate.tma;
+        triggerInterrupt(TIMER_INTERRUPT);
+    }
+    else if (timerstate.overflow == NOW){
+        timerstate.overflow = OFF;
+    }
+    
+    if (timerstate.enable){
+        if (internal_old >> clocks[timerstate.frequency]){
+            if ((timerstate.internal >> clocks[timerstate.frequency]) == 0){
+                timersStepTIMA();
+            }
         }
     }
 }
 
-void updateDivider(void){
-    divideCounter = 0;
-    memory[DIV] = 0;
-    cycleCounter = 0; /* Open Question */
-}
 
-void updateTimers(int cycles){
-
-    //updateDMA();
-
-    //printf("tick\n");
-/*    gpu_reading = 1;
-    int temp = cycles;
-    while (temp > 0){
-        gpu(temp);
-        temp -= 4;
+void timersStepTIMA (void){
+    
+    timerstate.tima += 1;
+    
+    if (timerstate.tima > 0xFF){
+        timerstate.overflow = DELAY;
+        timerstate.tima = 0x00;
     }
-    gpu_reading = 0;
-*/        
-    divideCounter += cycles;
-    
-    if (divideCounter >= 256){
-        divideCounter -= 256;
-        memory[DIV]++;
-    }
-    
-    //printf("[DEBUG] counter=%2d  DIV= %2d\n",divideCounter,memory[DIV]);
-    
-    if (testBit(TAC,2) == 0){
-        //printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,memory[TIMA]);
-        return;             // verify that master timer is enabled
-    }
-    
-    //printf("[DEBUG] Timers before   - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n",cycles,cycleCounter,maxCycles,memory[TIMA]);
-    cycleCounter += cycles;
-    timeCounter = memory[TIMA];    // Read current timer value
-    
-
-    while (cycleCounter >= maxCycles){
-        if (timeCounter == 255){
-            timeCounter = memory[TMA]; // Start timer from modulo
-            triggerInterrupt(TIMER_INTERRUPT);
-        }
-        else{
-            timeCounter++;
-        }
-        cycleCounter -= maxCycles;
-    }
-   // printf("[DEBUG] Timers after    - Cycles=%07d,Cyclecounter=%07d,MaxCycles=%07d,Timer=%07d\n\n",cycles,cycleCounter,maxCycles,timeCounter);
-   // printf("[DEBUG] Cycles= %07d, Timer= %7d\n",cycles,timeCounter);
-    memory[TIMA] = timeCounter;
 }
 
 
+
+
+
+unsigned char timersGetDIV(void){
+    printf("[DEBUG] DIV = %x\n", timerstate.internal);
+    return timerstate.internal >> 8;
+}
+
+unsigned char timersGetTIMA(void){
+    return timerstate.tima;
+}
+unsigned char timersGetTAC(void){
+    return 0xF8 | (timerstate.enable << 2) || timerstate.frequency;
+}
+unsigned char timersGetTMA(void){
+    return timerstate.tma;
+}
+
+
+void timersSetDIV (void){
+    
+    if (timerstate.enable){
+        if (timerstate.internal >> clocks[timerstate.frequency]){
+            timersStepTIMA();
+        }
+    }
+    
+    timerstate.internal = 0;
+}
+
+
+void timersSetTIMA(unsigned char value){
+
+    if (timerstate.overflow == DELAY){
+        timerstate.tima = value;
+        timerstate.overflow = NOW;
+    }
+    else if (timerstate.overflow == SOON){
+        timerstate.tima = timerstate.tma;
+        timerstate.overflow = NOW;       
+    }
+    else{
+        timerstate.tima = value;
+    }
+}
+
+void timersSetTAC (unsigned char value){
+    
+    unsigned int new_enable = (value & 0x04) >> 2;
+    unsigned int new_frequency = value & 0x03;
+    
+    if (timerstate.enable && new_enable == FALSE ){
+        if (new_enable == 0){
+            if (timerstate.internal >> clocks[timerstate.frequency]){
+                timersStepTIMA();
+            }
+        }
+    }
+    
+    if (timerstate.frequency != new_frequency){
+        if ((timerstate.internal >> clocks[timerstate.frequency]) == 0){
+            if (timerstate.internal >> clocks[new_frequency]){
+                if (new_enable){
+                    timersStepTIMA();                    
+                }
+            }
+        }
+    }
+    printf("[DEBUG] Timer Enable = %d\n",timerstate.enable);
+    timerstate.enable = new_enable;
+    timerstate.frequency = new_frequency;
+}
+
+
+
+void timersSetTMA (unsigned char value){
+    
+    timerstate.tma = value;
+    
+    if (timerstate.overflow == NOW){
+        timerstate.tima = timerstate.tma;
+        //timerstate.overflow = OFF;
+    }
+}

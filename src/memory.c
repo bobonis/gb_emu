@@ -207,17 +207,21 @@ unsigned char readMemory8 (unsigned short address){
                             temp |= 0x7E;               //BIT 6,5,4,3,2,1 Not Used
                             break;
                         case 0xFF04:    //DIV
-                            temp = memory[address];
+                            //temp = memory[address];
+                            temp = timersGetDIV();
                             break;
                         case 0xFF05:    //TIMA
-                            temp = memory[address];
+                            //temp = memory[address];
+                            temp = timersGetTIMA();
                             break;
-                        case 0xFF06:    //TIMA
-                            temp = memory[address];
+                        case 0xFF06:    //TMA
+                            //temp = memory[address];
+                            temp = timersGetTMA();
                             break;                        
                         case 0xFF07:    //TAC
-                            temp = memory[address];                
-                            temp |= 0xF8;               //BIT 7,6,5,4,3 Not Used
+                            //temp = memory[address];                
+                            //temp |= 0xF8;               //BIT 7,6,5,4,3 Not Used
+                            temp = timersGetTAC();
                             break;
                         case 0xFF0F:    //IF 
                             temp = memory[address];
@@ -422,18 +426,22 @@ void writeMemory (unsigned short pos, unsigned char value){
                 memory[address] = value;
             }
             else if (address == 0xFF04){    //DIV
-                updateDivider();
+                //updateDivider();
+                timersSetDIV();
             }
             else if (address == 0xFF05){    //TIMA
-                memory[address] = value;
+                //memory[address] = value;
+                timersSetTIMA(value);
             }
             else if (address == 0xFF06){    //TMA
-                memory[address] = value;
+                //memory[address] = value;
+                timersSetTMA(value);
             }                                  
             else if (address == 0xFF07){    //TAC
-                updateFrequency(value);
-                value |= 0xF8;              //BIT 7,6,5,4,3 Not Used
-                memory[address] = value;                
+                //updateFrequency(value);
+                //value |= 0xF8;              //BIT 7,6,5,4,3 Not Used
+                //memory[address] = value;
+                timersSetTAC(value);     
             }
             else if (address == 0xFF0F){    //IF 
                 value |= 0xE0;              //BIT 7,6,5 Not Used
