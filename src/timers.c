@@ -71,22 +71,6 @@ void updateFrequency(unsigned char value){
                 break;
         }
     }
-
-/*
-    if ( (memory[0xFF07] & 0x04) != (value & 0x04) ){
-        
-        if (memory[TIMA] & 0x12){
-                    printf ("random increase\n");
-            memory[TIMA] += 1;
-            if (memory[TIMA] == 0){
-                triggerInterrupt(TIMER_INTERRUPT);
-                cycleCounter = 0;
-            }
-        }
-
-
-    }    
-*/    
 }
 
 void updateDivider(void){
@@ -97,17 +81,17 @@ void updateDivider(void){
 
 void updateTimers(int cycles){
 
-    updateDMA();
+    //updateDMA();
 
     //printf("tick\n");
-    gpu_reading = 1;
+/*    gpu_reading = 1;
     int temp = cycles;
     while (temp > 0){
         gpu(temp);
         temp -= 4;
     }
     gpu_reading = 0;
-        
+*/        
     divideCounter += cycles;
     
     if (divideCounter >= 256){

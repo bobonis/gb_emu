@@ -3,7 +3,8 @@
 #include "timers.h"
 #include "input.h"
 #include "rom.h"
-#include "gpu.h" 
+#include "gpu.h"
+#include "hardware.h"
 
 #define ZERO_F 			7
 #define SUBSTRACT_F		6
@@ -164,7 +165,7 @@ void reset (void){
 unsigned char readMemory8 (unsigned short address){
 
     if (!gpu_reading)
-        updateTimers(4);
+        hardwareTick();
         
     unsigned char temp;
     
@@ -404,7 +405,7 @@ void writeMemory (unsigned short pos, unsigned char value){
     unsigned short address = pos;
 
     if (!gpu_reading)
-        updateTimers(4);
+        hardwareTick();
 
     switch (address & 0xFF00){
         case 0xFF00 : 
@@ -748,7 +749,7 @@ bool testBit(unsigned short pos, unsigned char bit){
 void stackPush16 (unsigned short value){
 
     if (!gpu_reading)
-        updateTimers(4);
+        hardwareTick();
         
     registers.SP--;                            // Decrease stack pointer
     writeMemory( registers.SP, (value & 0xFF00) >> 8); // Push high part in the stack

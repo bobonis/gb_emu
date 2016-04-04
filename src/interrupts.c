@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "cpu.h"
 #include "timers.h"
+#include "hardware.h"
 #include <stdio.h>
 
 /*
@@ -34,15 +35,15 @@ void handleInterrupts(void){
             cpustate.ime = FALSE;           // Disable master Interrupt
             cpustate.halt = FALSE;          // Resume cpu 
 
-            updateTimers(4);
-            updateTimers(4);
+            hardwareTick();
+            hardwareTick();
             /* This is a hack to skip one machine cycle 
              * when waking from halt. cycle should be 
              * skipped from fetching next opcode
              */
             if (cpustate.interrupt == FALSE){
                 //printf("GOTCHA\n");
-                //updateTimers(4);
+                //hardwareTick();
             }
             else{
                 cpustate.interrupt = FALSE;
