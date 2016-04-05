@@ -40,7 +40,7 @@ struct timer timerstate = {
     0,          /* TAC */
 };
 
-const unsigned int clocks[4] = {9, 3, 5, 7};
+const unsigned int clocks[4] = {512, 8, 32, 128};
 
 /* 
  * Address Register Details
@@ -85,11 +85,9 @@ void timersTick(void){
 
     
     if (timerstate.overflow == DELAY){
-        timerstate.overflow = SOON;
-    }
-    else if (timerstate.overflow == SOON){
         timerstate.overflow = NOW;
         timerstate.tima = timerstate.tma;
+        printf("[DEBUG] INTERRUPT\n");
         triggerInterrupt(TIMER_INTERRUPT);
     }
     else if (timerstate.overflow == NOW){
@@ -97,8 +95,9 @@ void timersTick(void){
     }
     
     if (timerstate.enable){
-        if (internal_old >> clocks[timerstate.frequency]){
-            if ((timerstate.internal >> clocks[timerstate.frequency]) == 0){
+        if (internal_old & clocks[timerstate.frequency]){
+            if ((timerstate.internal & clocks[timerstate.frequency]) == 0){
+                printf("[DEBUG] TIMA = %x\n", timerstate.tima);
                 timersStepTIMA();
             }
         }
@@ -114,6 +113,7 @@ void timersStepTIMA (void){
         timerstate.overflow = DELAY;
         timerstate.tima = 0x00;
     }
+    printf("[DEBUG] TIMA = %x\n", timerstate.tima);
 }
 
 
@@ -129,7 +129,7 @@ unsigned char timersGetTIMA(void){
     return timerstate.tima;
 }
 unsigned char timersGetTAC(void){
-    return 0xF8 | (timerstate.enable << 2) || timerstate.frequency;
+    return 0xF8 | (timerstate.enable << 2) | timerstate.frequency;
 }
 unsigned char timersGetTMA(void){
     return timerstate.tma;
@@ -137,10 +137,11 @@ unsigned char timersGetTMA(void){
 
 
 void timersSetDIV (void){
-    
+    printf("[DEBUG] DIV = %x\n", timerstate.internal);
     if (timerstate.enable){
-        if (timerstate.internal >> clocks[timerstate.frequency]){
-            timersStepTIMA();
+        if (timerstate.internal & clocks[timerstate.frequency]){
+                printf("[DEBUG] TIMA step due to DIV write %d\n",timerstate.internal);
+                timersStepTIMA();
         }
     }
     
@@ -154,13 +155,14 @@ void timersSetTIMA(unsigned char value){
         timerstate.tima = value;
         timerstate.overflow = NOW;
     }
-    else if (timerstate.overflow == SOON){
+    else if (timerstate.overflow == NOW){
         timerstate.tima = timerstate.tma;
-        timerstate.overflow = NOW;       
+        timerstate.overflow = OFF;       
     }
     else{
         timerstate.tima = value;
     }
+    printf("[DEBUG] SET TIMA = %x\n", timerstate.tima);
 }
 
 void timersSetTAC (unsigned char value){
@@ -168,26 +170,26 @@ void timersSetTAC (unsigned char value){
     unsigned int new_enable = (value & 0x04) >> 2;
     unsigned int new_frequency = value & 0x03;
     
-    if (timerstate.enable && new_enable == FALSE ){
-        if (new_enable == 0){
-            if (timerstate.internal >> clocks[timerstate.frequency]){
-                timersStepTIMA();
-            }
+    if ((timerstate.enable == TRUE) && (new_enable == FALSE) ){
+        if (timerstate.internal & clocks[new_frequency]){
+            printf("[DEBUG] TIMA step due to switch off %d\n",timerstate.internal);
+            timersStepTIMA();
         }
     }
-    
-    if (timerstate.frequency != new_frequency){
-        if ((timerstate.internal >> clocks[timerstate.frequency]) == 0){
-            if (timerstate.internal >> clocks[new_frequency]){
+    else if (timerstate.frequency != new_frequency){
+        if ((timerstate.internal & clocks[timerstate.frequency]) == 1){
+            if ((timerstate.internal & clocks[new_frequency]) == 0){
                 if (new_enable){
+                    printf("[DEBUG] TIMA step due to frequency change\n");
                     timersStepTIMA();                    
                 }
             }
         }
     }
-    printf("[DEBUG] Timer Enable = %d\n",timerstate.enable);
+    
     timerstate.enable = new_enable;
     timerstate.frequency = new_frequency;
+    printf("[DEBUG] Timer Enable = %d\n",timerstate.enable);
 }
 
 
@@ -200,4 +202,5 @@ void timersSetTMA (unsigned char value){
         timerstate.tima = timerstate.tma;
         //timerstate.overflow = OFF;
     }
+    
 }

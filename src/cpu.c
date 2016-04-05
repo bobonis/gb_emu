@@ -14,7 +14,7 @@
 
 /* DEBUG FLAGS */
 int debug_mooneye = FALSE;
-int debug_test_run = TRUE;
+int debug_test_run = FALSE;
 unsigned short debug_pc = 0x0000;
 
 /* CPU VARIABLES */
