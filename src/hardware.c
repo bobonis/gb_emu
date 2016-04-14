@@ -7,7 +7,8 @@ void hardwareTick(void){
     updateDMA();
     
     gpu_reading = 1;
-    gpu(4);
+//    gpu();
+    gpu1();
     gpu_reading = 0;
     
     //updateTimers(4);

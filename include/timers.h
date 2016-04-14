@@ -14,7 +14,7 @@ void timersSetTAC (unsigned char value);
 void timersSetTMA (unsigned char value);
 
 extern struct timer{
-    unsigned int internal;
+    unsigned short internal;
     unsigned int enable;
     unsigned int frequency;
     unsigned int overflow;

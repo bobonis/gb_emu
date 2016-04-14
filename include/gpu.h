@@ -1,4 +1,5 @@
-void gpu (int cycles);
+void gpu (void);
+void gpu1 (void);
 void gpuChangeMode(int mode);
 int gpuCheckStatus(void);
 void gpuDrawScanline(void);
@@ -8,6 +9,8 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
 void gpuStop (void);
 void gpuSetStatus(unsigned char value);
 void gpuCompareLine (void);
+int gpuCountSprites(void);
+void gpuUpdateSprites(void);
 
 extern unsigned char framebuffer[144][160][3];
 extern unsigned char gpu_state;
@@ -25,6 +28,17 @@ struct sprite
     unsigned char Xflip;
     unsigned char palette;
 };
+
+extern struct gpu
+{
+    unsigned int enable;
+    int clock;
+    unsigned int mode;
+    unsigned int interrupt;
+    unsigned int line;
+    unsigned int firstframe;
+    unsigned int lyc;
+}gpustate;
 
 
 

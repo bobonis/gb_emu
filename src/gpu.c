@@ -3,6 +3,7 @@
 #include "memory.h"
 #include "interrupts.h"
 #include "display.h"
+#include "cpu.h"
 #include <stdio.h>
 
 #define SCAN_OAM  2 //Scanline (accessing OAM)
@@ -10,9 +11,9 @@
 #define H_BLANK   0 //Horizontal blank
 #define V_BLANK   1 //Vertical blank
 
-#define SCAN_OAM_CYCLES   84
+#define SCAN_OAM_CYCLES   80
 #define SCAN_VRAM_CYCLES 172
-#define H_BLANK_CYCLES   200
+#define H_BLANK_CYCLES   204
 #define V_BLANK_CYCLES   456
 
 #define OAM     0xFE00 //Sprite attribute memory
@@ -41,6 +42,163 @@ int gpu_delay = 0;
 int draw_pixel = TRUE;
 int skip_LY = FALSE;
 
+struct gpu gpustate = {
+    FALSE,
+    0,
+    H_BLANK,
+    FALSE,
+    0,
+    FALSE,
+    0
+};
+
+
+void gpu1(void){
+    
+    if (gpustate.enable == FALSE){
+        return;
+    }
+
+    if (cpustate.stop == TRUE){
+        gpuStop();
+        display();
+        return;
+    }    
+
+    //printf("%d",gpustate.line);
+    gpustate.clock -= 4;
+    
+    switch (gpustate.mode){
+        case SCAN_OAM: /* mode 2 */
+            if (gpustate.clock == 0){
+                gpustate.clock = SCAN_VRAM_CYCLES;
+                gpustate.mode = SCAN_VRAM;
+                memory[STAT] &= 0xFC;
+                memory[STAT] |= SCAN_VRAM;
+            }
+            break;
+        case SCAN_VRAM: /*mode 3 */
+            if (gpustate.clock == 4){
+                if (testBit(STAT,3) == TRUE){
+                    triggerInterrupt(LCDC_INTERRUPT);   /* HBLANK INTERRUPT */
+                    //printf("[GPU] HBLANK INT\n");
+                }                
+            }
+            else if (gpustate.clock == 0){
+                gpustate.mode = H_BLANK;
+                memory[STAT] &= 0xFC;
+                memory[STAT] |= H_BLANK;
+                gpustate.clock = H_BLANK_CYCLES;
+
+                gpuDrawScanline();
+            }
+            
+            break;
+        case H_BLANK:   /*mode 0 */
+            if (gpustate.clock == 4){
+                if (gpustate.firstframe == FALSE){
+                    gpustate.line += 1;
+                    memory[LY] = gpustate.line;
+                    if (gpustate.line > 0 && gpustate.line < 144){
+                        if (testBit(STAT,5) == TRUE){
+                            triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
+                            //printf("[GPU] OAM INT\n");
+                        }
+                    }
+                    else if (gpustate.line == 144){
+                        
+                    }
+                }
+            }
+            else if (gpustate.clock == 0){
+                if (gpustate.line > 143){
+                    gpustate.mode = V_BLANK;
+                    memory[STAT] &= 0xFC;
+                    memory[STAT] |= V_BLANK;
+                    gpustate.clock = V_BLANK_CYCLES;
+                    triggerInterrupt(VBLANK_INTERRUPT);     /* VBLANK INTERRUPT */
+                    //printf("[GPU] VBLANK INT\n");
+                    if (testBit(STAT,4) == TRUE){
+                        triggerInterrupt(LCDC_INTERRUPT);   /* STAT VBLANK INTERRUPT */
+                        //printf("[GPU] STAT VBLANK INT\n");
+                    } 
+                    gpuCompareLine();                       /* LYC INTERRUPT */
+                    if (testBit(STAT,5) == TRUE){
+                        triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
+                        //printf("[GPU] OAM INT\n");
+                    }
+                    //printf("\n %d \n",gpustate.line);
+                }
+                else{
+                    if (gpustate.firstframe == TRUE){
+                        gpustate.firstframe = FALSE;
+                        gpustate.mode = SCAN_VRAM;
+                        memory[STAT] &= 0xFC;
+                        memory[STAT] |= SCAN_VRAM;
+                        gpustate.clock = SCAN_VRAM_CYCLES;   
+                    }
+                    else{
+                        gpustate.mode = SCAN_OAM;
+                        memory[STAT] &= 0xFC;
+                        memory[STAT] |= SCAN_OAM;
+                        gpustate.clock = SCAN_OAM_CYCLES;
+                        gpuCompareLine();                       /* LYC INTERRUPT */
+                        //printf("\n %d \n",gpustate.line);
+                    }
+                }
+            }
+            
+            break;
+        case V_BLANK:   /*mode 1 */
+            if (gpustate.clock == 4){
+                if (gpustate.line != 0){
+                    gpustate.line += 1;
+                    memory[LY] = gpustate.line;
+                }
+                else{
+                }
+                
+            }
+            else if (gpustate.clock == 0){
+                
+                gpuCompareLine();                       /* LYC INTERRUPT */
+                
+                if (gpustate.line == 153){
+                    gpustate.line = 0;
+                    memory[LY] = gpustate.line;
+                    gpustate.clock = V_BLANK_CYCLES;
+                    if (testBit(STAT,5) == TRUE){
+                        triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
+                        //printf("[GPU] OAM INT\n");
+                    }
+                }
+                else if (gpustate.line == 0){
+                    gpustate.mode = SCAN_OAM;
+                    memory[STAT] &= 0xFC;
+                    memory[STAT] |= SCAN_OAM;
+                    gpustate.clock = SCAN_OAM_CYCLES;
+                    //printf("\n %d \n",gpustate.line);
+                    if (testBit(STAT,5) == TRUE){
+                        triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
+                        //printf("[GPU] OAM INT\n");
+                    }
+                    display();
+                }
+                else{
+                    gpustate.clock = V_BLANK_CYCLES;
+                    if (testBit(STAT,5) == TRUE){
+                        triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
+                        //printf("[GPU] OAM INT\n");
+                    }
+                    //printf("\n %d \n",gpustate.line);
+                }
+            }
+            break;
+    }
+
+}
+
+
 
 /*  Period  GPU mode          Time spent   (clocks)
  * -----------------------------------------------------
@@ -51,21 +209,21 @@ int skip_LY = FALSE;
  * Vertical blank                 1          4560 (10 lines)
  * Full frame (scans and vblank)            70224
  */
-void gpu (int cycles){
+void gpu (void){
 
     if (gpuCheckStatus() == FALSE){
         return;
     }
     
   
-    if (cycles == 0){ // No cpu cycles fetched, CPU in stop MODE
+    if (cpustate.stop == TRUE){
         gpuStop();
         display();
         return;
-    }
+    }    
     
     
-    gpu_cycles -= cycles;   // Step GPU internal clock
+    gpu_cycles -= 4;   // Step GPU internal clock
     gpu_state = memory[STAT] & 0x03;
 
     // STAT mode=0 interrupt happens one cycle before the actual mode switch!
@@ -143,8 +301,10 @@ void gpuCompareLine (void){
     
     if (memory[LY] == memory[LYC]){
         setBit(STAT,2,TRUE);
-        if (testBit(STAT,6) == TRUE)
+        if (testBit(STAT,6) == TRUE){
             triggerInterrupt(LCDC_INTERRUPT);
+            printf("[GPU] LYC INT\n");
+        }
     }
     else{
         setBit(STAT,2,FALSE);
@@ -160,18 +320,27 @@ void gpuSetStatus(unsigned char value){
             gpuChangeMode(H_BLANK);
             gpu_cycles = SCAN_OAM_CYCLES + gpuAdjustCycles(); //84
             gpuCompareLine();
+            
+            gpustate.enable = TRUE;
+            gpustate.firstframe = TRUE;
+            gpustate.clock = SCAN_OAM_CYCLES;
+            
         }
         // switch off
         else if ( (memory[LCDC] & 0x80) && !(value & 0x80) ){ // switch off
-            if ( gpu_state == V_BLANK ){
+            if ( gpustate.mode == V_BLANK ){
                 printf("[DEBUG] LCD turned off\n");
                 /* When the LCD is off this register is fixed at 00h */
                 memory[LY] = 0x00;
+                gpustate.line = 0;
+                gpustate.enable = FALSE;
                 /* Bits 0-2 return '0' when the LCD is off */
                 memory[STAT] &= 0xFC;
+                gpustate.mode = H_BLANK;
             }
             else{
                 printf("[ERROR] LCD turned off not in V_BLANK state\n");
+                exit(1);
             }
         }        
 }
@@ -196,7 +365,7 @@ int gpuCheckStatus(void){
  */
 int gpuAdjustCycles (void){
     
-    //return 0;
+    return 0;
     
     int temp = memory[0xFF43] % 0x08;
     

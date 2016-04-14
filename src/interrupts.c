@@ -15,12 +15,15 @@ void triggerInterrupt(int interrupt){
     
     if (cpustate.ime == TRUE){
         cpustate.halt = FALSE;
-        cpustate.interrupt = TRUE;
+        //cpustate.interrupt = TRUE;
     }
     else{
-        cpustate.halt = FALSE;
+        if (cpustate.halt == TRUE){
+            cpustate.halt = FALSE;
+            cpustate.interrupt = TRUE;            
+        }
     }
-    cpustate.interrupt = TRUE;
+    
     setBit(IFR, interrupt, TRUE);
 }
 
@@ -41,13 +44,13 @@ void handleInterrupts(void){
              * when waking from halt. cycle should be 
              * skipped from fetching next opcode
              */
-            if (cpustate.interrupt == FALSE){
+            //if (cpustate.interrupt == FALSE){
                 //printf("GOTCHA\n");
                 //hardwareTick();
-            }
-            else{
-                cpustate.interrupt = FALSE;
-            }
+            //}
+            //else{
+                //cpustate.interrupt = FALSE;
+            //}
 
             stackPush16(registers.PC);      // Push program counter in the stack
 

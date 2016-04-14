@@ -41,6 +41,7 @@ struct timer timerstate = {
 };
 
 const unsigned int clocks[4] = {512, 8, 32, 128};
+const unsigned int clocks2[4] = {1024, 16, 64, 256};
 
 /* 
  * Address Register Details
@@ -74,14 +75,14 @@ const unsigned int clocks[4] = {512, 8, 32, 128};
 
 void timersTick(void){
 
-    //printf("[DEBUG] Internal = %4x\n",timerstate.internal);
+    //printf("tick = %6d\n",timerstate.internal);
 
     unsigned int internal_old = timerstate.internal;
     timerstate.internal += 4;           /* step internal register */
 
-    if (timerstate.internal >> 16){     /* treat internal register as 16bit */
-        timerstate.internal = 0;        /* handle internal register overflow */
-    }
+    //if (timerstate.internal >> 16){     /* treat internal register as 16bit */
+    //    timerstate.internal = 0;        /* handle internal register overflow */
+    //}
 
     
     if (timerstate.overflow == DELAY){
@@ -96,7 +97,8 @@ void timersTick(void){
     
     if (timerstate.enable){
         if (internal_old & clocks[timerstate.frequency]){
-            if ((timerstate.internal & clocks[timerstate.frequency]) == 0){
+            if ((timerstate.internal & (clocks[timerstate.frequency])) == 0){
+                printf("[DEBUG] clocks = %d\n", timerstate.internal);
                 printf("[DEBUG] TIMA = %x\n", timerstate.tima);
                 timersStepTIMA();
             }
@@ -142,6 +144,9 @@ void timersSetDIV (void){
         if (timerstate.internal & clocks[timerstate.frequency]){
                 printf("[DEBUG] TIMA step due to DIV write %d\n",timerstate.internal);
                 timersStepTIMA();
+                if (timerstate.overflow == DELAY){
+                    //triggerInterrupt(TIMER_INTERRUPT);
+                }
         }
     }
     
@@ -171,9 +176,12 @@ void timersSetTAC (unsigned char value){
     unsigned int new_frequency = value & 0x03;
     
     if ((timerstate.enable == TRUE) && (new_enable == FALSE) ){
-        if (timerstate.internal & clocks[new_frequency]){
+        if ((timerstate.internal) & (clocks[timerstate.frequency])){
             printf("[DEBUG] TIMA step due to switch off %d\n",timerstate.internal);
             timersStepTIMA();
+            if (timerstate.overflow == DELAY){
+                //triggerInterrupt(TIMER_INTERRUPT);
+            }
         }
     }
     else if (timerstate.frequency != new_frequency){
@@ -181,7 +189,10 @@ void timersSetTAC (unsigned char value){
             if ((timerstate.internal & clocks[new_frequency]) == 0){
                 if (new_enable){
                     printf("[DEBUG] TIMA step due to frequency change\n");
-                    timersStepTIMA();                    
+                    timersStepTIMA();
+                    if (timerstate.overflow == DELAY){
+                        //triggerInterrupt(TIMER_INTERRUPT);
+                    }                  
                 }
             }
         }

@@ -14,7 +14,7 @@
 
 /* DEBUG FLAGS */
 int debug_mooneye = FALSE;
-int debug_test_run = FALSE;
+int debug_test_run = TRUE;
 unsigned short debug_pc = 0x0000;
 
 /* CPU VARIABLES */
@@ -584,7 +584,17 @@ void execute (void){
         hardwareTick();
         return;
     }
-
+/* If IME='0' and CPU is halted, when any interrupt 
+ * is triggered by setting any IF flag to '1' with the
+ * corresponding bit in IE set to '1', it takes 4 clocks
+ * to exit halt mode, even if the CPU doesn't jump to
+ * the interrupt vector.
+ */
+    if (cpustate.interrupt == TRUE){
+        cpustate.interrupt = FALSE;
+        //hardwareTick();
+    }
+ 
 /* If IME = 1, check for interrupts */
     if (cpustate.ime == TRUE){
         handleInterrupts();
