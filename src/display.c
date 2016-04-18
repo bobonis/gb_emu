@@ -111,7 +111,7 @@ void displayEnd(void){
      
     SDL_DestroyWindow( window );   //Destroy window
     SDL_Quit();                    //Quit SDL subsystems
-    exit(1); 
+    //exit(1); 
 }
 
 

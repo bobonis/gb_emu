@@ -5,17 +5,25 @@
 #include "rom.h"
 #include "interrupts.h"
 #include "timers.h"
+#include "hardware.h"
 
 #define ZERO_F          7
 #define SUBSTRACT_F     6
 #define HALF_CARRY_F    5
 #define CARRY_F         4
 
-int debug = FALSE;
+/* DEBUG FLAGS */
 int debug_mooneye = FALSE;
+int debug_test_run = FALSE;
+unsigned short debug_pc = 0x0000;
+
+/* CPU VARIABLES */
+
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
-int cpuSTOP = FALSE;                // CPU is in STOP state
+
+unsigned char previous = 0;
+unsigned char current = 0;
 
 
 struct cpu cpustate = {
@@ -572,19 +580,25 @@ void execute (void){
  * next opcode.
  */
     if (cpustate.halt == TRUE){             // CPU is HALTED
-        updateTimers(4);
+        hardwareTick();
         return;
     }
-
+/* If IME='0' and CPU is halted, when any interrupt 
+ * is triggered by setting any IF flag to '1' with the
+ * corresponding bit in IE set to '1', it takes 4 clocks
+ * to exit halt mode, even if the CPU doesn't jump to
+ * the interrupt vector.
+ */
+    if (cpustate.interrupt == TRUE){
+        cpustate.interrupt = FALSE;
+        //hardwareTick();
+    }
+ 
 /* If IME = 1, check for interrupts */
     if (cpustate.ime == TRUE){
         handleInterrupts();
     }
 
-    
-    if (cpuSTOP){
-        return;
-    }
     
 /*  CPU OPERATION */
 
@@ -593,11 +607,24 @@ void execute (void){
     int extended_opcode = FALSE;                // Extended opcode FLAG
 
 
-//    if (registers.PC+1 == 0x0c30)
-//        debug_mooneye = TRUE;
+    if (registers.PC+1 == debug_pc)
+        debug_mooneye = TRUE;
     
     instruction = readMemory8( registers.PC );  // Fetch next opcode
+
+    previous = current;
+    current = instruction;
     
+    if (debug_test_run){
+        if (current == 0x00 && previous == 0x18){
+            if (registers.A == 0x00)
+                exit(0);
+            else
+                exit(1);
+        }
+    }
+
+
 /* TODO
     if (cpustate.repeat == TRUE){
         registers.PC -= 1;
@@ -607,9 +634,6 @@ void execute (void){
 
     if (instruction == 0xCB){
         
-        if (debug)
-            printf("[DEBUG] CB \n");
-       
         if (debug_mooneye)
             printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
             instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
@@ -623,9 +647,6 @@ void execute (void){
         operand_length = opCodes[instruction].opLength;
     }    
 
-    if (debug)
-        printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, ",instruction,registers.PC,registers.SP);
-        
         if (debug_mooneye && extended_opcode == 0)
             printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
             instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
@@ -654,12 +675,6 @@ void execute (void){
         ((void (*)(void))opCodes[instruction].function)();
     }
     
-    if (debug){
-            printf("A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n"
-           ,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
-    }
-
-
         
     return;
 }
@@ -856,7 +871,7 @@ void LD_SP_nn (void) { registers.SP = operand16; }
  * LD SP,HL
  * Description: Put HL into Stack Pointer (SP).
  */
-void LD_SP_HL (void) { registers.SP = registers.HL; updateTimers(4); }
+void LD_SP_HL (void) { registers.SP = registers.HL; hardwareTick(); }
 
 /* 
  * LD HL,SP+n
@@ -888,7 +903,7 @@ void LDHL_SP_n (void){
     resetFlag(ZERO_F);
     resetFlag(SUBSTRACT_F);
     
-    updateTimers(4);   
+    hardwareTick();   
 
 } 
 /*
@@ -1131,10 +1146,10 @@ void DEC_MHL (void) {writeMemory(registers.HL, dec (readMemory8(registers.HL)));
  * H - Set if carry from bit 11.
  * C - Set if carry from bit 15.
  */
- void ADD_HL_BC (void) {add16 (registers.BC); updateTimers(4); }
- void ADD_HL_DE (void) {add16 (registers.DE); updateTimers(4); }
- void ADD_HL_HL (void) {add16 (registers.HL); updateTimers(4); }
- void ADD_HL_SP (void) {add16 (registers.SP); updateTimers(4); }
+ void ADD_HL_BC (void) {add16 (registers.BC); hardwareTick(); }
+ void ADD_HL_DE (void) {add16 (registers.DE); hardwareTick(); }
+ void ADD_HL_HL (void) {add16 (registers.HL); hardwareTick(); }
+ void ADD_HL_SP (void) {add16 (registers.SP); hardwareTick(); }
 /*
  * ADD SP,n
  * Description: Add n to Stack Pointer (SP).
@@ -1164,8 +1179,8 @@ void ADD_SP_n (void){
     resetFlag(ZERO_F);
     resetFlag(SUBSTRACT_F);
     //updateTimers(8);
-    updateTimers(4);
-    updateTimers(4);
+    hardwareTick();
+    hardwareTick();
 } 
 /*
  * INC nn
@@ -1174,10 +1189,10 @@ void ADD_SP_n (void){
  * Flags affected:
  * None.
  */
- void INC_BC (void) {registers.BC++; updateTimers(4); }
- void INC_DE (void) {registers.DE++; updateTimers(4); }
- void INC_HL (void) {registers.HL++; updateTimers(4); }
- void INC_SP (void) {registers.SP++; updateTimers(4); }
+ void INC_BC (void) {registers.BC++; hardwareTick(); }
+ void INC_DE (void) {registers.DE++; hardwareTick(); }
+ void INC_HL (void) {registers.HL++; hardwareTick(); }
+ void INC_SP (void) {registers.SP++; hardwareTick(); }
 /*
  * DEC nn
  * Description: Decrement register nn.
@@ -1185,10 +1200,10 @@ void ADD_SP_n (void){
  * Flags affected: None.
  */
  
- void DEC_BC (void) {registers.BC--; updateTimers(4); }
- void DEC_DE (void) {registers.DE--; updateTimers(4); }
- void DEC_HL (void) {registers.HL--; updateTimers(4); }
- void DEC_SP (void) {registers.SP--; updateTimers(4); }
+ void DEC_BC (void) {registers.BC--; hardwareTick(); }
+ void DEC_DE (void) {registers.DE--; hardwareTick(); }
+ void DEC_HL (void) {registers.HL--; hardwareTick(); }
+ void DEC_SP (void) {registers.SP--; hardwareTick(); }
  
  /*******************
  * ADD, INC, DEC    *
@@ -1510,17 +1525,17 @@ void RRA (void){registers.A = rr(registers.A); resetFlag(ZERO_F);}
 /********************
  * Jumps            *
  ********************/
-void JP_nn (void)   { registers.PC = operand16; updateTimers(4); }
-void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0){ registers.PC = operand16; updateTimers(4); }}
-void JP_Z_nn (void) { if (testFlag(ZERO_F)  == 1){ registers.PC = operand16; updateTimers(4); }}
-void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0){ registers.PC = operand16; updateTimers(4); }}
-void JP_C_nn (void) { if (testFlag(CARRY_F) == 1){ registers.PC = operand16; updateTimers(4); }}
+void JP_nn (void)   { registers.PC = operand16; hardwareTick(); }
+void JP_NZ_nn (void){ if (testFlag(ZERO_F)  == 0){ registers.PC = operand16; hardwareTick(); }}
+void JP_Z_nn (void) { if (testFlag(ZERO_F)  == 1){ registers.PC = operand16; hardwareTick(); }}
+void JP_NC_nn (void){ if (testFlag(CARRY_F) == 0){ registers.PC = operand16; hardwareTick(); }}
+void JP_C_nn (void) { if (testFlag(CARRY_F) == 1){ registers.PC = operand16; hardwareTick(); }}
 void JP_HL (void)   { registers.PC = registers.HL; }
-void JR_n (void)    { registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }
-void JR_NZ_n (void) { if (testFlag(ZERO_F)  == 0){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
-void JR_Z_n (void)  { if (testFlag(ZERO_F)  == 1){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
-void JR_NC_n (void) { if (testFlag(CARRY_F) == 0){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
-void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + (signed char)operand8; updateTimers(4); }}
+void JR_n (void)    { registers.PC = registers.PC + (signed char)operand8; hardwareTick(); }
+void JR_NZ_n (void) { if (testFlag(ZERO_F)  == 0){ registers.PC = registers.PC + (signed char)operand8; hardwareTick(); }}
+void JR_Z_n (void)  { if (testFlag(ZERO_F)  == 1){ registers.PC = registers.PC + (signed char)operand8; hardwareTick(); }}
+void JR_NC_n (void) { if (testFlag(CARRY_F) == 0){ registers.PC = registers.PC + (signed char)operand8; hardwareTick(); }}
+void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC + (signed char)operand8; hardwareTick(); }}
 /********************
  * Calls            *
  ********************/
@@ -1582,42 +1597,42 @@ void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC +
  * Use with: n = $00,$08,$10,$18,$20,$28,$30,$38
  */
  void RST00 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x00;
 }
  void RST08 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x08;
 }
  void RST10 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x10;
 }
  void RST18 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x18;
 }
  void RST20 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x20;
 }
  void RST28 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x28;
 }
  void RST30 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x30;
 }
  void RST38 (void) {
-     //updateTimers(4);
+     //hardwareTick();
      stackPush16(registers.PC);
      registers.PC = 0x38;
 }
@@ -1629,7 +1644,7 @@ void JR_C_n (void)  { if (testFlag(CARRY_F) == 1){ registers.PC = registers.PC +
  * RET
  * Description: Pop two bytes from stack & jump to that address.
  */
-void RET (void){registers.PC = stackPop16(); updateTimers(4); }
+void RET (void){registers.PC = stackPop16(); hardwareTick(); }
 /*
  * RET cc
  * Description: Return if following condition is true:
@@ -1638,10 +1653,10 @@ void RET (void){registers.PC = stackPop16(); updateTimers(4); }
  * cc = Z, Return if Z flag is set.
  * cc = NC, Return if C flag is reset.
  */
-void RET_NZ (void){ updateTimers(4); if (testFlag(ZERO_F)  == 0){ RET(); }}
-void RET_Z  (void){ updateTimers(4); if (testFlag(ZERO_F)  == 1){ RET(); }}
-void RET_NC (void){ updateTimers(4); if (testFlag(CARRY_F) == 0){ RET(); }}
-void RET_C  (void){ updateTimers(4); if (testFlag(CARRY_F) == 1){ RET(); }}
+void RET_NZ (void){ hardwareTick(); if (testFlag(ZERO_F)  == 0){ RET(); }}
+void RET_Z  (void){ hardwareTick(); if (testFlag(ZERO_F)  == 1){ RET(); }}
+void RET_NC (void){ hardwareTick(); if (testFlag(CARRY_F) == 0){ RET(); }}
+void RET_C  (void){ hardwareTick(); if (testFlag(CARRY_F) == 1){ RET(); }}
 /*
  * RETI
  * Description: Pop two bytes from stack & jump to that address then

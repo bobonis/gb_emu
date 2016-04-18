@@ -17,7 +17,7 @@ void stackPush16 (unsigned short value);
 unsigned short stackPop16 (void);
 unsigned char readMemory8 (unsigned short address);
 unsigned short readMemory16 (unsigned short address);
-void directMemoryAccess(unsigned char value);
+void updateDMA (void);
 
 /* The GameBoy has eight 8-bit registers A,B,C,D,E,F,H,L 
  * and two 16-bit registers SP & PC.
@@ -70,6 +70,13 @@ extern struct registers{
 //alam
 extern unsigned short test;
 
+extern struct dma{
+    unsigned int timer;
+    unsigned int prepare;
+    unsigned int start;
+    unsigned int running;
+    unsigned short address;
+}dmastate;
  
 extern unsigned char crom[0x8000];
 //extern unsigned char vram[0x2000];

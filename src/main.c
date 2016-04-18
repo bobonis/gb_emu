@@ -8,7 +8,7 @@
 #include "display.h"
 #include "input.h"
 
-#define version "0.84.1"
+#define version "0.84.8"
 
 
 int main(int argc, char **argv){
@@ -51,6 +51,10 @@ int main(int argc, char **argv){
         if (event.type == SDL_KEYDOWN){
             if (event.key.keysym.sym == SDLK_ESCAPE){
                 QUIT = TRUE;
+            }
+            if (event.key.keysym.sym == SDLK_F1){
+                displayEnd();
+                return 1;
             }
         }       
               

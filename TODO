@@ -73,10 +73,10 @@ STATUS - TEST ROMS
             bits
             -   OK  mem_oam
             -   OK  reg_f
-            -   OK  unused_hwio-GS
+            -       unused_hwio-GS
             
             gpu
-            -   OK  hblank_ly_scx_timing-GS
+            -       hblank_ly_scx_timing-GS
             -   OK  intr_1_2_timing-GS
             -   OK  intr_2_0_timing
             -   OK  intr_2_mode0_timing
@@ -141,5 +141,21 @@ STATUS - TEST ROMS
         -       boot_regs-sgb
         -       boot_regs-sgb2
             
-            
-            
+
+OPEN QUESTIONS
+
+
+0.8.7
+ERROR WITH ../../tests/mooneye/acceptance/timer/rapid_toggle.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_1_2_timing-GS.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/hblank_ly_scx_timing-GS.gb
+
+0.8.8
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
+EXECUTED 56 TEST CASES
+PASSed = 55, FAILED = 1
+
+
+

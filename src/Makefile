@@ -10,10 +10,10 @@ LDIR =../lib
 
 LIBS=-lSDLmain -lSDL2 -lSDL_image -lGL
 
-DEPS = rom.h display.h gpu.h memory.h cpu.h timers.h interrupts.h input.h
+DEPS = rom.h display.h gpu.h memory.h cpu.h timers.h interrupts.h input.h hardware.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = rom.o display.o gpu.o memory.o cpu.o timers.o interrupts.o main.o input.o
+_OBJ = rom.o display.o gpu.o memory.o cpu.o timers.o interrupts.o main.o input.o hardware.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
