@@ -71,12 +71,9 @@ void inputPressKey(int key){
             joypad &= 0x7F;
             break;                                                
     }
-    if (cpuSTOP){
-        cpuSTOP = FALSE;
-    }
-    else{
-        triggerInterrupt(JOYPAD_INTERRUPT);
-    }
+    
+    triggerInterrupt(JOYPAD_INTERRUPT);
+
 }
 
 void inputReleaseKey(int key){
