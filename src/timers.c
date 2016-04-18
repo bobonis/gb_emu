@@ -1,9 +1,5 @@
-#include <stdio.h>
-#include "memory.h"
 #include "timers.h"
 #include "interrupts.h"
-#include "gpu.h"
-#include "cpu.h"
 
 #define CLOCKSPEED 4194304
 #define FREQ_1   4096 //1024 cycles
@@ -16,18 +12,13 @@
 #define TMA  0xFF06
 #define TAC  0xFF07
 
+#define TRUE 1
+#define FALSE 0
+
 #define DELAY 3
 #define SOON 2
 #define NOW 1
 #define OFF 0
-
-unsigned int timeCounter = 0;
-unsigned int cycleCounter = 0; //???????????????????
-int divideCounter = 0;
-unsigned int maxCycles = CLOCKSPEED / FREQ_1;
-int transition = FALSE;
-
-
 
 struct timer timerstate = {
     0,          /* Internal register */
@@ -41,7 +32,6 @@ struct timer timerstate = {
 };
 
 const unsigned int clocks[4] = {512, 8, 32, 128};
-const unsigned int clocks2[4] = {1024, 16, 64, 256};
 
 /* 
  * Address Register Details
@@ -64,96 +54,102 @@ const unsigned int clocks2[4] = {1024, 16, 64, 256};
  *       3-7  Unused
  */
 
-
-
-
-
-
-
-
-
-
 void timersTick(void){
 
-    //printf("tick = %6d\n",timerstate.internal);
-
-    unsigned int internal_old = timerstate.internal;
-    timerstate.internal += 4;           /* step internal register */
-
-    //if (timerstate.internal >> 16){     /* treat internal register as 16bit */
-    //    timerstate.internal = 0;        /* handle internal register overflow */
-    //}
-
+    unsigned int internal_old = timerstate.internal;    /* keep old timer value */
     
+    timerstate.internal += 4;                           /* step internal register */
+
     if (timerstate.overflow == DELAY){
         timerstate.overflow = NOW;
         timerstate.tima = timerstate.tma;
-        printf("[DEBUG] INTERRUPT\n");
         triggerInterrupt(TIMER_INTERRUPT);
     }
     else if (timerstate.overflow == NOW){
         timerstate.overflow = OFF;
     }
     
+/* 
+ * This is the implementation of the falling edge detector
+ * In case the previous selected bit of the multiplexer was set
+ * and now it's not set, then the TIMA register is increased 
+ */
     if (timerstate.enable){
         if (internal_old & clocks[timerstate.frequency]){
             if ((timerstate.internal & (clocks[timerstate.frequency])) == 0){
-                printf("[DEBUG] clocks = %d\n", timerstate.internal);
-                printf("[DEBUG] TIMA = %x\n", timerstate.tima);
                 timersStepTIMA();
             }
         }
     }
 }
 
-
+/* 
+ * When TIMA overflows, the value from TMA is loaded and IF timer flag 
+ * is set to 1, but this doesn't happen immediately. Timer interrupt is 
+ * delayed 1 cycle (4 clocks) from the TIMA overflow. It could be less 
+ * clocks, but the CPU can't check that. 
+ */  
 void timersStepTIMA (void){
     
     timerstate.tima += 1;
-    
+  
     if (timerstate.tima > 0xFF){
         timerstate.overflow = DELAY;
         timerstate.tima = 0x00;
     }
-    printf("[DEBUG] TIMA = %x\n", timerstate.tima);
 }
 
-
-
-
-
+/* 
+ * Functions to read internal time registers 
+ */
 unsigned char timersGetDIV(void){
-    printf("[DEBUG] DIV = %x\n", timerstate.internal);
     return timerstate.internal >> 8;
 }
 
 unsigned char timersGetTIMA(void){
     return timerstate.tima;
 }
+
 unsigned char timersGetTAC(void){
     return 0xF8 | (timerstate.enable << 2) | timerstate.frequency;
 }
+
 unsigned char timersGetTMA(void){
     return timerstate.tma;
 }
 
-
+/* 
+ * Functions to set internal time registers 
+ */
+ 
+/* 
+ * When writing to DIV register the TIMA register can be increased if 
+ * the counter has reached half the clocks it needs to increase because 
+ * the selected bit by the multiplexer will go from 1 to 0
+ */
 void timersSetDIV (void){
-    printf("[DEBUG] DIV = %x\n", timerstate.internal);
+
     if (timerstate.enable){
         if (timerstate.internal & clocks[timerstate.frequency]){
-                printf("[DEBUG] TIMA step due to DIV write %d\n",timerstate.internal);
-                timersStepTIMA();
-                if (timerstate.overflow == DELAY){
-                    //triggerInterrupt(TIMER_INTERRUPT);
-                }
+            timersStepTIMA();
+            /* Have to verify if a delayed interrupt is lost
+            if (timerstate.overflow == DELAY){
+                triggerInterrupt(TIMER_INTERRUPT);
+            }
+            */
         }
     }
-    
-    timerstate.internal = 0;
+    timerstate.internal = 0;                            /* Internal counter is being reset */
 }
 
-
+/* 
+ * During the delay you can prevent the IF flag from being set and prevent 
+ * the TIMA from being reloaded from TMA by writing a value to TIMA. That 
+ * new value will be the one that stays in the TIMA register after the instruction. 
+ *
+ * If you write to TIMA during the cycle that TMA is being loaded to it, the write 
+ * will be ignored and TMA value will be written to TIMA instead.
+ */
 void timersSetTIMA(unsigned char value){
 
     if (timerstate.overflow == DELAY){
@@ -167,9 +163,18 @@ void timersSetTIMA(unsigned char value){
     else{
         timerstate.tima = value;
     }
-    printf("[DEBUG] SET TIMA = %x\n", timerstate.tima);
 }
 
+/*
+ * When disabling the timer, if the corresponding bit in the system 
+ * counter is set to 1, the falling edge detector will see a change 
+ * from 1 to 0, so TIMA will increase.
+ *
+ * When changing TAC register value, if the old selected bit by the 
+ * multiplexer was 0, the new one is 1, and the new enable bit of 
+ * TAC is set to 1, it will increase TIMA.
+ */
+ /* CAN BE OPTIMIZED */
 void timersSetTAC (unsigned char value){
     
     unsigned int new_enable = (value & 0x04) >> 2;
@@ -177,22 +182,24 @@ void timersSetTAC (unsigned char value){
     
     if ((timerstate.enable == TRUE) && (new_enable == FALSE) ){
         if ((timerstate.internal) & (clocks[timerstate.frequency])){
-            printf("[DEBUG] TIMA step due to switch off %d\n",timerstate.internal);
             timersStepTIMA();
+            /* Have to verify if a delayed interrupt is lost
             if (timerstate.overflow == DELAY){
-                //triggerInterrupt(TIMER_INTERRUPT);
+                triggerInterrupt(TIMER_INTERRUPT);
             }
+            */
         }
     }
     else if (timerstate.frequency != new_frequency){
         if ((timerstate.internal & clocks[timerstate.frequency]) == 1){
             if ((timerstate.internal & clocks[new_frequency]) == 0){
                 if (new_enable){
-                    printf("[DEBUG] TIMA step due to frequency change\n");
                     timersStepTIMA();
+                    /* Have to verify if a delayed interrupt is lost
                     if (timerstate.overflow == DELAY){
-                        //triggerInterrupt(TIMER_INTERRUPT);
-                    }                  
+                        triggerInterrupt(TIMER_INTERRUPT);
+                    }
+                    */                 
                 }
             }
         }
@@ -200,18 +207,17 @@ void timersSetTAC (unsigned char value){
     
     timerstate.enable = new_enable;
     timerstate.frequency = new_frequency;
-    printf("[DEBUG] Timer Enable = %d\n",timerstate.enable);
 }
 
-
-
+/*
+ * If TMA is written the same cycle it is loaded to TIMA, TIMA is also 
+ * loaded with that value.
+ */
 void timersSetTMA (unsigned char value){
     
     timerstate.tma = value;
     
     if (timerstate.overflow == NOW){
         timerstate.tima = timerstate.tma;
-        //timerstate.overflow = OFF;
     }
-    
 }

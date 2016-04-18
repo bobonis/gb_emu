@@ -164,9 +164,6 @@ void reset (void){
  */
 unsigned char readMemory8 (unsigned short address){
 
-    if (!gpu_reading)
-        hardwareTick();
-        
     unsigned char temp;
     
     int address_map;
@@ -387,6 +384,10 @@ unsigned char readMemory8 (unsigned short address){
             temp = memory[address];
             break;
     }
+    
+    if (!gpu_reading)
+        hardwareTick();
+        
     return temp;
 }
 
@@ -408,8 +409,6 @@ void writeMemory (unsigned short pos, unsigned char value){
 
     unsigned short address = pos;
 
-    if (!gpu_reading)
-        hardwareTick();
 
     switch (address & 0xFF00){
         case 0xFF00 : 
@@ -542,6 +541,7 @@ void writeMemory (unsigned short pos, unsigned char value){
             }
             else if (address == 0xFF45){    //LYC
                 memory[address] = value;
+                printf("[MEM] LYC WRITE %d - %d\n",value,gpustate.line);
             }            
             else if (address == 0xFF46){    //DMA
                 //directMemoryAccess(value);
@@ -586,6 +586,10 @@ void writeMemory (unsigned short pos, unsigned char value){
             else{
                 memory[address] = 0xFF;
             }
+    
+            if (!gpu_reading)
+                hardwareTick();
+            
             return;
     }
 
@@ -629,7 +633,11 @@ void writeMemory (unsigned short pos, unsigned char value){
     else{ //default
         memory[pos] = value;
     }
-    
+
+    if (!gpu_reading)
+        hardwareTick();
+        
+    return;
 
 
 }

@@ -14,14 +14,13 @@
 
 /* DEBUG FLAGS */
 int debug_mooneye = FALSE;
-int debug_test_run = TRUE;
+int debug_test_run = FALSE;
 unsigned short debug_pc = 0x0000;
 
 /* CPU VARIABLES */
 
 unsigned char operand8 = 0x00;
 unsigned short operand16 = 0x0000;
-int cpuSTOP = FALSE;                // CPU is in STOP state
 
 unsigned char previous = 0;
 unsigned char current = 0;
@@ -600,10 +599,6 @@ void execute (void){
         handleInterrupts();
     }
 
-    
-    if (cpuSTOP){
-        return;
-    }
     
 /*  CPU OPERATION */
 

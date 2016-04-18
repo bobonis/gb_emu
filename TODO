@@ -144,39 +144,18 @@ STATUS - TEST ROMS
 
 OPEN QUESTIONS
 
-Does writing to DIV ($FF04) along with internal DIV counter, also resets the internal TIMA counter?
-Regarding test "rapid_toggle", you state that the timer circuit design causes some unexpected timer increases.
-Is it really random? I've tried stepping TIMA or internal counter when specific bits are set but with not luck.
-We should come with an idea for which register affects this random increase. 
 
-
+0.8.7
 ERROR WITH ../../tests/mooneye/acceptance/timer/rapid_toggle.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_0_timing.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_oam_ok_timing.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode3_timing.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing.gb
+ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_1_2_timing-GS.gb
 ERROR WITH ../../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb
 ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
 ERROR WITH ../../tests/mooneye/acceptance/gpu/hblank_ly_scx_timing-GS.gb
-ERROR WITH ../../tests/mooneye/acceptance/oam_dma_start.gb
 
-ERROR WITH ../../tests/mooneye/acceptance/timer/rapid_toggle.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_oam_ok_timing.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb
+0.8.8
 ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/hblank_ly_scx_timing-GS.gb
-ERROR WITH ../../tests/mooneye/acceptance/oam_dma_start.gb
-
-ERROR WITH ../../tests/mooneye/acceptance/timer/rapid_toggle.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_oam_ok_timing.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
-
-ERROR WITH ../../tests/mooneye/acceptance/timer/rapid_toggle.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb
-ERROR WITH ../../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb
-
-
+EXECUTED 56 TEST CASES
+PASSed = 55, FAILED = 1
 
 
 
