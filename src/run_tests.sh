@@ -9,10 +9,11 @@ function test {
     local status=$?
     
     if [ $status -ne 0 ]; then
-        echo "ERROR WITH $2" >&2
+        echo -e "\e[31mERROR: $2" >&2
         let FAIL=FAIL+1
     fi
     if [ $status -eq 0 ]; then
+        echo -e "\e[32mPASS : $2" >&2
         let PASS=PASS+1
     fi
     let EXECUTED=EXECUTED+1
@@ -137,6 +138,6 @@ case $1 in
         blargg;;
 esac 
 
-echo "EXECUTED $EXECUTED TEST CASES"
-echo "PASSed = $PASS, FAILED = $FAIL"
+echo -e "\e[39mEXECUTED $EXECUTED TEST CASES"
+echo -e "\e[32mPASSED \e[39m= $PASS, \e[31mFAILED \e[39m= $FAIL"
 exit

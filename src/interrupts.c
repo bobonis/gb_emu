@@ -31,12 +31,16 @@ void triggerInterrupt(int interrupt){
 
 void handleInterrupts(void){
 
-    int bit;
+    unsigned int bit;
 
     for (bit=0;bit<5;bit++){                // Find the requested Interrupt, priority matters
-        if ((testBit(IER,bit)) && (testBit(IFR,bit))){
+        if ( ((memory[IER] >> bit) & 0x01)  && ((memory[IFR] >> bit) & 0x01) ){
+        //if ((testBit(IER,bit)) && (testBit(IFR,bit))){
             cpustate.ime = FALSE;           // Disable master Interrupt
             cpustate.halt = FALSE;          // Resume cpu 
+
+            unsigned int mask = 0x01 << bit;
+            memory[IFR] &= ~mask;
 
             hardwareTick();
             hardwareTick();
@@ -56,24 +60,24 @@ void handleInterrupts(void){
 
             switch (bit){                   // Set program counter to intterupt address
                 case VBLANK_INTERRUPT:
-                    registers.PC = 0x40; 
-                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    registers.PC = 0x40;
+                    //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
                     return;
                 case LCDC_INTERRUPT  :
                     registers.PC = 0x48;
-                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
                     return;
                 case TIMER_INTERRUPT :
                     registers.PC = 0x50;
-                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
                     return;
                 case SERIAL_INTERRUPT:
                     registers.PC = 0x58;
-                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
                     return;
                 case JOYPAD_INTERRUPT:
                     registers.PC = 0x60;
-                    setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
+                    //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
                     return;
             }           
         }

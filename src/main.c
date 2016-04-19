@@ -8,7 +8,7 @@
 #include "display.h"
 #include "input.h"
 
-#define version "0.84.8"
+#define version "0.84.10"
 
 
 int main(int argc, char **argv){
