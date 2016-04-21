@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "rom.h"
 #include "memory.h"
+#include "definitions.h"
 
 const unsigned char bioslogo[48] = {
 0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 

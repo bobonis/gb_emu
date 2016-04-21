@@ -4,6 +4,7 @@
 #include "timers.h"
 #include "hardware.h"
 #include <stdio.h>
+#include "definitions.h"
 
 /*
  * When an interrupt is requested we set the

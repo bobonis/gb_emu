@@ -1,10 +1,8 @@
 #include "display.h"
 #include "gpu.h"
 #include "input.h"
+#include "definitions.h"
 
-// Window size
-#define SCREEN_WIDTH 160
-#define SCREEN_HEIGHT 144
 int modifier = 4;  
 
 const char* WINDOW_TITLE = "GB Emu";    //Window Title

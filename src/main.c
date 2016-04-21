@@ -7,8 +7,9 @@
 #include "interrupts.h"
 #include "display.h"
 #include "input.h"
+#include "definitions.h"
 
-#define version "0.84.10"
+#define version "0.85.0"
 
 
 int main(int argc, char **argv){

@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "timers.h"
 #include "gpu.h"
+#include "definitions.h"
 
 void hardwareTick(void){
     

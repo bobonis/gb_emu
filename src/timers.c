@@ -1,24 +1,6 @@
 #include "timers.h"
 #include "interrupts.h"
-
-#define CLOCKSPEED 4194304
-#define FREQ_1   4096 //1024 cycles
-#define FREQ_2  16384 // 256 cycles
-#define FREQ_3  65536 //  64 cycles
-#define FREQ_4 262144 //  16 cycles
-
-#define DIV  0xFF04
-#define TIMA 0xFF05
-#define TMA  0xFF06
-#define TAC  0xFF07
-
-#define TRUE 1
-#define FALSE 0
-
-#define DELAY 3
-#define SOON 2
-#define NOW 1
-#define OFF 0
+#include "definitions.h"
 
 struct timer timerstate = {
     0,          /* Internal register */

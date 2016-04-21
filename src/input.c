@@ -4,6 +4,7 @@
 #include "display.h"
 #include "cpu.h"
 #include <stdio.h>
+#include "definitions.h"
 
 /*
  * 0 = key pressed / 1 = key not pressed

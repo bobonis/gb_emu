@@ -6,11 +6,7 @@
 #include "interrupts.h"
 #include "timers.h"
 #include "hardware.h"
-
-#define ZERO_F          7
-#define SUBSTRACT_F     6
-#define HALF_CARRY_F    5
-#define CARRY_F         4
+#include "definitions.h"
 
 /* DEBUG FLAGS */
 int debug_mooneye = FALSE;
