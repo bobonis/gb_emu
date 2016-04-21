@@ -4,35 +4,10 @@
 #include "interrupts.h"
 #include "display.h"
 #include "cpu.h"
-#include <stdio.h>
+#include "definitions.h"
 
-#define SCAN_OAM  2 //Scanline (accessing OAM)
-#define SCAN_VRAM 3 //Scanline (accessing VRAM)
-#define H_BLANK   0 //Horizontal blank
-#define V_BLANK   1 //Vertical blank
+sprite sprites[40];
 
-#define SCAN_OAM_CYCLES   80
-#define SCAN_VRAM_CYCLES 172
-#define H_BLANK_CYCLES   204
-#define V_BLANK_CYCLES   456
-
-#define OAM     0xFE00 //Sprite attribute memory
-#define SPT     0x8000 //Sprite pattern table
-
-#define LCDC    0xFF40 //LCD control
-#define STAT    0xFF41 //LCDC status
-#define SCY     0xFF42 //Scroll Y
-#define SCX     0xFF43 //Scroll X
-#define LY      0xFF44 //Vertical line counter
-#define LYC     0xFF45 //Vertical line coincidence
-#define BGP     0xFF47 //BG & Window Palette Data
-#define OBP0    0xFF48 //Object Palette 0 Data
-#define OBP1    0xFF49 //Object Palette 1 Data
-#define WY      0xFF4A //Window Y position
-#define WX      0xFF4B //Window X position
- 
-struct sprite sprites[40];
-struct sprite sprites_shorted[40];
 int background_priority[160];
 unsigned char framebuffer[144][160][3];
 unsigned char gpu_line = 0;
@@ -218,6 +193,8 @@ void gpuUpdateSprites(void){
     unsigned char flags;
     
     for (i=0;i<40;i++){
+         sprites[i].number = i;
+         sprites[i].draw = FALSE;
          sprites[i].Ypos = memory[OAM + (i * 4)];
          sprites[i].Xpos = memory[OAM + (i * 4) + 1];
          sprites[i].pattern = memory[OAM + (i * 4) + 2];
@@ -234,7 +211,7 @@ int gpuCountSprites (void){
     int i;
     int spritesline = 0;
     int spritesx = 0;
-    int scanline = memory[LY] + 16;
+    int scanline = gpustate.line + 16;
     unsigned char sprite_size = 8;
     if (!testBit(LCDC,1)){
         return 0;
@@ -246,7 +223,11 @@ int gpuCountSprites (void){
     
     for (i=0;i<40;i++){
         if ((scanline >= sprites[i].Ypos) && (scanline < (sprites[i].Ypos + sprite_size))){
-            spritesline += 1;
+            
+            //if (sprites[i].Xpos > 16){
+                sprites[i].draw = TRUE;
+                spritesline += 1;
+            //}
             
             
             int temp = sprites[i].Xpos % 0x08;
@@ -322,7 +303,7 @@ int gpuCountSprites (void){
             return 64+ spritesx;
             break;
         default:
-            printf("%d\n",spritesline);
+            //printf("%d\n",spritesline);
             return 64;
             break;
     }
@@ -541,17 +522,42 @@ void gpuRenderBackground(void){
  */ 
 void gpuRenderSprites(void){
      
-    /* UPDATE SPRITE MEMORY */
-     
-    unsigned char i;
-   
-     
     /* SHORT SPRITES */
-      
+
+    /* sprites with lower X coordinate are drawn last */
+    /* if X coordinates match, sprites with lower OAM index are drawn last */ 
+    int i,j;
+    int found = 255;
+    int start = 0;
+    int end = 255;
+    int counter = 0;
+
+    sprite sprites_shorted[MAXSPRITES];
     
+    for (i=0;i<MAXSPRITES;i++){                     /* For the maximum number of displayed sprites */
+        for (j=0;j<40;j++){                         /* Loop for every sprite */
+            if (sprites[j].draw){                   /* If this is the first time for this sprite */
+                if (sprites[j].Xpos > start && sprites[j].Xpos < end){
+                    found = j;                      /* We found a sprite */
+                    start = sprites[j].Xpos;        /* Look if there is another with higher X coordinate */
+                }
+            }
+        }
+
+        if (found != 255){                          /* We found a sprite to draw */
+            sprites_shorted[counter] = sprites[found];
+            counter += 1;                           /* Count how many sprites we have found so far */
+            sprites[found].draw = FALSE;            /* Set it to FALSE so we don't pick the same sprite again */
+            end = sprites[found].Xpos;              /* On next iter look for sprites with lower X coordinate */
+            found = 255;
+            start = 0;                              /* Start from lower X coordinate again */
+        }
+    }
+
+
     /* DRAW SPRITES */
-    
-    //move scanline perspective to match sprites
+
+
     int x;
     int scanline = memory[LY] + 16;
     int sprite_line;
@@ -568,29 +574,28 @@ void gpuRenderSprites(void){
     }
 
    
-    for (i=0;i<40;i++){
-        if ((scanline >= sprites[i].Ypos) && (scanline < (sprites[i].Ypos + sprite_size))){
+    for (i=0;i<counter;i++){
             
-            if (sprites[i].palette){
+            if (sprites_shorted[i].palette){
                 palette = OBP1;
             }
             else{
                 palette = OBP0;
             }
             
-            sprite_line = scanline - sprites[i].Ypos;
-            if (sprites[i].Yflip){
+            sprite_line = scanline - sprites_shorted[i].Ypos;
+            if (sprites_shorted[i].Yflip){
                 sprite_line -= sprite_size - 1;
                 sprite_line *= -1;
             }
             
             if (testBit(LCDC,2) == TRUE){
                 sprite_size = 16;
-                sprite_start_address = SPT + (sprites[i].pattern & 0xFE)* 16; 
+                sprite_start_address = SPT + (sprites_shorted[i].pattern & 0xFE)* 16; 
                 //printf("[DEBUG] Using large sprites\n" );
             }
             else{
-                sprite_start_address = SPT + sprites[i].pattern * 16;
+                sprite_start_address = SPT + sprites_shorted[i].pattern * 16;
             }
 
 
@@ -599,7 +604,7 @@ void gpuRenderSprites(void){
             
             for (x=0;x<8;x++){
                 
-                if (sprites[i].Xflip){
+                if (sprites_shorted[i].Xflip){
                     bit_1 = ((sprite_1 << ( (7 - x) % 8 )) & 0x80 ) >> 7;
                     bit_2 = ((sprite_2 << ( (7 - x) % 8 )) & 0x80 ) >> 7;
                     colour = (bit_2 << 1) | bit_1;            
@@ -611,68 +616,69 @@ void gpuRenderSprites(void){
                 
                 gpuPaintColour(colour, palette, &red, &green, &blue);
                 
-                
-                if ((sprites[i].Xpos + x >= 8) && (sprites[i].Xpos + x <= 167)){
+                if ((sprites_shorted[i].Xpos + x >= 8) && (sprites_shorted[i].Xpos + x <= 167)){
                     if (colour != 0x00){
-                        if (!sprites[i].priority || background_priority[sprites[i].Xpos + x - 8]){
-                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][0] = red;
-                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][1] = green;
-                            framebuffer[memory[LY]][sprites[i].Xpos + x - 8][2] = blue;
+                        if (!sprites_shorted[i].priority || background_priority[sprites_shorted[i].Xpos + x - 8]){
+                            framebuffer[memory[LY]][sprites_shorted[i].Xpos + x - 8][0] = red;
+                            framebuffer[memory[LY]][sprites_shorted[i].Xpos + x - 8][1] = green;
+                            framebuffer[memory[LY]][sprites_shorted[i].Xpos + x - 8][2] = blue;
                         }
                     }
                 }
             }
         }
-    }
  }
 
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue){
 
-    //Pass colour through the palette
+    /* Pass colour through the palette */
     switch (colour){
         case 0b00:
-            colour = testBit(palette,0) | (testBit(palette,1) << 1);
+            //colour = testBit(palette,0) | (testBit(palette,1) << 1);
+            colour = (memory[palette] & 0x03);
             draw_pixel = FALSE;
             break;
             
         case 0b01:
-            colour = testBit(palette,2) | (testBit(palette,3) << 1);
+            //colour = testBit(palette,2) | (testBit(palette,3) << 1);
+            colour = (memory[palette] & 0x0C) >> 2;
             break;
                 
         case 0b10:
-            colour = testBit(palette,4) | (testBit(palette,5) << 1);
+            //colour = testBit(palette,4) | (testBit(palette,5) << 1);
+            colour = (memory[palette] & 0x30) >> 4;
             break;
 
         case 0b11:
-            colour = testBit(palette,6) | (testBit(palette,7) << 1);          
+            //colour = testBit(palette,6) | (testBit(palette,7) << 1);
+            colour = (memory[palette] & 0xC0) >> 6;      
             break;
         default:
             printf("COLOUR1 = %d\n",colour);
             exit(1);
         }
         
-    //Set actuall dot colour
+    /* Set actuall pixel colour */
     switch (colour){
         case 0b00:
-            *red = 0xFF; *green = 0xFF; *blue = 0xFF;
+            *red = 0xEF; *green = 0xFF; *blue = 0xDE; /* White */
             break;
             
         case 0b01:
-            *red = 0xCC; *green = 0xCC; *blue = 0xCC;
+            *red = 0xAD; *green = 0xDF; *blue = 0x94; /* Light Grey */
             break;
                 
         case 0b10:
-            *red = 0x77; *green = 0x77; *blue = 0x77;
+            *red = 0x52; *green = 0x92; *blue = 0x73; /* Dark Grey */
             break;
 
         case 0b11:
-            *red = 0x00; *green = 0x00; *blue = 0x00;         
+            *red = 0x18; *green = 0x34; *blue = 0x42; /* Black */
             break;
         default:
             printf("COLOUR2 = %d\n",colour);            
             exit(1);                
         }
-
 }
 
 void gpuStop (void){

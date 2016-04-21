@@ -5,14 +5,7 @@
 #include "rom.h"
 #include "gpu.h"
 #include "hardware.h"
-
-#define ZERO_F 			7
-#define SUBSTRACT_F		6
-#define HALF_CARRY_F	5
-#define CARRY_F			4
-
-#define LY      0xFF44 //Vertical line counter
-
+#include "definitions.h"
 
 struct registers registers;
 /*
@@ -366,9 +359,11 @@ unsigned char readMemory8 (unsigned short address){
                     break;
                 case 0xFE:
                     if (address < 0xFEA0 && dmastate.running){
+                        printf("[DMA] Tried reading OAM while unreadable\n");
                         temp = 0xFF;
                     }
                     else if ((memory[0xFF41] & 0x02) == 0x02 && (address < 0xFEA0 )){ //Both OAM and VRAM
+                        printf("[DMA] Tried reading VRAM while unreadable\n");
                         temp = 0xFF;
                     }
                     else{
@@ -541,7 +536,9 @@ void writeMemory (unsigned short pos, unsigned char value){
             }
             else if (address == 0xFF45){    //LYC
                 memory[address] = value;
-                printf("[MEM] LYC WRITE %d - %d\n",value,gpustate.line);
+//                if (gpustate.enable)
+//                    gpuCompareLine();
+//                printf("[MEM] LYC WRITE %d - %d\n",value,gpustate.line);
             }            
             else if (address == 0xFF46){    //DMA
                 //directMemoryAccess(value);
@@ -625,6 +622,7 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
     else if (address >= 0xFE00 && address < 0xFEA0){
         if (dmastate.running || (memory[0xFF41] & 0x02) == 0x02){ //Both OAM and VRAM
+            printf("[DMA] Tried writing OAM while unwrittable\n");
         }
         else{
             memory[pos] = value;

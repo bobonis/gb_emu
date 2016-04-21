@@ -1,7 +1,4 @@
 typedef int bool;
-#define TRUE 1
-#define FALSE 0
-#define USINGBIOS TRUE
 
 void memCopy(unsigned char *memory, unsigned short start, unsigned char *buffer, unsigned short length);
 void reset (void);

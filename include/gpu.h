@@ -18,8 +18,10 @@ extern int gpu_reading;
 
 int gpuAdjustCycles (void);
 
-struct sprite
+typedef struct
 {
+    unsigned int number;
+    unsigned int draw;
     unsigned char Ypos;
     unsigned char Xpos;
     unsigned char pattern;
@@ -27,7 +29,7 @@ struct sprite
     unsigned char Yflip;
     unsigned char Xflip;
     unsigned char palette;
-};
+}sprite;
 
 extern struct gpu
 {
