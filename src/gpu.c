@@ -57,6 +57,7 @@ struct gpu gpustate = {
                 gpustate.mode = SCAN_VRAM;
                 memory[STAT] &= 0xFC;
                 memory[STAT] |= SCAN_VRAM;
+                gpuDrawScanline();
             }
             break;
             
@@ -71,9 +72,7 @@ struct gpu gpustate = {
                 gpustate.clock += H_BLANK_CYCLES  - adjust - gpuAdjustCycles();
                 if (testBit(STAT,3) == TRUE){
                     triggerInterrupt(LCDC_INTERRUPT);   /* HBLANK INTERRUPT */
-                    //printf("[GPU] HBLANK INT\n");
                 }
-                gpuDrawScanline();
             }
             break;
             
@@ -94,17 +93,15 @@ struct gpu gpustate = {
                     memory[STAT] |= V_BLANK;
                     gpustate.clock = V_BLANK_CYCLES;
                     triggerInterrupt(VBLANK_INTERRUPT);     /* VBLANK INTERRUPT */
-                    //printf("[GPU] VBLANK INT\n");
                     if (testBit(STAT,4) == TRUE){
                         triggerInterrupt(LCDC_INTERRUPT);   /* STAT VBLANK INTERRUPT */
-                        //printf("[GPU] STAT VBLANK INT\n");
                     } 
-                    gpuCompareLine();                       /* LYC INTERRUPT */
-                    if (testBit(STAT,5) == TRUE){
+                    else if (testBit(STAT,5) == TRUE){
                         triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                        //printf("[GPU] OAM INT\n");
                     }
-                    //printf("\n %d \n",gpustate.line);
+                    else{
+                        gpuCompareLine();                       /* LYC INTERRUPT */
+                    }
                 }
                 else{
                     if (gpustate.firstframe == TRUE){
@@ -119,14 +116,12 @@ struct gpu gpustate = {
                         memory[STAT] &= 0xFC;
                         memory[STAT] |= SCAN_OAM;
                         gpustate.clock = SCAN_OAM_CYCLES;
-                       if (testBit(STAT,5) == TRUE){
+                        if (testBit(STAT,5) == TRUE){
                             triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                            //printf("[GPU] OAM INT\n");
                         }
-                        if (gpustate.line != 0){
+                        else if (gpustate.line != 0){
                             gpuCompareLine();                       /* LYC INTERRUPT */
                         }
-                        //printf("\n %d \n",gpustate.line);
                     }
                 }
             }
@@ -134,7 +129,6 @@ struct gpu gpustate = {
             
         case V_BLANK:   /*mode 1 */
             if (gpustate.clock <= 452 && gpustate.clock > 448){
-                
                 if (gpustate.line == 0){
                     gpuCompareLine();
                 } 
@@ -144,9 +138,6 @@ struct gpu gpustate = {
                     gpustate.line += 1;
                     memory[LY] = gpustate.line;
                 }
-                else{
-                }
-                
             }
             else if (gpustate.clock <= 0){
                 
@@ -158,7 +149,6 @@ struct gpu gpustate = {
                     gpustate.clock = V_BLANK_CYCLES;
                     if (testBit(STAT,5) == TRUE){
                         //triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                        //printf("[GPU] OAM INT\n");
                     }
                 }
                 else if (gpustate.line == 0){
@@ -166,10 +156,8 @@ struct gpu gpustate = {
                     memory[STAT] &= 0xFC;
                     memory[STAT] |= SCAN_OAM;
                     gpustate.clock = SCAN_OAM_CYCLES;
-                    //printf("\n %d \n",gpustate.line);
                     if (testBit(STAT,5) == TRUE){
                         triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                        //printf("[GPU] OAM INT\n");
                     }
                     
                     display();
@@ -180,7 +168,6 @@ struct gpu gpustate = {
                         //triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
                         //printf("[GPU] OAM INT\n");
                     }
-                    //printf("\n %d \n",gpustate.line);
                 }
             }
             break;
@@ -316,7 +303,6 @@ void gpuCompareLine (void){
         setBit(STAT,2,TRUE);
         if (testBit(STAT,6) == TRUE){
             triggerInterrupt(LCDC_INTERRUPT);
-            //printf("[GPU] LYC INT AT LINE %d\n",gpustate.line);
         }
     }
     else{

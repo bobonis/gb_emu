@@ -137,17 +137,6 @@ void setupTexture()
 
 void updateTexture()
 {	
-    int y,x;
-    int blackscreen = 1;
-	// Clear screen
-	for(y = 30; y < 80; ++y)		
-		for(x = 30; x < 80; ++x)
-			if ((framebuffer[y][x][0] != 0) || (framebuffer[y][x][1] != 0) || (framebuffer[y][x][2] != 0))
-                blackscreen = 0;
-            
-    if (blackscreen)
-        printf("[DISPLAY] Black Screen\n");
-            
 	// Update Texture
     int display_width = SCREEN_WIDTH * modifier;
     int display_height = SCREEN_HEIGHT * modifier;  
