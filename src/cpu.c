@@ -662,6 +662,8 @@ void execute (void){
             registers.PC = registers.PC + 3;    // Increment PC to be ready for next cycle
 
             break;
+        default:
+            break;
     };
 
     if (extended_opcode){
@@ -2227,7 +2229,7 @@ void add (unsigned char value){
  */
 void add16 (unsigned short value){
     
-    unsigned long HL_long = registers.HL + value;
+    unsigned long HL_long = (unsigned long)(registers.HL + value);
     
     if ((HL_long&0xffff0000) == 0)
         resetFlag(CARRY_F);
@@ -2297,6 +2299,8 @@ unsigned char res (unsigned char pos, unsigned char value){
             break;
         case 7:
             value &= 0x7F;
+            break;
+        default:
             break;
     }
     return value;
@@ -2426,6 +2430,8 @@ unsigned char set (unsigned char pos, unsigned char value){
             break;
         case 7:
             value |= 0x80;
+            break;
+        default:
             break;
     }
     return value;

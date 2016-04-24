@@ -70,7 +70,9 @@ void inputPressKey(int key){
             break;
         case 7:
             joypad &= 0x7F;
-            break;                                                
+            break;
+        default:
+            break;
     }
     
     triggerInterrupt(JOYPAD_INTERRUPT);
@@ -102,6 +104,8 @@ void inputReleaseKey(int key){
             break;
         case 7:
             joypad |= 0x80;                                                
+            break;
+        default:
             break;
     }
 }

@@ -159,7 +159,7 @@ void timersSetTIMA(unsigned char value){
  /* CAN BE OPTIMIZED */
 void timersSetTAC (unsigned char value){
     
-    unsigned int new_enable = (value & 0x04) >> 2;
+    unsigned int new_enable = ((unsigned int)value & 0x04) >> 2;
     unsigned int new_frequency = value & 0x03;
     
     if ((timerstate.enable == TRUE) && (new_enable == FALSE) ){

@@ -1,6 +1,6 @@
 typedef int bool;
 
-void memCopy(unsigned char *memory, unsigned short start, unsigned char *buffer, unsigned short length);
+void memCopy(unsigned short start, unsigned char *buffer, unsigned short length);
 void reset (void);
 void setFlag (unsigned char flag);
 void resetFlag (unsigned char flag);

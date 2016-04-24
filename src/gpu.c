@@ -79,6 +79,7 @@ struct gpu gpustate = {
         case H_BLANK:   /*mode 0 */
             if (gpustate.clock <= 4 && gpustate.clock > 0){
                 if (gpustate.firstframe == FALSE){
+                    //gpuDrawScanline();
                     gpustate.line += 1;
                     memory[LY] = gpustate.line;
                     if (gpustate.line < 144){
@@ -171,6 +172,8 @@ struct gpu gpustate = {
                 }
             }
             break;
+        default:
+            break;
     }
 }
 
@@ -198,7 +201,7 @@ int gpuCountSprites (void){
     int i;
     int spritesline = 0;
     int spritesx = 0;
-    int scanline = gpustate.line + 16;
+    unsigned int scanline = gpustate.line + 16;
     unsigned char sprite_size = 8;
     if (!testBit(LCDC,1)){
         return 0;
@@ -245,6 +248,8 @@ int gpuCountSprites (void){
                     break;
                 case 0:
                     spritesx = 0;
+                    break;
+                default:
                     break;
             }
         }
@@ -313,7 +318,7 @@ void gpuCompareLine (void){
 void gpuSetStatus(unsigned char value){
         // switch on
         if ( !(memory[LCDC] & 0x80) && (value & 0x80) ){
-            printf("[DEBUG] LCD turned on\n");
+            //printf("[DEBUG] LCD turned on\n");
             memory[LY] = 0;
             gpuCompareLine();
             
@@ -324,7 +329,7 @@ void gpuSetStatus(unsigned char value){
         // switch off
         else if ( (memory[LCDC] & 0x80) && !(value & 0x80) ){ // switch off
             if ( gpustate.mode == V_BLANK ){
-                printf("[DEBUG] LCD turned off\n");
+                //printf("[DEBUG] LCD turned off\n");
                 /* When the LCD is off this register is fixed at 00h */
                 memory[LY] = 0x00;
                 gpustate.line = 0;
@@ -406,43 +411,47 @@ void gpuRenderBackground(void){
     int blue;
      
     unsigned char posX = memory[SCX];
-    unsigned char posY = memory[SCY] + memory[LY];
+    unsigned char posY = memory[SCY] + gpustate.line;
     unsigned char windowX = memory[WX] - 7;
     unsigned char windowY = memory[WY];
  
     unsigned short tileset_start_addr;    //Tile Set start address in memory
     unsigned short tilemap_start_addr;    //Tile Map start address in memory
+    unsigned short tilemap_start_addr_window;    //Tile Map start address in memory
+    unsigned short tilemap_start_addr_background;    //Tile Map start address in memory
+
+
      
     unsigned short tileset_offset;
     unsigned short tilemap_offset;    
 
     //Initialize flags and memory addresses
+                    
     if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
-        if (memory[LY] >= memory[WY]){//Current scanline is after window position
+        if (gpustate.line >= memory[WY]){ //Current scanline is after window position
             using_window = TRUE;
-            posY = memory[LY] - windowY;
+            posY = gpustate.line - windowY;
         }
     }
 
     if (using_window == TRUE){
         if (testBit(LCDC,6) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
-            tilemap_start_addr = 0x9800;
+            tilemap_start_addr_window = 0x9800;
             // using_signed = TRUE;            //tilemap number is signed number
        }
        else{
-            tilemap_start_addr = 0x9C00;
+            tilemap_start_addr_window = 0x9C00;
        }
     }
+
+    if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
+        tilemap_start_addr_background = 0x9800;
+        // using_signed = TRUE;            //tilemap number is signed number
+       }
     else{
-       if (testBit(LCDC,3) == FALSE){     //BG Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
-           tilemap_start_addr = 0x9800;
-          // using_signed = TRUE;            //tilemap number is signed number
-       }
-       else{
-           tilemap_start_addr = 0x9C00;
-       }         
-    }
-     
+        tilemap_start_addr_background = 0x9C00;
+    }         
+
     if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
         tileset_start_addr = 0x8800;
         using_signed = TRUE;
@@ -457,12 +466,20 @@ void gpuRenderBackground(void){
         
         //should read tile for every pixel??
         posX = pixel + memory[SCX];
+        
         if (using_window){
             if (pixel >= windowX){
                 posX = pixel - windowX;
+                tilemap_start_addr = tilemap_start_addr_window;
+            }
+            else{
+                tilemap_start_addr = tilemap_start_addr_background;
             }
         }
-        
+        else{
+            tilemap_start_addr = tilemap_start_addr_background;
+        }
+                    
         tilemap_offset = (posX / 8) + ((posY / 8) * 32);    //find tile in tilemap
         
         if (using_signed == TRUE)   //find tileset number
@@ -603,7 +620,7 @@ void gpuRenderSprites(void){
                 gpuPaintColour(colour, palette, &red, &green, &blue);
                 
                 if ((sprites_shorted[i].Xpos + x >= 8) && (sprites_shorted[i].Xpos + x <= 167)){
-                    if (colour != 0x00){
+                    if (draw_pixel){
                         if (!sprites_shorted[i].priority || background_priority[sprites_shorted[i].Xpos + x - 8]){
                             framebuffer[memory[LY]][sprites_shorted[i].Xpos + x - 8][0] = red;
                             framebuffer[memory[LY]][sprites_shorted[i].Xpos + x - 8][1] = green;
@@ -616,7 +633,7 @@ void gpuRenderSprites(void){
  }
 
 void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int *green, int *blue){
-
+    draw_pixel = TRUE;
     /* Pass colour through the palette */
     switch (colour){
         case 0b00:
@@ -668,15 +685,16 @@ void gpuPaintColour (unsigned char colour, unsigned short palette, int *red, int
 }
 
 void gpuStop (void){
-    int y,x;
     
-    for (y=143; y>=0; y--){
-        for (x=159; x>=0; x--){
+    unsigned int y,x;
+    
+    for (y=0; y<=143; y++){
+        for (x=0; x<=159; x++){
             framebuffer[y][x][0] = framebuffer[y][x][1] = framebuffer[y][x][2] = 255;  
         }
     }
     
-    for (x=159; x>=0; x--){
+    for (x=0; x<=159; x++){
         framebuffer[72][x][0] = framebuffer[72][x][1] = framebuffer[72][x][2] = 0;
     }
 }

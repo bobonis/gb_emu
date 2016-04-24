@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "rom.h"
+#include "gpu.h"
 #include "memory.h"
 #include "definitions.h"
 
@@ -38,7 +39,7 @@ int loadRom(const char *filename){
 
 	// Check file size
 	fseek(pFile , 0 , SEEK_END);
-	unsigned long lSize = ftell(pFile);
+	unsigned long lSize = (unsigned long)ftell(pFile);
 	rewind(pFile);
 	printf("[INFO] Filesize: %d\n", (int)lSize);
 	
@@ -61,20 +62,20 @@ int loadRom(const char *filename){
 	switch (romtype){
 		case 0x00 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM ONLY\n",romtype);
-			memCopy(memory,0x0000,cart_ROM,0x3FFF);
+			memCopy(0x0000,cart_ROM,0x3FFF);
 			break;
 		case 0x01 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1\n",romtype);
-			memCopy(memory,0x0000,cart_ROM,0x3FFF);
+			memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;
 			break;			
 		case 0x02 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM\n",romtype);
-			memCopy(memory,0x0000,cart_ROM,0x3FFF);
+			memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;	
 		case 0x03 :
 			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM+BATT\n",romtype);
-            			memCopy(memory,0x0000,cart_ROM,0x3FFF);
+            			memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;
 			break;
 		case 0x05 :
@@ -279,7 +280,6 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
      * suggests values $0A to enable and $00 to disable
      * RAM bank!!)
      */
-     	  //printf("address %x, mode %x\n",address,MBC_mode); 
     if (address <= 0x1FFF){
         if (MBC1){
             if (( value & 0x0F ) == 0x0A ){
@@ -312,8 +312,6 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             if (active_ROM_bank == 0){ // Bank 0 is not allowed
                 active_ROM_bank = 1;
             }
-     		//printf("[DEBUG] rom_bank=%4x\n", active_ROM_bank);
-
         }
         
     }
@@ -332,7 +330,6 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                 if (active_ROM_bank == 0){ // Bank 0 is not allowed
                     active_ROM_bank = 1;
                 }
-                //printf("[DEBUG] rom_bank=%4x\n", active_ROM_bank);
             }
             else{                   //RAM mode
                 active_RAM_bank = value & 0x03;
@@ -340,8 +337,6 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                 while (active_RAM_bank > total_RAM_banks){
                     active_RAM_bank = active_RAM_bank - total_RAM_banks;
                 }
-
-                //printf("[DEBUG] ram_bank=%4x\n", active_RAM_bank);
             }
         }
         
@@ -358,6 +353,4 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
         }
         
     }
-    
-     //printf("new bank is %x\n",active_ROM_bank);        
 }

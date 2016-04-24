@@ -40,7 +40,7 @@ void handleInterrupts(void){
             cpustate.ime = FALSE;           // Disable master Interrupt
             cpustate.halt = FALSE;          // Resume cpu 
 
-            unsigned int mask = 0x01 << bit;
+            unsigned int mask = (unsigned int)0x01 << bit;
             memory[IFR] &= ~mask;
 
             hardwareTick();
@@ -80,6 +80,8 @@ void handleInterrupts(void){
                     registers.PC = 0x60;
                     //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
                     return;
+                default:
+                    break;
             }           
         }
     }

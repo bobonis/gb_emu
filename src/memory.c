@@ -69,7 +69,7 @@ const unsigned char bios[256] = {
 };
 
 
-void memCopy(unsigned char *memory, unsigned short start, unsigned char *buffer, unsigned short length){
+void memCopy(unsigned short start, unsigned char *buffer, unsigned short length){
 	unsigned short i;
 	
 	for (i=start;i<=length;i++){
@@ -574,7 +574,7 @@ void writeMemory (unsigned short pos, unsigned char value){
             * was mapped, now gets mapped to the beginning of the cartridge’s ROM.
             */
             else if ((address == 0xFF50) && (value == 0x01)){
-                memCopy(memory, 0x0000, memory_backup, 0xFF);
+                memCopy(0x0000, memory_backup, 0xFF);
             }
             else if (address >= 0xFF80 && address <= 0xFFFE){   //Usable RAM
                 memory[address] = value;
@@ -591,6 +591,8 @@ void writeMemory (unsigned short pos, unsigned char value){
                 hardwareTick();
             
             return;
+        default:
+            break;
     }
 
     if (pos < 0x8000){
@@ -657,6 +659,8 @@ void setFlag (unsigned char flag){
         case 4:
             registers.F = registers.F | 0x10;
             break;
+        default:
+            break;
     }
 }
 
@@ -674,6 +678,8 @@ void resetFlag (unsigned char flag){
         case 4:
             registers.F = registers.F & 0xEF;
             break;
+        default:
+            break;
     }
 }
 
@@ -690,6 +696,8 @@ int testFlag (unsigned char flag){
             break;
         case 4:
             if ((registers.F & 0x10) != 0) return 1;
+            break;
+        default:
             break;
     }
     
@@ -731,6 +739,8 @@ void setBit(unsigned short pos, unsigned char bit, bool value){
             if (value == TRUE) memory[pos] = (memory[pos] | 0x80);
             else               memory[pos] = (memory[pos] & 0x7F);
             break;
+        default:
+            break;
     }
 }
 bool testBit(unsigned short pos, unsigned char bit){
@@ -758,6 +768,8 @@ bool testBit(unsigned short pos, unsigned char bit){
             break;
         case 7:
             if ((memory[pos] & 0x80) != 0) return TRUE; 
+            break;
+        default:
             break;
     }
     return FALSE;
