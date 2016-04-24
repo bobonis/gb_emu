@@ -9,7 +9,7 @@
 #include "input.h"
 #include "definitions.h"
 
-#define version "0.85.0"
+#define version "0.85.1"
 
 
 int main(int argc, char **argv){
