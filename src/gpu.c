@@ -531,8 +531,8 @@ void gpuRenderSprites(void){
     /* if X coordinates match, sprites with lower OAM index are drawn last */ 
     int i,j;
     int found = 255;
-    int start = 0;
-    int end = 255;
+    int start = 168;
+    int end = 0;
     int counter = 0;
 
     sprite sprites_shorted[MAXSPRITES];
@@ -540,7 +540,7 @@ void gpuRenderSprites(void){
     for (i=0;i<MAXSPRITES;i++){                     /* For the maximum number of displayed sprites */
         for (j=0;j<40;j++){                         /* Loop for every sprite */
             if (sprites[j].draw){                   /* If this is the first time for this sprite */
-                if (sprites[j].Xpos > start && sprites[j].Xpos < end){
+                if (sprites[j].Xpos < start && sprites[j].Xpos > end){
                     found = j;                      /* We found a sprite */
                     start = sprites[j].Xpos;        /* Look if there is another with higher X coordinate */
                 }
@@ -553,7 +553,11 @@ void gpuRenderSprites(void){
             sprites[found].draw = FALSE;            /* Set it to FALSE so we don't pick the same sprite again */
             end = sprites[found].Xpos;              /* On next iter look for sprites with lower X coordinate */
             found = 255;
-            start = 0;                              /* Start from lower X coordinate again */
+            start = 168;                              /* Start from lower X coordinate again */
+        }
+        else{
+            start = 168;
+            end = 0;
         }
     }
 
@@ -577,7 +581,7 @@ void gpuRenderSprites(void){
     }
 
    
-    for (i=0;i<counter;i++){
+    for (i=counter-1;i>=0;i--){
             
             if (sprites_shorted[i].palette){
                 palette = OBP1;

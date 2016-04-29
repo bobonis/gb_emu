@@ -12,6 +12,7 @@
 int debug_mooneye = FALSE;
 int debug_test_run = FALSE;
 unsigned short debug_pc = 0x0000;
+unsigned int executed_opcodes = 0;
 
 /* CPU VARIABLES */
 
@@ -595,7 +596,7 @@ void execute (void){
         handleInterrupts();
     }
 
-    
+    executed_opcodes++;    
 /*  CPU OPERATION */
 
     int operand_length;                         // Decide how many octets to fetch after opcode
