@@ -23,6 +23,7 @@ extern struct cpu{
 
 extern int cpuHALT;
 extern int cpuSTOP;
+extern unsigned int executed_opcodes;
 
 void execute (void);
 void tempfunction (void);
