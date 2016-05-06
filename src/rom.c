@@ -12,7 +12,7 @@ const unsigned char bioslogo[48] = {
 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 
 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E};
 
-unsigned char cart_RAM[0x8000];
+unsigned char *cart_RAM;
 unsigned char *cart_ROM;
 unsigned char active_RAM_bank = 0;
 unsigned char total_RAM_banks = 0;
@@ -24,7 +24,9 @@ int MBC2 = FALSE;
 int MBC_mode = 0; // 0 - switch ROM bank, 1 - switch RAM bank
 
 int loadRom(const char *filename){
-	
+	    
+    cart_RAM = (unsigned char*)calloc(0x8000, sizeof(unsigned char));
+
 	int i;
 	unsigned char romtype,romsize,ramsize;
 	unsigned short checksum = 25;
@@ -61,88 +63,92 @@ int loadRom(const char *filename){
 	romtype = cart_ROM[0x147];
 	switch (romtype){
 		case 0x00 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM ONLY\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM ONLY\n",romtype);
 			memCopy(0x0000,cart_ROM,0x3FFF);
 			break;
 		case 0x01 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC1\n",romtype);
 			memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;
 			break;			
 		case 0x02 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC1+RAM\n",romtype);
 			memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;	
 		case 0x03 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC1+RAM+BATT\n",romtype);
-            			memCopy(0x0000,cart_ROM,0x3FFF);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC1+RAM+BATT\n",romtype);
+            memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;
 			break;
 		case 0x05 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC2\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC2\n",romtype);
+            memCopy(0x0000,cart_ROM,0x3FFF);
+            MBC2 = TRUE;
 			break;
 		case 0x06 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC2+BATTERY\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC2+BATTERY\n",romtype);
+            memCopy(0x0000,cart_ROM,0x3FFF);
+            MBC2 = TRUE;
 			break;
 		case 0x08 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+RAM\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+RAM\n",romtype);
 			break;			
 		case 0x09 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+RAM+BATTERY\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+RAM+BATTERY\n",romtype);
 			break;		
 		case 0x0B :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MMM01\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MMM01\n",romtype);
 			break;
 		case 0x0C :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MMM01+SRAM\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MMM01+SRAM\n",romtype);
 			break;
 		case 0x0D :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MMM01+SRAM+BATT\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MMM01+SRAM+BATT\n",romtype);
 			break;
 		case 0x0F :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC3+TIMER+BATT\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+TIMER+BATT\n",romtype);
 			break;			
 		case 0x10 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC3+TIMER+RAM+BATT\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+TIMER+RAM+BATT\n",romtype);
 			break;
 		case 0x11 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC3\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3\n",romtype);
 			break;			
 		case 0x12 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC3+RAM\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+RAM\n",romtype);
 			break;
 		case 0x13 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC3+RAM+BATT\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+RAM+BATT\n",romtype);
 			break;
 		case 0x19 :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC5\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5\n",romtype);
 			break;
 		case 0x1A :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC5+RAM\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RAM\n",romtype);
 			break;
 		case 0x1B :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC5+RAM+BATT\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RAM+BATT\n",romtype);
 			break;
 		case 0x1C :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC5+RUMBLE\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RUMBLE\n",romtype);
 			break;
 		case 0x1D :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM\n",romtype);
 			break;
 		case 0x1E :
-			printf("[INFO] Catrige type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM+BATT\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM+BATT\n",romtype);
 			break;
 		case 0x1F :
-			printf("[INFO] Catrige type is: 0x%02x - Pocket Camera\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - Pocket Camera\n",romtype);
 			break;
 		case 0xFD :
-			printf("[INFO] Catrige type is: 0x%02x - Bandai TAMA5\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - Bandai TAMA5\n",romtype);
 			break;
 		case 0xFE :
-			printf("[INFO] Catrige type is: 0x%02x - Hudson HuC-3\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - Hudson HuC-3\n",romtype);
 			break;
 		case 0xFF :
-			printf("[INFO] Catrige type is: 0x%02x - Hudson HuC-1\n",romtype);
+			printf("[INFO] Cartrige type is: 0x%02x - Hudson HuC-1\n",romtype);
 			break;
 		default:
 			printf("[ERROR] Unknown cartrige type: 0x%02x\n",romtype);
@@ -216,7 +222,7 @@ int loadRom(const char *filename){
 			printf("[INFO] RAM size is: 0x%02x - 256Kbit = 32KByte = 4 banks\n",ramsize);
             total_RAM_banks = 4;
 			break;			
-		case 0x04 :
+		case 0x04 : //is it for real?
 			printf("[INFO] RAM size is: 0x%02x - 1Mbit = 128KByte = 16 banks\n",ramsize);
             total_RAM_banks = 16;
 			break;			
@@ -269,7 +275,7 @@ int loadRom(const char *filename){
  */
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     
-    //printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,",active_ROM_bank,address,value);
+//    printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,\n",active_ROM_bank,address,value);
     
     /* Before you can read or write to a RAM bank you have to enable
      * it by writing a XXXX1010 into 0000-1FFF area*. To
@@ -281,7 +287,10 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
      * RAM bank!!)
      */
     if (address <= 0x1FFF){
-        if (MBC1){
+        if (MBC1||MBC2){
+            if (MBC2){
+            if (address & 0x10) return;
+            }
             if (( value & 0x0F ) == 0x0A ){
                 if (MBC_mode)   //RAM mode
                     RAM_bank_enabled = TRUE;    //Enable external RAM
@@ -289,7 +298,6 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             else{
                 if (MBC_mode)   //RAM mode
                     RAM_bank_enabled = FALSE;   //Disable external RAM
-                //codeslinger checks if value & 0x0F == 0 ?? Check above comment!
             }
         }
     }
@@ -312,7 +320,14 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             if (active_ROM_bank == 0){ // Bank 0 is not allowed
                 active_ROM_bank = 1;
             }
-        }
+
+          }
+          else if (MBC2){
+                active_ROM_bank = value&0x0F;    
+                if (active_ROM_bank == 0){ // Bank 0 is not allowed
+                    active_ROM_bank = 1;
+                }
+            }        
         
     }
     else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
@@ -342,10 +357,14 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
         
     }
     else if (( address >= 0x6000 ) && ( address <= 0x7FFF )){
-        // we have to check it according to codeslinger
+
         if (MBC1){
             if (( value & 0x01 ) == 0 ){
                 MBC_mode = 0;   //ROM mode (no RAM banks, up to 2MB ROM)
+                active_RAM_bank = 0;
+                 /*only RAM Bank 00h can be used during Mode 0,
+                   and only ROM Banks 00-1Fh can be used during Mode 1.
+                  */
             }
             else{
                 MBC_mode = 1;   //RAM mode (4 RAM banks, up to 512kB ROM)

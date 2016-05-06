@@ -1,5 +1,5 @@
 extern unsigned char *cart_ROM;
-extern unsigned char cart_RAM[0x8000];
+extern unsigned char *cart_RAM;
 extern unsigned char active_RAM_bank;
 extern int RAM_bank_enabled;
 extern unsigned char active_ROM_bank;
