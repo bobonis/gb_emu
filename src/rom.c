@@ -59,99 +59,106 @@ int loadRom(const char *filename){
 		return 1;
 	}
 
+
+	printf("[INFO] Cartridge game is: ");
+    for (i=0x134;i<=0x142;i++){
+         printf(PRINT_YELLOW "%c" PRINT_RESET,cart_ROM[i]);
+    }
+    printf("\n");
+    
 	// Read cartrige type
 	romtype = cart_ROM[0x147];
 	switch (romtype){
 		case 0x00 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM ONLY\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM ONLY" PRINT_RESET"\n",romtype);
 			memCopy(0x0000,cart_ROM,0x3FFF);
 			break;
 		case 0x01 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC1\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC1" PRINT_RESET"\n",romtype);
 			memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;
 			break;			
 		case 0x02 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC1+RAM\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC1+RAM" PRINT_RESET"\n",romtype);
 			memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;	
 		case 0x03 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC1+RAM+BATT\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC1+RAM+BATT" PRINT_RESET"\n",romtype);
             memCopy(0x0000,cart_ROM,0x3FFF);
             MBC1 = TRUE;
 			break;
 		case 0x05 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC2\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC2" PRINT_RESET"\n",romtype);
             memCopy(0x0000,cart_ROM,0x3FFF);
             MBC2 = TRUE;
 			break;
 		case 0x06 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC2+BATTERY\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC2+BATTERY" PRINT_RESET"\n",romtype);
             memCopy(0x0000,cart_ROM,0x3FFF);
             MBC2 = TRUE;
 			break;
 		case 0x08 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+RAM\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+RAM" PRINT_RESET"\n",romtype);
 			break;			
 		case 0x09 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+RAM+BATTERY\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+RAM+BATTERY" PRINT_RESET"\n",romtype);
 			break;		
 		case 0x0B :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MMM01\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MMM01" PRINT_RESET"\n",romtype);
 			break;
 		case 0x0C :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MMM01+SRAM\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MMM01+SRAM" PRINT_RESET"\n",romtype);
 			break;
 		case 0x0D :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MMM01+SRAM+BATT\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MMM01+SRAM+BATT" PRINT_RESET"\n",romtype);
 			break;
 		case 0x0F :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+TIMER+BATT\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3+TIMER+BATT" PRINT_RESET"\n",romtype);
 			break;			
 		case 0x10 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+TIMER+RAM+BATT\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3+TIMER+RAM+BATT" PRINT_RESET"\n",romtype);
 			break;
 		case 0x11 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3" PRINT_RESET"\n",romtype);
 			break;			
 		case 0x12 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+RAM\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3+RAM" PRINT_RESET"\n",romtype);
 			break;
 		case 0x13 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC3+RAM+BATT\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3+RAM+BATT" PRINT_RESET"\n",romtype);
 			break;
 		case 0x19 :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC5" PRINT_RESET"\n",romtype);
 			break;
 		case 0x1A :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RAM\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC5+RAM" PRINT_RESET"\n",romtype);
 			break;
 		case 0x1B :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RAM+BATT\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC5+RAM+BATT" PRINT_RESET"\n",romtype);
 			break;
 		case 0x1C :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RUMBLE\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC5+RUMBLE" PRINT_RESET"\n",romtype);
 			break;
 		case 0x1D :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM" PRINT_RESET"\n",romtype);
 			break;
 		case 0x1E :
-			printf("[INFO] Cartrige type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM+BATT\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC5+RUMBLE+SRAM+BATT" PRINT_RESET"\n",romtype);
 			break;
 		case 0x1F :
-			printf("[INFO] Cartrige type is: 0x%02x - Pocket Camera\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - Pocket Camera" PRINT_RESET"\n",romtype);
 			break;
 		case 0xFD :
-			printf("[INFO] Cartrige type is: 0x%02x - Bandai TAMA5\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - Bandai TAMA5" PRINT_RESET"\n",romtype);
 			break;
 		case 0xFE :
-			printf("[INFO] Cartrige type is: 0x%02x - Hudson HuC-3\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - Hudson HuC-3" PRINT_RESET"\n",romtype);
 			break;
 		case 0xFF :
-			printf("[INFO] Cartrige type is: 0x%02x - Hudson HuC-1\n",romtype);
+			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - Hudson HuC-1" PRINT_RESET"\n",romtype);
 			break;
 		default:
-			printf("[ERROR] Unknown cartrige type: 0x%02x\n",romtype);
+			printf(PRINT_RED "[ERROR] Unknown cartrige type: 0x%02x" PRINT_RESET"\n",romtype);
 			return 1;
 	}
 

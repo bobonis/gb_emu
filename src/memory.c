@@ -1,5 +1,6 @@
 #include "memory.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "timers.h"
 #include "input.h"
 #include "rom.h"
@@ -36,7 +37,10 @@ struct registers registers;
  */
 unsigned char memory[0x10000];              /* 64KB System RAM Memory */
 unsigned char memory_backup[256];           /* Used when bios is loaded */
+unsigned char memory_SRAM[512];
 
+
+FILE *fp;
 int gpu_reading = 0;
 
 struct dma dmastate = {
@@ -47,6 +51,9 @@ struct dma dmastate = {
     0x0000          //address
 };
 
+int sram_active =  0;              //1: SRAM cart is active 
+                                   //0: save file is active
+                                   
 const unsigned char bios[256] = {
 //0    1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
 
@@ -177,9 +184,36 @@ unsigned char readMemory8 (unsigned short address){
             }
             break;
         case 0xA ... 0xB:                   /* switchable RAM bank */
+            if (MBC2){
+                temp = 0;
+                if (( address >= 0xA000 ) && ( address <= 0xA1FF )){
+                      //printf(PRINT_RED "[DEBUG] Now we will read from SRAM and from address %4X" PRINT_RESET"\n",address);
+                          if (!sram_active){
+                              if((fp=fopen("test", "rb"))==NULL) {
+                                  printf("Cannot open file.\n");
+                              }
+                              else{
+                                  fp=fopen("test","rb");
+                                  sram_active = 1;
+                                  fread(memory_SRAM, 1, 512, fp); 
+                                  address = address & 0x1FF;
+                                  temp = memory_SRAM[address];  
+                                  //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
+                                  fclose(fp);
+                              }
+                          }
+                          else{
+                               address = address & 0x1FF;
+                               temp = memory_SRAM[address];  
+                               //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
+                          }
+                      }
+            }
+            else {
             address -= 0xA000;
             address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
             temp = cart_RAM[address];
+            }
             break;
         case 0xF:
             switch (address >> 8){                 /* Get most significant 8 bits */
@@ -403,7 +437,7 @@ void writeMemory16 (unsigned short pos, unsigned short value){
 void writeMemory (unsigned short pos, unsigned char value){
 
     unsigned short address = pos;
-
+    
 
     switch (address & 0xFF00){
         case 0xFF00 : 
@@ -596,9 +630,9 @@ void writeMemory (unsigned short pos, unsigned char value){
     }
 
     if (pos < 0x8000){
-        //printf("OLD ROM= %d, RAM= %d",active_ROM_bank,active_RAM_bank);
+//        printf("OLD ROM= %d, RAM= %d",active_ROM_bank,active_RAM_bank);
         cartridgeSwitchBanks(pos, value);
-        //printf("-- NEW ROM= %d, RAM= %d\n",active_ROM_bank,active_RAM_bank);
+//        printf("-- NEW ROM= %d, RAM= %d\n",active_ROM_bank,active_RAM_bank);
     }
     else if (( pos >= 0x8000 ) && ( pos <= 0x9FFF )){ //VRAM
         if ((memory[0xFF41] & 0x03) == 0x03){
@@ -608,9 +642,20 @@ void writeMemory (unsigned short pos, unsigned char value){
         }
     }
     else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
-        pos -= 0xA000;
-        pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-        cart_RAM[pos] = value;
+               if (MBC2){
+                   if (( pos >= 0xA000 ) && ( pos <= 0xA1FF )){
+                         //printf(PRINT_RED "[DEBUG] Now we will write to SRAM" PRINT_RESET"\n");
+                         pos &= 0x1FF;
+                         memory_SRAM[pos] = value;
+                         sram_active = 1;
+                         //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d and SRAM position = %d" PRINT_RESET"\n",memory_SRAM[pos],pos);
+                   }
+               }
+               else{
+                   pos -= 0xA000;
+                   pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+                   cart_RAM[pos] = value;
+               }
     }    
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
@@ -837,4 +882,25 @@ void updateDMA (){
         }
     }
 
+}
+
+/*
+ * The below function will copy the SRAM of MBC2 to a file upon an exit.
+ * In that way we will emulate the SRAM of the cartridge.
+ */
+void updateMBC2SRAM (){
+    if (MBC2){
+        if((fp=fopen("test", "rb"))==NULL) {
+            printf(PRINT_RED "[DEBUG] Cannot open file." PRINT_RESET"\n");
+        }
+        else{
+             if (sram_active){
+             //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d" PRINT_RESET"\n",memory_SRAM[0]);
+             fp=fopen("test", "wb");
+             //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d" PRINT_RESET"\n",memory_SRAM[0]);
+             fwrite(memory_SRAM, 1, 512, fp);
+             fclose(fp);
+             }
+       }
+    }
 }
