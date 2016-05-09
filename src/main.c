@@ -9,7 +9,7 @@
 #include "input.h"
 #include "definitions.h"
 
-#define version "0.85.4"
+#define version "0.85.5"
 
 
 int main(int argc, char **argv){
@@ -63,6 +63,7 @@ int main(int argc, char **argv){
 		inputHandleEvents(event);
 	}
 
+    updateMBC2SRAM();   
     displayEnd();
 	
 return 0;

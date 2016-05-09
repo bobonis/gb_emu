@@ -1,3 +1,9 @@
+alam
+    - Beta MBC2 support
+    - Save - Load supported only for one cartridge at a time
+    - debugging needed with Japan MBC2 cartridges, try eg. Dragonball Z
+    - Mystic quest is playable our loved Mitso/Baiba 
+
 bobonis
     - Fixed all opcode timings
 

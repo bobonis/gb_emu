@@ -77,3 +77,11 @@
 #define LOG_WARN     (3)
 #define LOG_INFO     (4)
 #define LOG_DBG      (5)
+
+#define PRINT_RED     "\x1b[31m"
+#define PRINT_GREEN   "\x1b[32m"
+#define PRINT_YELLOW  "\x1b[33m"
+#define PRINT_BLUE    "\x1b[34m"
+#define PRINT_MAGENTA "\x1b[35m"
+#define PRINT_CYAN    "\x1b[36m"
+#define PRINT_RESET   "\x1b[0m"
