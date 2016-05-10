@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "rom.h"
 #include "gpu.h"
 #include "memory.h"
@@ -14,6 +16,7 @@ const unsigned char bioslogo[48] = {
 
 unsigned char *cart_RAM;
 unsigned char *cart_ROM;
+char cart_game[17] = "sram/cartridgerom";
 unsigned char active_RAM_bank = 0;
 unsigned char total_RAM_banks = 0;
 int RAM_bank_enabled = FALSE;
@@ -23,10 +26,11 @@ int MBC1 = FALSE;
 int MBC2 = FALSE;
 int MBC_mode = 0; // 0 - switch ROM bank, 1 - switch RAM bank
 
+
 int loadRom(const char *filename){
 	    
-    cart_RAM = (unsigned char*)calloc(0x8000, sizeof(unsigned char));
-
+    cart_RAM = (unsigned char*)calloc(0x8000, 1);
+    FILE *fp;
 	int i;
 	unsigned char romtype,romsize,ramsize;
 	unsigned short checksum = 25;
@@ -60,9 +64,12 @@ int loadRom(const char *filename){
 	}
 
 
-	printf("[INFO] Cartridge game is: ");
+    printf("[INFO] Cartridge game is: ");
     for (i=0x134;i<=0x142;i++){
          printf(PRINT_YELLOW "%c" PRINT_RESET,cart_ROM[i]);
+         if((i-303)<17){
+         cart_game[i-303] = (char)cart_ROM[i];
+         }
     }
     printf("\n");
     
@@ -96,6 +103,15 @@ int loadRom(const char *filename){
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC2+BATTERY" PRINT_RESET"\n",romtype);
             memCopy(0x0000,cart_ROM,0x3FFF);
             MBC2 = TRUE;
+            if (!(file_exist (cart_game))){
+                if((fp = fopen(cart_game,"wb"))==NULL) {
+                    printf(PRINT_RED "[DEBUG]Cannot create file." PRINT_RESET "\n");
+                }
+                else{
+                     fp = fopen(cart_game,"wb");
+                     fclose(fp);
+                }
+            }
 			break;
 		case 0x08 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+RAM" PRINT_RESET"\n",romtype);
@@ -379,4 +395,15 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
         }
         
     }
+}
+
+/*
+ * The below function will check if a file exists.
+ *
+ */
+ 
+ int file_exist (char *fp)
+{
+  struct stat buffer;   
+  return (stat (fp, &buffer) == 0);
 }
