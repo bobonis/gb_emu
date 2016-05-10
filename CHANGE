@@ -1,4 +1,10 @@
 alam
+    - MBC2 Save/Load, one file per cartridge
+    - debugging still needed with Japan MBC2 cartridges like Dragonball Z
+    (just like obj folder is manually created, sram folder will be needed
+     @ the same level)
+
+alam
     - Beta MBC2 support
     - Save - Load supported only for one cartridge at a time
     - debugging needed with Japan MBC2 cartridges, try eg. Dragonball Z

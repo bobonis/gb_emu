@@ -189,11 +189,11 @@ unsigned char readMemory8 (unsigned short address){
                 if (( address >= 0xA000 ) && ( address <= 0xA1FF )){
                       //printf(PRINT_RED "[DEBUG] Now we will read from SRAM and from address %4X" PRINT_RESET"\n",address);
                           if (!sram_active){
-                              if((fp=fopen("test", "rb"))==NULL) {
+                              if((fp=fopen(cart_game, "rb"))==NULL) {
                                   printf("Cannot open file.\n");
                               }
                               else{
-                                  fp=fopen("test","rb");
+                                  fp=fopen(cart_game,"rb");
                                   sram_active = 1;
                                   fread(memory_SRAM, 1, 512, fp); 
                                   address = address & 0x1FF;
@@ -890,13 +890,13 @@ void updateDMA (){
  */
 void updateMBC2SRAM (){
     if (MBC2){
-        if((fp=fopen("test", "rb"))==NULL) {
+        if((fp=fopen(cart_game, "rb"))==NULL) {
             printf(PRINT_RED "[DEBUG] Cannot open file." PRINT_RESET"\n");
         }
         else{
              if (sram_active){
              //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d" PRINT_RESET"\n",memory_SRAM[0]);
-             fp=fopen("test", "wb");
+             fp=fopen(cart_game, "wb");
              //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d" PRINT_RESET"\n",memory_SRAM[0]);
              fwrite(memory_SRAM, 1, 512, fp);
              fclose(fp);
