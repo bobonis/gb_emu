@@ -1,17 +1,31 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <epoxy/gl.h>
-
+#include "gpu.h"
+#include "window.h"
+#define SCREEN_HEIGHT 144
+#define SCREEN_WIDTH 160
 /* glib-compile-resources --target=gresource.c --generate-source window.gresource.xml */
-
+GtkWidget *gl_area = NULL;
 GError *error = NULL;
 unsigned int temp=0;
-
+gpointer data1 = NULL;
 
 static const GLushort g_element_buffer_data[] = { 0, 1, 2, 3 };
 static short le_short(unsigned char *bytes)
 {
     return bytes[0] | ((char)bytes[1] << 8);
+}
+
+void displayGTK(){
+    GdkGLContext *context;
+    context = gtk_gl_area_get_context (GTK_GL_AREA (gl_area));
+    gtk_gl_area_make_current (GTK_GL_AREA (gl_area));
+    
+    //render (GTK_GL_AREA (gl_area), context);
+    gtk_gl_area_queue_render (GTK_GL_AREA (gl_area));
+    //gdk_threads_add_idle(update_gui,data1);
+    
 }
 
 void *read_tga(const char *filename, int *width, int *height)
@@ -151,30 +165,59 @@ static GLuint make_buffer(
 
 static GLuint make_texture(const char *filename)
 {
-    int width, height;
-    void *pixels = read_tga(filename, &width, &height);
+    int y,x;
     GLuint texture;
-
-    if (!pixels)
-        return 0;
+	// Clear screen
+	for(y = 0; y < SCREEN_HEIGHT; ++y)		
+		for(x = 0; x < SCREEN_WIDTH; ++x)
+			framebuffer[y][x][0] = framebuffer[y][x][1] = framebuffer[y][x][2] = 100;
 
     glGenTextures(1, &texture);
+    error = glGetError();
+    if (error)
+        g_print(" glGenTextures %d\n",error); 
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+    error = glGetError();
+    if (error)
+        g_print(" glBindTexture %d\n",error);     
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP);
+    error = glGetError();
+    if (error)
+        g_print(" glTexParameteri %d\n",error);     
     glTexImage2D(
         GL_TEXTURE_2D, 0,           /* target, level */
         GL_RGB8,                    /* internal format */
-        width, height, 0,           /* width, height, border */
+        SCREEN_WIDTH, SCREEN_HEIGHT, 0,           /* width, height, border */
         GL_BGR, GL_UNSIGNED_BYTE,   /* external format, type */
-        pixels                      /* pixels */
+        (GLvoid*)framebuffer                      /* pixels */
     );
-    free(pixels);
+    
+    error = glGetError();
+    if (error)
+        g_print(" glTexImage2D %d\n",error); 
+    
     return texture;
 }
 
+static GLuint update_texture()
+{
+
+    GLuint texture = g_resources.textures[0];
+    //glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0,           /* target, level */
+        GL_RGB8,                    /* internal format */
+        SCREEN_WIDTH, SCREEN_HEIGHT, 0,           /* width, height, border */
+        GL_RGB, GL_UNSIGNED_BYTE,   /* external format, type */
+        (GLvoid*)framebuffer       /* pixels */
+    );
+
+    return texture;
+}
 
 static GLuint make_shader(GLenum type, const char *filename)
 {
@@ -244,7 +287,8 @@ static int make_resources(void)
    err = glGetError();
     if (err)
         g_print(" start make resources %d\n",err); 
-        
+
+    
     g_resources.vertex_buffer = make_buffer(
         GL_ARRAY_BUFFER,
         g_vertex_buffer_data,
@@ -322,27 +366,35 @@ static int make_resources(void)
 
 
 
-static gboolean
+gboolean
 render (GtkGLArea    *area,
         GdkGLContext *context)
 {
   
   gtk_gl_area_make_current(area);
-  
+
   GLenum err;
   /* Clear the viewport */
    err = glGetError();
     if (err)
         g_print(" before clear %d\n",err); 
-  glClearColor (1.0, 1.0, 1.0, 1.0);
-  glClear (GL_COLOR_BUFFER_BIT);
+  //glClearColor (1.0, 1.0, 1.0, 1.0);
+  //glClear (GL_COLOR_BUFFER_BIT);
+
+    GLuint vao;
+glGenVertexArrays(1, &vao);
+glBindVertexArray(vao);
   
   err = glGetError();
     if (err)
         g_print("clear %d\n",err);
 
+g_resources.textures[0] = update_texture();
+g_resources.textures[1] = update_texture();
+//    g_resources.textures[0] = make_texture("hello1.tga");
+//    g_resources.textures[1] = make_texture("hello2.tga");
 
-  g_print("RENDER OK\n");
+ // g_print("RENDER OK\n");
     
     glUseProgram(g_resources.program);
 
@@ -352,6 +404,10 @@ render (GtkGLArea    *area,
 
 g_resources.fade_factor +=1;
     glUniform1f(g_resources.uniforms.fade_factor, g_resources.fade_factor);
+    
+        err = glGetError();
+    if (err)
+        g_print("glUniform1f %d\n",err);
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_resources.textures[0]);
@@ -365,9 +421,7 @@ g_resources.fade_factor +=1;
     if (err)
         g_print("after texture %d\n",err);
     
-    GLuint vao;
-glGenVertexArrays(1, &vao);
-glBindVertexArray(vao);
+
     
         
     glBindBuffer(GL_ARRAY_BUFFER, g_resources.vertex_buffer);
@@ -407,6 +461,7 @@ glBindVertexArray(vao);
         
   /* Flush the contents of the pipeline */
   glFlush ();
+  
 
   return TRUE;
 }
@@ -501,13 +556,68 @@ realize (GtkWidget *widget)
 }
 
 
+GMutex mutex_interface;
+
+gboolean update_gui(gpointer data) {
+  g_mutex_lock(&mutex_interface);
+      //gtk_gl_area_queue_render (GTK_GL_AREA (gl_area));
+      //gtk_widget_queue_draw (gl_area);
+
+  // update the GUI here:
+  //gtk_button_set_label(button,"label");
+  // And read the GUI also here, before the mutex to be unlocked:
+  //gchar * text = gtk_entry_get_text(GTK_ENTRY(entry));
+  g_mutex_unlock(&mutex_interface);
+
+  return FALSE;
+}
+
+gpointer threadcompute(gpointer data) {
+  int count = 0;
+
+  loadRom("../../roms/Tetris.gb");
+  data1 = data;
+  while(1) {
+
+
+		execute();
+        
+		//inputHandleEvents(event);
+
+    // sometimes update the GUI:
+    //while(gtk_events_pending())
+    if (count > 1000){
+        //gdk_threads_add_idle(update_gui,data);
+        count = 0;
+    }
+    // or:
+    //g_idle_add(update_gui,data);
+
+    count++;
+  }
+
+  return NULL;
+}
+
+
+
+static void
+print_hello (GtkWidget *widget,
+             gpointer   data)
+{
+  g_print ("Start Emulation\n");
+  g_thread_new("thread",threadcompute,data);
+}
+
+
+
 static void
 activate (GtkApplication *app,
           gpointer        user_data)
 {
   GtkWidget *window;
   GtkWidget *box;
-  GtkWidget *gl_area;
+  
 
   /* Create Window */
 
@@ -527,6 +637,14 @@ activate (GtkApplication *app,
   gtk_widget_set_vexpand (gl_area, TRUE);
   gtk_container_add (GTK_CONTAINER (box), gl_area);
 
+  GtkWidget *button;
+  
+
+  button = gtk_button_new_with_label ("Hello World");
+  g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
+  gtk_container_add (GTK_CONTAINER (box), button);
+  
+  
   /* We need to initialize and free GL resources, so we use
    * the realize and unrealize signals on the widget
    */

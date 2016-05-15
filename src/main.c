@@ -11,7 +11,7 @@
 
 #define version "0.85.6"
 
-
+/*
 int main(int argc, char **argv){
 
     SDL_Event event;                   //Event handler
@@ -68,3 +68,4 @@ int main(int argc, char **argv){
 	
 return 0;
 }
+*/
