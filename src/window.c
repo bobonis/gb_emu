@@ -15,6 +15,7 @@ GError *error = NULL;
 unsigned int temp=0;
 gpointer data1 = NULL;
 GMutex mutex_interface;
+char *rom_filename = NULL;
 
 /*
  * Global data used by our render callback:
@@ -53,35 +54,43 @@ static const GLushort g_element_buffer_data[] = { 0, 1, 2, 3 };
 
 static void activate (GtkApplication *app, gpointer user_data)
 {
+    GtkBuilder *builder;
     GtkWidget *window;
     GtkWidget *box;
+    GtkWidget *toolbar_play_button;
+    GtkWidget *toolbar_load_button;
+    GtkWidget *toolbar_pause_button;
+
+    /* Construct a GtkBuilder instance and load our UI description */
+    builder = gtk_builder_new ();
+    gtk_builder_add_from_file (builder, "window.glade", NULL);
 
     /* Create Window */
-
-    window = gtk_application_window_new (app);
-    gtk_window_set_title (GTK_WINDOW (window), "Window");
-    gtk_window_set_default_size (GTK_WINDOW (window), 160, 144);
-    g_signal_connect (window, "destroy", G_CALLBACK (gtk_widget_destroy), window);
-
-    /* Create Box */
- 
-    box = gtk_box_new (GTK_ORIENTATION_VERTICAL, FALSE);
-    gtk_box_set_spacing (GTK_BOX (box), 6);
-    gtk_container_add (GTK_CONTAINER (window), box);
-
+    
+    window = gtk_builder_get_object (builder, "main_window");
+    box = gtk_builder_get_object (builder, "main_box");
+    g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+    toolbar_load_button = gtk_builder_get_object (builder, "toolbar_load_button");
+    toolbar_play_button = gtk_builder_get_object (builder, "toolbar_play_button");
+    toolbar_pause_button = gtk_builder_get_object (builder, "toolbar_pause_button");
+    //gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (toolbar_pause_button), TRUE);
+    g_signal_connect (toolbar_load_button, "clicked", G_CALLBACK (on_load_button_clicked), window);
+    g_signal_connect (toolbar_play_button, "clicked", G_CALLBACK (on_play_button_clicked), NULL);
+    //g_signal_connect (toolbar_pause_button, "clicked", G_CALLBACK (on_pause_button_clicked), NULL);
     /* Create GLAREA */
   
     gl_area = gtk_gl_area_new ();
+    gtk_widget_set_size_request (gl_area, 480, 432);
     gtk_widget_set_hexpand (gl_area, TRUE);
     gtk_widget_set_vexpand (gl_area, TRUE);
     gtk_container_add (GTK_CONTAINER (box), gl_area);
 
     /* Create Button */
   
-    GtkWidget *button;
-    button = gtk_button_new_with_label ("Start");
-    g_signal_connect (button, "clicked", G_CALLBACK (start_emu), NULL);
-    gtk_container_add (GTK_CONTAINER (box), button);
+    //GtkWidget *button;
+    //button = gtk_button_new_with_label ("Start");
+    //g_signal_connect (button, "clicked", G_CALLBACK (start_emu), NULL);
+    //gtk_container_add (GTK_CONTAINER (box), button);
   
   
     /* We need to initialize and free GL resources, so we use
@@ -89,16 +98,17 @@ static void activate (GtkApplication *app, gpointer user_data)
      */
     g_signal_connect (gl_area, "realize", G_CALLBACK (realize), NULL);
     g_signal_connect (gl_area, "unrealize", G_CALLBACK (unrealize), NULL);
-
-    /* The main "draw" call for GtkGLArea */
     g_signal_connect (gl_area, "render", G_CALLBACK (render), NULL);
 
+
+
+    /* Show everything */
     if (!gtk_widget_get_visible (window))
         gtk_widget_show_all (window);
     else
         gtk_widget_destroy (window);
 
-    gtk_widget_show_all (window);
+    gtk_main ();
 }
 
 
@@ -330,7 +340,7 @@ gboolean render (GtkGLArea *area, GdkGLContext *context)
 {
   
     gtk_gl_area_make_current(area);
-
+        
     GLenum err;
     GLuint vao;
 
@@ -438,6 +448,7 @@ void *file_contents(const char *filename, GLint *length)
 
 void displayGTK(void)
 {
+    g_mutex_lock(&mutex_interface);
     GdkGLContext *context;
     context = gtk_gl_area_get_context (GTK_GL_AREA (gl_area));
 
@@ -448,6 +459,7 @@ void displayGTK(void)
 
     //render (GTK_GL_AREA (gl_area), context);
     gtk_gl_area_queue_render (GTK_GL_AREA (gl_area));
+    g_mutex_unlock(&mutex_interface);
     //gdk_threads_add_idle(update_gui,data1);
 }
 
@@ -471,8 +483,9 @@ gpointer threademulate(gpointer data)
   
     int count = 0;
 
-    loadRom("../../roms/Tetris.gb");
+    loadRom(rom_filename);
     data1 = data;
+    reset();
     while(1) {
 
         execute();
@@ -483,10 +496,13 @@ gpointer threademulate(gpointer data)
     //while(gtk_events_pending())
     if (count > 1000){
         //gdk_threads_add_idle(update_gui,data);
+        //while (gtk_events_pending())
+            //gtk_main_iteration();
         count = 0;
     }
     // or:
     //g_idle_add(update_gui,data);
+
 
     count++;
   }
@@ -496,11 +512,59 @@ gpointer threademulate(gpointer data)
 
 
 
-static void start_emu (GtkWidget *widget, gpointer data)
+static gboolean on_play_button_clicked (GtkWidget *widget, gpointer data)
 {
     g_print ("Start Emulation\n");
+    gtk_widget_set_sensitive (widget, FALSE);
     g_thread_new("thread",threademulate,data);
+    //threademulate(data);
+    
+    return TRUE;
 }
+
+static gboolean on_load_button_clicked (GtkWidget *widget, GtkWindow *parent_window)
+{
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    gint res;
+    
+    /* Create file filters */
+    
+    GtkFileFilter *filter_gb = gtk_file_filter_new ();
+    GtkFileFilter *filter_all = gtk_file_filter_new ();
+    gtk_file_filter_set_name (filter_gb,"Gameboy roms");
+    gtk_file_filter_set_name (filter_all,"All files");
+    gtk_file_filter_add_pattern (filter_gb, "*.gb");
+    gtk_file_filter_add_pattern (filter_all, "*");
+    
+    dialog = gtk_file_chooser_dialog_new ("Open File",
+                                          parent_window,
+                                          action,
+                                          ("_Cancel"),
+                                          GTK_RESPONSE_CANCEL,
+                                          ("_Open"),
+                                          GTK_RESPONSE_ACCEPT,
+                                          NULL);
+                                          
+    gtk_window_set_modal (GTK_WINDOW (dialog),
+                        FALSE);
+
+    gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_gb);
+    gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter_all);
+
+    res = gtk_dialog_run (GTK_DIALOG (dialog));
+    
+    if (res == GTK_RESPONSE_ACCEPT){
+
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+        rom_filename = gtk_file_chooser_get_filename (chooser);
+        //g_free (filename);
+    }
+
+    gtk_widget_destroy (dialog);
+    return TRUE;
+}
+
 
 int
 main (int    argc,

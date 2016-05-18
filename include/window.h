@@ -16,5 +16,7 @@ static GLuint make_program(GLuint vertex_shader, GLuint fragment_shader);
 void displayGTK(void);
 void *file_contents(const char *filename, GLint *length);
 gboolean update_gui(gpointer data);
-static void start_emu (GtkWidget *widget, gpointer data);
+static gboolean on_play_button_clicked (GtkWidget *widget, gpointer data);
+static gboolean on_load_button_clicked (GtkWidget *widget, GtkWindow *window);
+
 gpointer threademulate(gpointer data);
