@@ -1,3 +1,9 @@
+0.86.2
+    - SDL support comeback. You may use make -f Makefile.sdl to create SDL build
+    - Huge speedup for SDL. Now polling for events every 100 cpu cycles
+    - New option in definitions for VSYNC. Needed to make emulator playable in logical speedup
+    - SDL event polling until no more events. Please check the issue
+
 alam
     - MBC2 Save/Load, one file per cartridge
     - debugging still needed with Japan MBC2 cartridges like Dragonball Z

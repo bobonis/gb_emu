@@ -162,10 +162,12 @@ struct gpu gpustate = {
                         triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
                     }
                     
-                    displayGTK();
-                    fpsthink();
-                    //printf("DISPLAY GTK\n");
-                    //display();
+                    #ifdef GTK
+                        displayGTK();
+                        fpsthink();
+                    #else
+                        display();
+                    #endif
                 }
                 else{
                     gpustate.clock = V_BLANK_CYCLES;
