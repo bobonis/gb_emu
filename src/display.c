@@ -82,7 +82,7 @@ int displayInit(void){
     }
 
     /* This makes our buffer swap syncronized with the monitor's vertical refresh */
-    if (SDL_GL_SetSwapInterval(0) == 0)
+    if (SDL_GL_SetSwapInterval(VSYNC) == 0)
         printf("[DEBUG] Vsync Disabled\n");
     else
         printf("[DEBUG] Error with Vsync.SDL_Error: %s\n", SDL_GetError() );  

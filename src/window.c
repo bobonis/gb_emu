@@ -8,7 +8,7 @@
 #include "render.h"
 #include "input.h"
 
-#define version "0.86.1"
+#define version "0.86.2"
 #define STOP 0
 #define RUNNING 1
 #define PAUSE 2

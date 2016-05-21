@@ -9,9 +9,9 @@
 #include "input.h"
 #include "definitions.h"
 
-#define version "0.85.6"
+#define version "0.86.2"
 
-/*
+
 int main(int argc, char **argv){
 
     SDL_Event event;                   //Event handler
@@ -42,25 +42,34 @@ int main(int argc, char **argv){
     printf("[INFO] DIRECTION = arrow keys\n");
     //display();
     
-	while (!QUIT) {
+    int count = 0;
+	
+    while (!QUIT) {
+    
+        count++;    
         
-        SDL_PollEvent( &event );
-        if( event.type == SDL_QUIT ) { 
-            QUIT = TRUE;
-        }
+        if (count > 100){                   /* Poll for events every 100 loops */  
+            while (SDL_PollEvent(&event)) {
+                if( event.type == SDL_QUIT ) { 
+                    QUIT = TRUE;
+                }
         
-        if (event.type == SDL_KEYDOWN){
-            if (event.key.keysym.sym == SDLK_ESCAPE){
-                QUIT = TRUE;
+                if (event.type == SDL_KEYDOWN){
+                    if (event.key.keysym.sym == SDLK_ESCAPE){
+                        QUIT = TRUE;
+                    }
+                    if (event.key.keysym.sym == SDLK_F1){
+                        displayEnd();
+                        return 1;
+                    }
+                }
+                inputHandleEvents(event);
             }
-            if (event.key.keysym.sym == SDLK_F1){
-                displayEnd();
-                return 1;
-            }
+        count = 0;
         }       
               
 		execute();
-		inputHandleEvents(event);
+		//inputHandleEvents(event);
 	}
 
     updateMBC2SRAM();   
@@ -68,4 +77,3 @@ int main(int argc, char **argv){
 	
 return 0;
 }
-*/
