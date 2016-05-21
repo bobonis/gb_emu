@@ -6,21 +6,25 @@
 #include "rom.h"
 #include "cpu.h"
 #include "render.h"
+#include "input.h"
 
+#define version "0.86.1"
 #define STOP 0
 #define RUNNING 1
 #define PAUSE 2
 
+
+
 /* glib-compile-resources --target=gresource.c --generate-source window.gresource.xml */
 GtkWidget *gl_area = NULL;
+GtkWidget *toolbar_play_button = NULL;
 GError *error = NULL;
 unsigned int temp=0;
 
-GMutex mutex_interface;
-char *rom_filename = NULL;
-
 struct emu emulator = {
-    STOP       /* running */
+    STOP,       /* running */
+    NULL ,      /* Rom Filename */
+    FALSE       /* Start automatic execution */
 };
 
 static void activate (GtkApplication *app, gpointer user_data)
@@ -28,7 +32,7 @@ static void activate (GtkApplication *app, gpointer user_data)
     GtkBuilder *builder;
     GtkWidget *window;
     GtkWidget *box;
-    GtkWidget *toolbar_play_button;
+    //GtkWidget *toolbar_play_button;
     GtkWidget *toolbar_load_button;
     GtkWidget *toolbar_pause_button;
 
@@ -39,10 +43,14 @@ static void activate (GtkApplication *app, gpointer user_data)
     /* Create Window */
     
     window = GTK_WIDGET(gtk_builder_get_object (builder, "main_window") );
+    gtk_window_set_title(GTK_WINDOW(window), version);
     box = GTK_WIDGET (gtk_builder_get_object (builder, "main_box") );
     g_signal_connect (window, "destroy", G_CALLBACK (on_close_button_clicked), NULL);
+    g_signal_connect (window, "key_press_event", G_CALLBACK (on_key_press), NULL);
+    g_signal_connect (window, "key_release_event", G_CALLBACK (on_key_release), NULL);
     toolbar_load_button = GTK_WIDGET( gtk_builder_get_object (builder, "toolbar_load_button") );
     toolbar_play_button = GTK_WIDGET( gtk_builder_get_object (builder, "toolbar_play_button") );
+    gtk_widget_set_sensitive (toolbar_play_button, FALSE);
     toolbar_pause_button = GTK_WIDGET( gtk_builder_get_object (builder, "toolbar_pause_button") );
     //gtk_toggle_button_set_mode (GTK_TOGGLE_BUTTON (toolbar_pause_button), TRUE);
     g_signal_connect (toolbar_load_button, "clicked", G_CALLBACK (on_load_button_clicked), window);
@@ -71,7 +79,22 @@ static void activate (GtkApplication *app, gpointer user_data)
     else
         gtk_widget_destroy (window);
 
-    gtk_main ();
+
+    if (emulator.autostart){
+        gtk_widget_set_sensitive (toolbar_load_button, FALSE);
+        emulator.state = RUNNING;
+        gtk_main_iteration(); 
+        threademulate(NULL);
+      //  gtk_idle_add (threademulate, NULL);
+    }  
+    else{
+        gtk_main();
+    }
+
+    //gtk_main ();
+    
+  
+
 }
 
 
@@ -129,9 +152,14 @@ void displayGTK(void)
     if (gtk_gl_area_get_error (GTK_GL_AREA (gl_area)) != NULL)
         return;
     gtk_gl_area_make_current (GTK_GL_AREA (gl_area));
-    
-
+    //sleep(2.646746099);
+    struct timespec ts;
+    ts.tv_sec = 10 / 1000;
+    ts.tv_nsec = (10 % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+    //usleep(8000);
     gtk_gl_area_queue_render (GTK_GL_AREA (gl_area));
+    
 
 }
 
@@ -140,12 +168,19 @@ gpointer threademulate(gpointer data)
   
     int count = 0;
 
-    loadRom(rom_filename);
+    while (gtk_events_pending())
+        gtk_main_iteration();
+        
+    if (!emulator.autostart)
+        loadRom(emulator.rom_filename);
+
     reset();
+
     while(1) {
 
         switch (emulator.state){
             case STOP :
+                updateMBC2SRAM(); 
                 return NULL;
                 break;
             case RUNNING :
@@ -180,7 +215,8 @@ gpointer threademulate(gpointer data)
 static void on_close_button_clicked (GtkWidget *widget, gpointer data)
 {
     emulator.state = STOP;
-    gtk_main_quit();
+    if (!emulator.autostart)
+        gtk_main_quit();
 }
 
 
@@ -251,7 +287,9 @@ static gboolean on_load_button_clicked (GtkWidget *widget, GtkWindow *parent_win
     if (res == GTK_RESPONSE_ACCEPT){
 
         GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-        rom_filename = gtk_file_chooser_get_filename (chooser);
+        gtk_widget_set_sensitive (toolbar_play_button, TRUE);
+        emulator.state = STOP;
+        emulator.rom_filename = gtk_file_chooser_get_filename (chooser);
     }
 
     gtk_widget_destroy (dialog);
@@ -259,13 +297,107 @@ static gboolean on_load_button_clicked (GtkWidget *widget, GtkWindow *parent_win
 }
 
 
+static gboolean on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+
+    switch (event->keyval)
+    {
+        case GDK_KEY_Up:
+            inputPressKey(2);
+            break;
+        case GDK_KEY_Down:
+            inputPressKey(3);
+            break;
+        case GDK_KEY_Right:
+            inputPressKey(0);
+            break;
+        case GDK_KEY_Left:
+            inputPressKey(1);
+            break;
+        case GDK_KEY_a:
+            inputPressKey(4);
+            break;
+        case GDK_KEY_s:
+            inputPressKey(5);
+            break;
+        case GDK_KEY_q:
+            inputPressKey(7);
+            break;
+        case GDK_KEY_w:
+            inputPressKey(6);
+            break;
+        default:
+            break;
+    }
+    
+    return TRUE;
+}
+
+static gboolean on_key_release (GtkWidget *widget, GdkEventKey *event, gpointer data)
+{
+
+    switch (event->keyval)
+    {
+        case GDK_KEY_Up:
+            inputReleaseKey(2);
+            break;
+        case GDK_KEY_Down:
+            inputReleaseKey(3);
+            break;
+        case GDK_KEY_Right:
+            inputReleaseKey(0);
+            break;
+        case GDK_KEY_Left:
+            inputReleaseKey(1);
+            break;
+        case GDK_KEY_a:
+            inputReleaseKey(4);
+            break;
+        case GDK_KEY_s:
+            inputReleaseKey(5);
+            break;
+        case GDK_KEY_q:
+            inputReleaseKey(7);
+            break;
+        case GDK_KEY_w:
+            inputReleaseKey(6);
+            break;
+        default:
+            break;
+    }
+
+    return TRUE;
+}
+
+
+
+
+
+
 int
 main (int    argc,
       char **argv)
 {
-  GtkApplication *app;
-  int status;
+    GtkApplication *app;
+    int status;
+    
+    /*
+     * GTK can handle command line arguments in a more convinient
+     * way, but for now we are going with a much simpler approach
+     */
+     
+	if (argc > 1){
+		
+        printf("Got ROM from command line\n");
+        if (loadRom(argv[1]))
+		    return 1;
+        
+        emulator.rom_filename = argv[1];
+        emulator.autostart = TRUE;
+        argc = 1; /* Set # of arguments to one to continue with GTK */
+	}
 
+  
   app = gtk_application_new ("org.gtk.example", G_APPLICATION_FLAGS_NONE);
   g_signal_connect (app, "activate", G_CALLBACK (activate), NULL);
   status = g_application_run (G_APPLICATION (app), argc, argv);

@@ -15,7 +15,10 @@ static gboolean on_load_button_clicked (GtkWidget *widget, GtkWindow *window);
 static gboolean  on_pause_button_clicked (GtkWidget *widget, gpointer data);
 static void on_close_button_clicked (GtkWidget *widget, gpointer data);
 gpointer threademulate(gpointer data);
-
+static gboolean on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer data);
+static gboolean on_key_release (GtkWidget *widget, GdkEventKey *event, gpointer data);
 struct emu{
     int state;
+    char *rom_filename;
+    int autostart;
 }emulator;
