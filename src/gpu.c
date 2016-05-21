@@ -5,6 +5,7 @@
 #include "display.h"
 #include "cpu.h"
 #include "definitions.h"
+#include "window.h"
 
 sprite sprites[40];
 
@@ -161,7 +162,10 @@ struct gpu gpustate = {
                         triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
                     }
                     
-                    display();
+                    displayGTK();
+                    fpsthink();
+                    //printf("DISPLAY GTK\n");
+                    //display();
                 }
                 else{
                     gpustate.clock = V_BLANK_CYCLES;
