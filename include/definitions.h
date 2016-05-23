@@ -68,7 +68,7 @@
 
 /* FLAGS */
 #define USINGBIOS TRUE
-#define VSYNC FALSE
+#define VSYNC TRUE
 
 
 

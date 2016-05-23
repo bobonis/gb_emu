@@ -445,6 +445,7 @@ void writeMemory (unsigned short pos, unsigned char value){
                 value |= 0xC0;              //BIT 7,6 Not Used
                 value &= 0xF0;              //BIT 3,2,1,0 Not Writable
                 memory[address] = value;
+                inputCheckInterrupt();
             }
             else if (address == 0xFF01){    //SB
                 //memory[address] = value;  hack to pass a test
