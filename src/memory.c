@@ -187,32 +187,37 @@ unsigned char readMemory8 (unsigned short address){
             if (MBC2){
                 temp = 0;
                 if (( address >= 0xA000 ) && ( address <= 0xA1FF )){
-                      //printf(PRINT_RED "[DEBUG] Now we will read from SRAM and from address %4X" PRINT_RESET"\n",address);
-                          if (!sram_active){
-                              if((fp=fopen(cart_game, "rb"))==NULL) {
-                                  printf("Cannot open file.\n");
-                              }
-                              else{
-                                  fp=fopen(cart_game,"rb");
-                                  sram_active = 1;
-                                  fread(memory_SRAM, 1, 512, fp); 
-                                  address = address & 0x1FF;
-                                  temp = memory_SRAM[address];  
-                                  //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
-                                  fclose(fp);
-                              }
-                          }
-                          else{
-                               address = address & 0x1FF;
-                               temp = memory_SRAM[address];  
-                               //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
-                          }
-                      }
+                    //printf(PRINT_RED "[DEBUG] Now we will read from SRAM and from address %4X" PRINT_RESET"\n",address);
+                    if (!sram_active){
+                        if((fp=fopen(cart_game, "rb"))==NULL) {
+                            printf("Cannot open file.\n");
+                        }
+                        else{
+                            fp=fopen(cart_game,"rb");
+                            sram_active = 1;
+                            fread(memory_SRAM, 1, 512, fp); 
+                            address = address & 0x1FF;
+                            /* Only the 4 lower bits are used, the upper bits should be ignored when reading */
+                            temp = memory_SRAM[address]  | 0xF0;  
+                            //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
+                            fclose(fp);
+                        }
+                    }
+                    else{
+                        address = address & 0x1FF;
+                        /* Only the 4 lower bits are used, the upper bits should be ignored when reading */
+                        temp = memory_SRAM[address] | 0xF0;  
+                        //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
+                   }
+               }
+               else {
+                   temp = memory[address];
+               }
             }
             else {
-            address -= 0xA000;
-            address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-            temp = cart_RAM[address];
+                address -= 0xA000;
+                address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+                temp = cart_RAM[address];
             }
             break;
         case 0xF:
@@ -643,20 +648,24 @@ void writeMemory (unsigned short pos, unsigned char value){
         }
     }
     else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
-               if (MBC2){
-                   if (( pos >= 0xA000 ) && ( pos <= 0xA1FF )){
-                         //printf(PRINT_RED "[DEBUG] Now we will write to SRAM" PRINT_RESET"\n");
-                         pos &= 0x1FF;
-                         memory_SRAM[pos] = value;
-                         sram_active = 1;
-                         //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d and SRAM position = %d" PRINT_RESET"\n",memory_SRAM[pos],pos);
-                   }
-               }
-               else{
-                   pos -= 0xA000;
-                   pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-                   cart_RAM[pos] = value;
-               }
+        if (MBC2){
+            if (( pos >= 0xA000 ) && ( pos <= 0xA1FF )){
+                //printf(PRINT_RED "[DEBUG] Now we will write to SRAM" PRINT_RESET"\n");
+                pos &= 0x1FF;
+                /* Only the 4 lower bits are used, the upper bits should be ignored */
+                memory_SRAM[pos] = value & 0x0F;
+                sram_active = 1;
+                //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d and SRAM position = %d" PRINT_RESET"\n",memory_SRAM[pos],pos);
+             }
+             else {
+                 memory[pos] = value;
+             }
+        }
+        else{
+            pos -= 0xA000;
+            pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+            cart_RAM[pos] = value;
+        }
     }    
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM
         memory[pos] = value ;
