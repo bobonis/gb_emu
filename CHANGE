@@ -1,3 +1,6 @@
+0.86.4
+    - Some minor fixes? to MBC2 support. Still no luck with Japan..
+    
 0.86.2
     - SDL support comeback. You may use make -f Makefile.sdl to create SDL build
     - Huge speedup for SDL. Now polling for events every 100 cpu cycles

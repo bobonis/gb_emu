@@ -310,10 +310,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
      * RAM bank!!)
      */
     if (address <= 0x1FFF){
-        if (MBC1||MBC2){
-            if (MBC2){
-            if (address & 0x10) return;
-            }
+        if (MBC1){
             if (( value & 0x0F ) == 0x0A ){
                 if (MBC_mode)   //RAM mode
                     RAM_bank_enabled = TRUE;    //Enable external RAM
@@ -323,6 +320,16 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                     RAM_bank_enabled = FALSE;   //Disable external RAM
             }
         }
+		else if (MBC2){
+			/* The least significant bit of the upper address byte must be '0' to enable/disable cart RAM. */
+         	if (address & 0x0100) 
+				return;
+			/* Writing any value with 0Ah in the lower 4 bits enables RAM, and any other value disables it. */
+            if (( value & 0x0F ) == 0x0A )
+	            RAM_bank_enabled = TRUE;    /* Enable external RAM */
+            else
+                RAM_bank_enabled = FALSE;   /* Disable external RAM */
+		}
     }
     else if (( address >= 0x2000 ) && ( address <= 0x3FFF )){
         if (MBC1){
@@ -340,18 +347,19 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                 active_ROM_bank = active_ROM_bank - total_ROM_banks;
             }
             
-            if (active_ROM_bank == 0){ // Bank 0 is not allowed
+            if (active_ROM_bank == 0){ /* Bank 0 is not allowed */
                 active_ROM_bank = 1;
             }
 
-          }
-          else if (MBC2){
-                active_ROM_bank = value&0x0F;    
-                if (active_ROM_bank == 0){ // Bank 0 is not allowed
-                    active_ROM_bank = 1;
-                }
-            }        
-        
+		}
+        else if (MBC2){
+			/* The least significant bit of the upper address byte must be '1' to select a ROM bank. */
+         	if (address & 0x0100){ 
+	        	active_ROM_bank = value & 0x0F;    
+            	if (active_ROM_bank == 0) /* Bank 0 is not allowed */
+            		active_ROM_bank = 1;
+			}
+		}
     }
     else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
         if (MBC1){
