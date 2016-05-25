@@ -184,6 +184,12 @@ unsigned char readMemory8 (unsigned short address){
             }
             break;
         case 0xA ... 0xB:                   /* switchable RAM bank */
+            printf("Read from ram at %x\n",address);
+            if (!RAM_bank_enabled){         /* if Ram bank is not enabled */
+                temp = 0xFF;                /* reads return 0xFF          */
+                break;
+            }
+                
             if (MBC2){
                 temp = 0;
                 if (( address >= 0xA000 ) && ( address <= 0xA1FF )){
@@ -446,10 +452,11 @@ void writeMemory (unsigned short pos, unsigned char value){
 
     switch (address & 0xFF00){
         case 0xFF00 : 
-            if (address == 0xFF00){         //P1 
+            if (address == 0xFF00){         //P1
                 value |= 0xC0;              //BIT 7,6 Not Used
                 value &= 0xF0;              //BIT 3,2,1,0 Not Writable
-                memory[address] = value;
+                memory[address] &= 0x0F;    /* clear upper half */
+                memory[address] |= value;   /* set upper half */
                 inputCheckInterrupt();
             }
             else if (address == 0xFF01){    //SB
@@ -648,23 +655,26 @@ void writeMemory (unsigned short pos, unsigned char value){
         }
     }
     else if (( pos >= 0xA000 ) && ( pos <= 0xBFFF )){ //RAM Memory Bank
-        if (MBC2){
-            if (( pos >= 0xA000 ) && ( pos <= 0xA1FF )){
-                //printf(PRINT_RED "[DEBUG] Now we will write to SRAM" PRINT_RESET"\n");
-                pos &= 0x1FF;
-                /* Only the 4 lower bits are used, the upper bits should be ignored */
-                memory_SRAM[pos] = value & 0x0F;
-                sram_active = 1;
-                //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d and SRAM position = %d" PRINT_RESET"\n",memory_SRAM[pos],pos);
-             }
-             else {
-                 memory[pos] = value;
-             }
-        }
-        else{
-            pos -= 0xA000;
-            pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-            cart_RAM[pos] = value;
+    printf("Write to ram at %x\n",address);
+        if (RAM_bank_enabled){
+            if (MBC2){
+                if (( pos >= 0xA000 ) && ( pos <= 0xA1FF )){
+                    //printf(PRINT_RED "[DEBUG] Now we will write to SRAM" PRINT_RESET"\n");
+                    pos &= 0x1FF;
+                    /* Only the 4 lower bits are used, the upper bits should be ignored */
+                    memory_SRAM[pos] = value & 0x0F;
+                    sram_active = 1;
+                    //printf(PRINT_MAGENTA "[DEBUG] SRAM value =  %d and SRAM position = %d" PRINT_RESET"\n",memory_SRAM[pos],pos);
+                }
+                else {
+                    memory[pos] = value;
+                }
+            }
+            else{
+                pos -= 0xA000;
+                pos += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+                cart_RAM[pos] = value;
+            }
         }
     }    
     else if ( ( pos >= 0xE000 ) && (pos < 0xFE00) ){ // writing to ECHO ram also writes in RAM

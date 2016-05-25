@@ -1,3 +1,7 @@
+0.86.5
+    - Gave some love to RAM_bank_enabled
+    - Fixed input at last (needs playtesting) 
+
 0.86.4
     - Some minor fixes? to MBC2 support. Still no luck with Japan..
     

@@ -42,12 +42,14 @@ unsigned int joypad_signal = 1;
 unsigned char inputReadKeys(){
 
     unsigned char joypad_state = memory[0xFF00];
-    
-    if ((joypad_state & 0x20) == 0 ){                    //Bit 5: Standard keys selected
-        joypad_state = joypad_state | ((joypad & 0xF0) >> 4); //Get 4 higher bits that represent button keys
+
+    if ((joypad_state & 0x20) == 0 ){                           /* Bit 5: Standard keys selected */
+        joypad_state &= 0xF0;                                   /* Clear lower 4 bits */
+        joypad_state = joypad_state | ((joypad & 0xF0) >> 4);   /* Get 4 higher bits that represent button keys */
     }
-    if ((joypad_state & 0x10) == 0 ){                   //Bit 4: Direction Keys selected
-        joypad_state = joypad_state | (joypad & 0x0F);  //Get 4 lower bits that represent direction keys
+    if ((joypad_state & 0x10) == 0 ){                           /* Bit 4: Direction Keys selected */
+        joypad_state &= 0xF0;                                   /* Clear lower 4 bits */
+        joypad_state = joypad_state | (joypad & 0x0F);          /* Get 4 lower bits that represent direction keys */
     }
     return joypad_state;
 }

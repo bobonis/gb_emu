@@ -299,7 +299,7 @@ int loadRom(const char *filename){
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     
 //    printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,\n",active_ROM_bank,address,value);
-    
+
     /* Before you can read or write to a RAM bank you have to enable
      * it by writing a XXXX1010 into 0000-1FFF area*. To
      * disable RAM bank operations write any value but
@@ -355,7 +355,9 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
         else if (MBC2){
 			/* The least significant bit of the upper address byte must be '1' to select a ROM bank. */
          	if (address & 0x0100){ 
-	        	active_ROM_bank = value & 0x0F;    
+	        	active_ROM_bank = value & 0x0F;
+				/* handle the case when more that available rom banks are set */
+				active_ROM_bank &= total_ROM_banks - 1;
             	if (active_ROM_bank == 0) /* Bank 0 is not allowed */
             		active_ROM_bank = 1;
 			}
