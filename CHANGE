@@ -1,3 +1,6 @@
+0.86.6
+    - Minor fix to MBC1 enable RAM
+
 0.86.5
     - Gave some love to RAM_bank_enabled
     - Fixed input at last (needs playtesting) 

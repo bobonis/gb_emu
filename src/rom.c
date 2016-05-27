@@ -19,12 +19,12 @@ unsigned char *cart_ROM;
 char cart_game[17] = "sram/cartridgerom";
 unsigned char active_RAM_bank = 0;
 unsigned char total_RAM_banks = 0;
-int RAM_bank_enabled = FALSE;
+int RAM_bank_enabled = FALSE;		/* We assume that the RAM Bank is disabled at startup */
 unsigned char active_ROM_bank = 1;
 unsigned char total_ROM_banks = 0;
 int MBC1 = FALSE;
 int MBC2 = FALSE;
-int MBC_mode = 0; // 0 - switch ROM bank, 1 - switch RAM bank
+int MBC_mode = 0; 					/* 0 - switch ROM bank, 1 - switch RAM bank (default 0) */
 
 
 int loadRom(const char *filename){
@@ -298,7 +298,7 @@ int loadRom(const char *filename){
  */
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     
-//    printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,\n",active_ROM_bank,address,value);
+    //printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,\n",active_ROM_bank,address,value);
 
     /* Before you can read or write to a RAM bank you have to enable
      * it by writing a XXXX1010 into 0000-1FFF area*. To
@@ -312,11 +312,11 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     if (address <= 0x1FFF){
         if (MBC1){
             if (( value & 0x0F ) == 0x0A ){
-                if (MBC_mode)   //RAM mode
+                /* if (MBC_mode)   //RAM mode This seems incorrect */
                     RAM_bank_enabled = TRUE;    //Enable external RAM
             }
             else{
-                if (MBC_mode)   //RAM mode
+                /* if (MBC_mode)   //RAM mode This seems incorrect too */
                     RAM_bank_enabled = FALSE;   //Disable external RAM
             }
         }
