@@ -10,10 +10,10 @@ LDIR =../lib
 
 LIBS=$(shell pkg-config --libs gtk+-3.0) -lSDLmain -lSDL2 -lSDL_image -lGL -lm
 
-DEPS = rom.h display.h gpu.h memory.h cpu.h timers.h interrupts.h input.h hardware.h window.h render.h
+DEPS = rom.h display.h gpu.h memory.h cpu.h timers.h interrupts.h input.h hardware.h window.h render.h serial.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = rom.o display.o gpu.o memory.o cpu.o timers.o interrupts.o input.o hardware.o window.o render.o
+_OBJ = rom.o display.o gpu.o memory.o cpu.o timers.o interrupts.o input.o hardware.o window.o render.o serial.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
