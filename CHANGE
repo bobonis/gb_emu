@@ -1,3 +1,7 @@
+0.86.7
+    - Minor input fix
+    - Dummy serial port implementation
+
 0.86.6
     - Minor fix to MBC1 enable RAM
 

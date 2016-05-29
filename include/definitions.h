@@ -29,6 +29,8 @@
 
 /* MEMORY ADDRESS */
 
+#define SB      0xFF01
+#define SC      0xFF02
 #define DIV     0xFF04
 #define TIMA    0xFF05
 #define TMA     0xFF06

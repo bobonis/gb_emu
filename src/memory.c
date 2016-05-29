@@ -7,6 +7,7 @@
 #include "gpu.h"
 #include "hardware.h"
 #include "definitions.h"
+#include "serial.h"
 
 struct registers registers;
 /*
@@ -464,6 +465,7 @@ void writeMemory (unsigned short pos, unsigned char value){
             }            
             else if (address == 0xFF02){    //SC
                 value |= 0x7E;              //BIT 6,5,4,3,2,1 Not Used
+                serialSetControl(value);
                 memory[address] = value;
             }
             else if (address == 0xFF04){    //DIV

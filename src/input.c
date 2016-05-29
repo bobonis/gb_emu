@@ -67,6 +67,9 @@ void inputCheckInterrupt (void)
         if ( (joypad & 0x0F) != 0x0F)
             temp_signal = 0;
     }
+    if ((joypad_state & 0x30) == 0x30 ){     /* if no keys are selected */
+        memory[0xFF00] |= 0x0F;
+    }    
 
     
     if ( (temp_signal == 0) && (joypad_signal == 1) ){
