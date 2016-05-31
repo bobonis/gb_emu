@@ -1,11 +1,17 @@
-0.90.1
-    - Audio Support
-
 0.86.7
     - Minor input fix
     - Dummy serial port implementation
 
+0.86.6
+    - Minor fix to MBC1 enable RAM
 
+0.86.5
+    - Gave some love to RAM_bank_enabled
+    - Fixed input at last (needs playtesting) 
+
+0.86.4
+    - Some minor fixes? to MBC2 support. Still no luck with Japan..
+    
 0.86.2
     - SDL support comeback. You may use make -f Makefile.sdl to create SDL build
     - Huge speedup for SDL. Now polling for events every 100 cpu cycles
