@@ -20,6 +20,13 @@
  */
 unsigned char joypad = 0xFF; //Initial value, no keys are pressed
 
+ /* 
+  * This is the internal signal that triggers joypad interrupt.
+  * The interrupt is triggered during the transition of the signal
+  * from HIGH=1 to LOW=0
+  */ 
+unsigned int joypad_signal = 1;
+
 /*
  * P1 (0xFF00) register layout
  * ---------------------------
@@ -35,14 +42,41 @@ unsigned char joypad = 0xFF; //Initial value, no keys are pressed
 unsigned char inputReadKeys(){
 
     unsigned char joypad_state = memory[0xFF00];
-    
-    if ((joypad_state & 0x10) == 0 ){                   //Bit 4: Direction Keys selected
-        joypad_state = joypad_state | (joypad & 0x0F);  //Get 4 lower bits that represent direction keys
+
+    if ((joypad_state & 0x20) == 0 ){                           /* Bit 5: Standard keys selected */
+        joypad_state &= 0xF0;                                   /* Clear lower 4 bits */
+        joypad_state = joypad_state | ((joypad & 0xF0) >> 4);   /* Get 4 higher bits that represent button keys */
     }
-    else if ((joypad_state & 0x20) == 0 ){                    //Bit 5: Standard keys selected
-        joypad_state = joypad_state | ((joypad & 0xF0) >> 4); //Get 4 higher bits that represent button keys
+    if ((joypad_state & 0x10) == 0 ){                           /* Bit 4: Direction Keys selected */
+        joypad_state &= 0xF0;                                   /* Clear lower 4 bits */
+        joypad_state = joypad_state | (joypad & 0x0F);          /* Get 4 lower bits that represent direction keys */
     }
     return joypad_state;
+}
+
+void inputCheckInterrupt (void)
+{
+    unsigned char joypad_state = memory[0xFF00];
+    unsigned int temp_signal = 1;
+       
+    if ((joypad_state & 0x20) == 0 ){                    //Bit 5: Standard keys selected
+        if ( (joypad & 0xF0) != 0xF0)
+            temp_signal = 0;
+    }
+    if ((joypad_state & 0x10) == 0 ){                   //Bit 4: Direction Keys selected
+        if ( (joypad & 0x0F) != 0x0F)
+            temp_signal = 0;
+    }
+
+    
+    if ( (temp_signal == 0) && (joypad_signal == 1) ){
+        printf("state=%x, signal=%d, joypad=%x\n",joypad_state,joypad_signal,joypad);
+        printf("joypad interrupt\n");
+        triggerInterrupt(JOYPAD_INTERRUPT);
+    }
+    
+    if (temp_signal == 0)
+        joypad_signal = 0;
 }
 
 void inputPressKey(int key){
@@ -74,8 +108,8 @@ void inputPressKey(int key){
         default:
             break;
     }
-    
-    triggerInterrupt(JOYPAD_INTERRUPT);
+    inputCheckInterrupt();
+    //triggerInterrupt(JOYPAD_INTERRUPT);
 
 }
 
@@ -107,6 +141,10 @@ void inputReleaseKey(int key){
             break;
         default:
             break;
+    }
+    
+    if (joypad == 0xFF){
+        joypad_signal = 1;
     }
 }
 

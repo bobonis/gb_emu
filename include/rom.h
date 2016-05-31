@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern unsigned char *cart_ROM;
 extern unsigned char *cart_RAM;
 extern unsigned char active_RAM_bank;
@@ -11,4 +15,6 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value);
 int file_exist (char *);
 
 
-
+#ifdef __cplusplus
+}
+#endif

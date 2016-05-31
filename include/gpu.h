@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void gpu (void);
 void gpu1 (void);
 void gpuChangeMode(int mode);
@@ -186,3 +190,7 @@ period and before first OAM (where we would have expected it)
 *EOF*
 
 */
+
+#ifdef __cplusplus
+}
+#endif

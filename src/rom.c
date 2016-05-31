@@ -19,12 +19,12 @@ unsigned char *cart_ROM;
 char cart_game[17] = "sram/cartridgerom";
 unsigned char active_RAM_bank = 0;
 unsigned char total_RAM_banks = 0;
-int RAM_bank_enabled = FALSE;
+int RAM_bank_enabled = FALSE;		/* We assume that the RAM Bank is disabled at startup */
 unsigned char active_ROM_bank = 1;
 unsigned char total_ROM_banks = 0;
 int MBC1 = FALSE;
 int MBC2 = FALSE;
-int MBC_mode = 0; // 0 - switch ROM bank, 1 - switch RAM bank
+int MBC_mode = 0; 					/* 0 - switch ROM bank, 1 - switch RAM bank (default 0) */
 
 
 int loadRom(const char *filename){
@@ -298,8 +298,8 @@ int loadRom(const char *filename){
  */
 void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     
-//    printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,\n",active_ROM_bank,address,value);
-    
+    //printf("[DEBUG] Switch bank, old bank is %x address is %x, value is %x,\n",active_ROM_bank,address,value);
+
     /* Before you can read or write to a RAM bank you have to enable
      * it by writing a XXXX1010 into 0000-1FFF area*. To
      * disable RAM bank operations write any value but
@@ -310,19 +310,26 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
      * RAM bank!!)
      */
     if (address <= 0x1FFF){
-        if (MBC1||MBC2){
-            if (MBC2){
-            if (address & 0x10) return;
-            }
+        if (MBC1){
             if (( value & 0x0F ) == 0x0A ){
-                if (MBC_mode)   //RAM mode
+                /* if (MBC_mode)   //RAM mode This seems incorrect */
                     RAM_bank_enabled = TRUE;    //Enable external RAM
             }
             else{
-                if (MBC_mode)   //RAM mode
+                /* if (MBC_mode)   //RAM mode This seems incorrect too */
                     RAM_bank_enabled = FALSE;   //Disable external RAM
             }
         }
+		else if (MBC2){
+			/* The least significant bit of the upper address byte must be '0' to enable/disable cart RAM. */
+         	if (address & 0x0100) 
+				return;
+			/* Writing any value with 0Ah in the lower 4 bits enables RAM, and any other value disables it. */
+            if (( value & 0x0F ) == 0x0A )
+	            RAM_bank_enabled = TRUE;    /* Enable external RAM */
+            else
+                RAM_bank_enabled = FALSE;   /* Disable external RAM */
+		}
     }
     else if (( address >= 0x2000 ) && ( address <= 0x3FFF )){
         if (MBC1){
@@ -340,18 +347,21 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                 active_ROM_bank = active_ROM_bank - total_ROM_banks;
             }
             
-            if (active_ROM_bank == 0){ // Bank 0 is not allowed
+            if (active_ROM_bank == 0){ /* Bank 0 is not allowed */
                 active_ROM_bank = 1;
             }
 
-          }
-          else if (MBC2){
-                active_ROM_bank = value&0x0F;    
-                if (active_ROM_bank == 0){ // Bank 0 is not allowed
-                    active_ROM_bank = 1;
-                }
-            }        
-        
+		}
+        else if (MBC2){
+			/* The least significant bit of the upper address byte must be '1' to select a ROM bank. */
+         	if (address & 0x0100){ 
+	        	active_ROM_bank = value & 0x0F;
+				/* handle the case when more that available rom banks are set */
+				active_ROM_bank &= total_ROM_banks - 1;
+            	if (active_ROM_bank == 0) /* Bank 0 is not allowed */
+            		active_ROM_bank = 1;
+			}
+		}
     }
     else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
         if (MBC1){

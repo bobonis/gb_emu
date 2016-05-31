@@ -63,23 +63,28 @@ void handleInterrupts(void){
                 case VBLANK_INTERRUPT:
                     registers.PC = 0x40;
                     //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
-                    return;
+                    //return;
+                    break;
                 case LCDC_INTERRUPT  :
                     registers.PC = 0x48;
                     //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
-                    return;
+                    //return;
+                    break;
                 case TIMER_INTERRUPT :
                     registers.PC = 0x50;
                     //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
-                    return;
+                    //return;
+                    break;
                 case SERIAL_INTERRUPT:
                     registers.PC = 0x58;
                     //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
-                    return;
+                    //return;
+                    break;
                 case JOYPAD_INTERRUPT:
                     registers.PC = 0x60;
                     //setBit(IFR,bit,FALSE);          // Reset Interrupt request Register
-                    return;
+                    //return;
+                    break;
                 default:
                     break;
             }           
