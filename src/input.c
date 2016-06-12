@@ -27,6 +27,12 @@ unsigned char joypad = 0xFF; //Initial value, no keys are pressed
   */ 
 unsigned int joypad_signal = 1;
 
+void inputReset()
+{
+    joypad = 0xFF;
+    joypad_signal = 1;
+}
+
 /*
  * P1 (0xFF00) register layout
  * ---------------------------

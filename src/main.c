@@ -8,8 +8,9 @@
 #include "display.h"
 #include "input.h"
 #include "definitions.h"
+#include "hardware.h"
 
-#define version "0.86.7"
+#define version "0.86.8"
 
 
 int main(int argc, char **argv){
@@ -32,7 +33,8 @@ int main(int argc, char **argv){
     }
     
 	
-	reset();
+	hardwareReset();
+    
     printf("[INFO] Version %s\n",version);
 	printf("[INFO] System reset done\n");
     printf("[INFO] BUTTON A  = a\n");
@@ -50,6 +52,9 @@ int main(int argc, char **argv){
         
         if (count > 100){                   /* Poll for events every 100 loops */  
             while (SDL_PollEvent(&event)) {
+                
+                inputHandleEvents(event);
+                
                 if( event.type == SDL_QUIT ) { 
                     QUIT = TRUE;
                 }
@@ -62,8 +67,11 @@ int main(int argc, char **argv){
                         displayEnd();
                         return 1;
                     }
+                    if (event.key.keysym.sym == SDLK_F9){
+                        hardwareReset();
+                    }
                 }
-                inputHandleEvents(event);
+                
             }
         count = 0;
         }       

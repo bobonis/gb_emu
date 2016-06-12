@@ -1,3 +1,4 @@
+#include "cpu.h"
 #include "memory.h"
 #include "timers.h"
 #include "gpu.h"
@@ -15,4 +16,13 @@ void hardwareTick(void){
    
     timersTick();
     serialUpdateClock();
+}
+
+void hardwareReset(void)
+{
+    cpuReset();
+    gpuReset();
+    serialReset();
+    timersReset();
+    memoryReset();
 }

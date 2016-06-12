@@ -12,6 +12,7 @@ void timersSetDIV (void);
 void timersSetTIMA(unsigned char value);
 void timersSetTAC (unsigned char value);
 void timersSetTMA (unsigned char value);
+void timersReset (void);
 
 extern struct timer{
     unsigned short internal;

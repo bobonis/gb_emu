@@ -87,7 +87,7 @@ void memCopy(unsigned short start, unsigned char *buffer, unsigned short length)
 	
 }
 
-void reset (void){
+void memoryReset (void){
 	
     if (USINGBIOS){
         int i;
@@ -158,6 +158,12 @@ void reset (void){
 	   memory[0xFF4B] = 0x00;	// WX
 	   memory[0xFFFF] = 0x00;	// IE        
     }
+
+    dmastate.timer = 0;
+    dmastate.prepare = FALSE;
+    dmastate.start = FALSE;
+    dmastate.running = FALSE;
+    dmastate.address = 0x0000;
 
 }
 /* During mode 0 and mode 1 the CPU can access both VRAM and OAM. During mode 2 the CPU

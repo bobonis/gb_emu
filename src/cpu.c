@@ -9,7 +9,7 @@
 #include "definitions.h"
 
 /* DEBUG FLAGS */
-int debug_mooneye = FALSE;
+int debug_mooneye = TRUE;
 int debug_test_run = FALSE;
 unsigned short debug_pc = 0x0000;
 unsigned int executed_opcodes = 0;
@@ -676,6 +676,16 @@ void execute (void){
     
         
     return;
+}
+
+void cpuReset()
+{
+    cpustate.halt = FALSE;
+    cpustate.stop = FALSE;
+    cpustate.ime = TRUE;
+    cpustate.ime_delay = 0;
+    cpustate.interrupt = FALSE;
+    cpustate.repeat = FALSE;
 }
 
 void NOTVALID(void){

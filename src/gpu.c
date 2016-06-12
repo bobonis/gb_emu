@@ -5,13 +5,15 @@
 #include "display.h"
 #include "cpu.h"
 #include "definitions.h"
-#include "window.h"
+#ifdef GTK
+    #include "window.h"
+#endif
+
 
 sprite sprites[40];
 
 int background_priority[160];
 unsigned char framebuffer[144][160][3];
-unsigned char gpu_line = 0;
 int draw_pixel = TRUE;
 
 int adjust = 0;
@@ -25,6 +27,17 @@ struct gpu gpustate = {
     FALSE,      /* first line */
     0           /* lyc */
 };
+
+void gpuReset(void)
+{
+    gpustate.enable = FALSE;
+    gpustate.clock = 0;
+    gpustate.mode = H_BLANK;
+    gpustate.interrupt = FALSE;
+    gpustate.line = 0;
+    gpustate.firstframe = FALSE;
+    gpustate.lyc = 0;
+}
 
 /*  Period  GPU mode          Time spent   (clocks)
  * -----------------------------------------------------

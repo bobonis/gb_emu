@@ -1,5 +1,6 @@
 #include "definitions.h"
 #include "interrupts.h"
+#include "serial.h"
 
 /*
  * FF01 - SB - Serial transfer data (R/W)
@@ -14,6 +15,12 @@
 
 int enabled = 0;
 unsigned short timer = 0;
+
+void serialReset()
+{
+    enabled = 0;
+    timer = 0;
+}
 
 void serialSetControl(unsigned char value)
 {
