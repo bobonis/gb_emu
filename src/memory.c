@@ -8,6 +8,7 @@
 #include "hardware.h"
 #include "definitions.h"
 #include "sound.h"
+#include "serial.h"
 
 struct registers registers;
 /*
@@ -203,7 +204,9 @@ unsigned char readMemory8 (unsigned short address){
             }
             break;
         case 0xA ... 0xB:                   /* switchable RAM bank */
-//            printf("Read from ram at %x\n",address);
+
+            printf("Read from ram at %x\n",address);
+
             if (!RAM_bank_enabled){         /* if Ram bank is not enabled */
                 temp = 0xFF;                /* reads return 0xFF          */
                 break;
@@ -505,6 +508,7 @@ void writeMemory (unsigned short pos, unsigned char value){
             }            
             else if (address == 0xFF02){    //SC
                 value |= 0x7E;              //BIT 6,5,4,3,2,1 Not Used
+                serialSetControl(value);
                 memory[address] = value;
             }
             else if (address == 0xFF04){    //DIV

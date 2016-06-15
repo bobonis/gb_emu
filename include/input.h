@@ -11,9 +11,14 @@ extern unsigned char joypad;
 unsigned char inputReadKeys();
 void inputPressKey(int key);
 void inputReleaseKey(int key);
+
 void inputHandleEvents(SDL_Event event);
 void inputCheckInterrupt(void); 
 
 #ifdef __cplusplus
 }
 #endif
+
+void inputCheckInterrupt(void);
+void inputHandleEvents(SDL_Event event);
+

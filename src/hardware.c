@@ -5,6 +5,7 @@
 #include "definitions.h"
 #include "sound.h"
 #include <stdio.h>
+#include "serial.h"
 
 
 void hardwareTick(void){
@@ -16,4 +17,5 @@ void hardwareTick(void){
     gpu_reading = 0;
    
     timersTick();
+    serialUpdateClock();
 }

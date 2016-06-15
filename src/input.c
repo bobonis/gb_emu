@@ -68,6 +68,11 @@ void inputCheckInterrupt (void)
             temp_signal = 0;
     }
 
+    if ((joypad_state & 0x30) == 0x30 ){     /* if no keys are selected */
+        memory[0xFF00] |= 0x0F;
+    }    
+
+
     
     if ( (temp_signal == 0) && (joypad_signal == 1) ){
         printf("state=%x, signal=%d, joypad=%x\n",joypad_state,joypad_signal,joypad);

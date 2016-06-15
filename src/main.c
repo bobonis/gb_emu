@@ -10,7 +10,7 @@
 #include "definitions.h"
 #include "sound.h"
 
-#define version "0.90.1"
+#define version "0.90.2"
 
 
 int main(int argc, char **argv){
