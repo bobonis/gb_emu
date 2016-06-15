@@ -9,7 +9,7 @@
 
 
 void hardwareTick(void){
-    sound_tick(4);
+    
     updateDMA();
     
     gpu_reading = 1;

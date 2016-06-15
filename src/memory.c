@@ -243,9 +243,9 @@ unsigned char readMemory8 (unsigned short address){
                }
             }
             else {
-                address -= 0xA000;
-                address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-                temp = cart_RAM[address];
+            address -= 0xA000;
+            address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+            temp = cart_RAM[address];
             }
             break;
         case 0xF:

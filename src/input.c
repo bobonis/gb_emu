@@ -147,10 +147,6 @@ void inputReleaseKey(int key){
         default:
             break;
     }
-    
-    if (joypad == 0xFF){
-        joypad_signal = 1;
-    }
 }
 
 

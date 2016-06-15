@@ -16,7 +16,7 @@
 int main(int argc, char **argv){
 
     SDL_Event event;                   //Event handler
-    init_apu();
+
     int QUIT = FALSE;
     
 	if (argc < 2){
@@ -42,14 +42,14 @@ int main(int argc, char **argv){
     printf("[INFO] SELECT    = w\n");
     printf("[INFO] DIRECTION = arrow keys\n");
     //display();
-    int test_Poll = 0;
+    
     int count = 0;
 	
     while (!QUIT) {
     
         count++;    
         
-        if (count > 100){                   /* Poll for events every 100 loops */ 
+        if (count > 100){                   /* Poll for events every 100 loops */  
             while (SDL_PollEvent(&event)) {
                 if( event.type == SDL_QUIT ) { 
                     QUIT = TRUE;
