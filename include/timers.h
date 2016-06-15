@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void updateTimers(int cycles);
 void updateFrequency(unsigned char value);
 void updateDivider(void);
@@ -25,4 +29,6 @@ extern struct timer{
 }timerstate;
 
 
-
+#ifdef __cplusplus
+}
+#endif

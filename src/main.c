@@ -8,8 +8,9 @@
 #include "display.h"
 #include "input.h"
 #include "definitions.h"
+#include "sound.h"
 
-#define version "0.86.7"
+#define version "0.90.2"
 
 
 int main(int argc, char **argv){

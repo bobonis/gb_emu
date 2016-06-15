@@ -1,5 +1,11 @@
 /* HARDWARE */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 144
 #define MAXSPRITES 10
@@ -87,3 +93,10 @@
 #define PRINT_MAGENTA "\x1b[35m"
 #define PRINT_CYAN    "\x1b[36m"
 #define PRINT_RESET   "\x1b[0m"
+
+#define BUF_SIZE 8192
+#define FRAME_LENGTH 69905
+
+#ifdef __cplusplus
+}
+#endif

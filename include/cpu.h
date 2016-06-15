@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern const struct opCode{
 	void *function;
 	unsigned char opLength;
@@ -665,6 +669,6 @@ void RETI (void);
 //Extended OPcodes
 void CB (void);
 
-
-
-	
+#ifdef __cplusplus
+}
+#endif

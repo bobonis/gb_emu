@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef int bool;
 
 void memCopy(unsigned short start, unsigned char *buffer, unsigned short length);
@@ -84,4 +88,6 @@ extern unsigned char crom[0x8000];
 extern unsigned char memory[0x10000];
 extern unsigned char memory_SRAM[512];
 
-
+#ifdef __cplusplus
+}
+#endif
