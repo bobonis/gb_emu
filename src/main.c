@@ -16,7 +16,7 @@
 int main(int argc, char **argv){
 
     SDL_Event event;                   //Event handler
-
+    init_apu();
     int QUIT = FALSE;
     
 	if (argc < 2){
