@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <gtk/gtk.h>
 extern GtkWidget *gl_area;
 
@@ -22,3 +26,7 @@ struct emu{
     char *rom_filename;
     int autostart;
 }emulator;
+
+#ifdef __cplusplus
+}
+#endif

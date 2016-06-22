@@ -7,6 +7,7 @@
 #include "gpu.h"
 #include "hardware.h"
 #include "definitions.h"
+#include "sound.h"
 #include "serial.h"
 
 struct registers registers;
@@ -101,12 +102,31 @@ void memoryReset (void){
             //memory_backup[i] = memory[i];   // backup address space that is overwitten from bios
             memory[i] = bios[i];
         }
+
         for (i=0;i<512 ;i++){
             memory_SRAM[i] = 0xFF;
         }
-        //memory[0xFF26] = 0xF1;	// NR52
+
         memory[0xFF00] = 0xCF;    
         memory[0xFF07] = 0xF8;
+        memory[0xFF10] = 0x80;	// NR10
+	    memory[0xFF11] = 0xBF;	// NR11
+	    memory[0xFF12] = 0xF3;	// NR12
+	    memory[0xFF14] = 0xBF;	// NR14
+	    memory[0xFF16] = 0x3F;	// NR21
+	    memory[0xFF17] = 0x00;	// NR22
+	    memory[0xFF19] = 0xBF;	// NR24
+	    memory[0xFF1A] = 0x7F;	// NR30
+	    memory[0xFF1B] = 0xFF;	// NR31
+	    memory[0xFF1C] = 0x9F;	// NR32
+	    memory[0xFF1E] = 0xBF;	// NR33
+	    memory[0xFF20] = 0xFF;	// NR41
+	    memory[0xFF21] = 0x00;	// NR42
+	    memory[0xFF22] = 0x00;	// NR43
+	    memory[0xFF23] = 0xBF;	// NR30
+	    memory[0xFF24] = 0x77;	// NR50
+	    memory[0xFF25] = 0xF3;	// NR51
+	    memory[0xFF26] = 0xF1;	// NR52
         memory[0xFF0F] = 0xE0;
         memory[0xFFFF] = 0xE0;
         //memory[0xFF02] = 0x7E;
@@ -199,7 +219,6 @@ unsigned char readMemory8 (unsigned short address){
             }
             break;
         case 0xA ... 0xB:                   /* switchable RAM bank */
-            
             if (!RAM_bank_enabled){         /* if Ram bank is not enabled */
                 temp = 0xFF;                /* reads return 0xFF          */
                 break;
@@ -237,9 +256,9 @@ unsigned char readMemory8 (unsigned short address){
                }
             }
             else {
-                address -= 0xA000;
-                address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
-                temp = cart_RAM[address];
+            address -= 0xA000;
+            address += 0x2000 * active_RAM_bank; //move address space to correct RAM Bank
+            temp = cart_RAM[address];
             }
             break;
         case 0xF:
@@ -279,85 +298,107 @@ unsigned char readMemory8 (unsigned short address){
                             temp |= 0xE0;               //BIT 7,6,5 Not Used
                             break;
                         case 0xFF10:    //NR10
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0x80;               //BIT 7 Not Used
                             break;
                         case 0xFF11:    //NR11
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0x3F;               //Only Bits 7-6 can be read
                             break;
                         case 0xFF12:    //NR12
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             break;
                         case 0xFF13:    //NR13
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xFF;               //Cant be read
                             break;
                         case 0xFF14:    //NR14
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xBF;               //Only Bit 6 can be read
                             break;
                         case 0xFF16:    //NR21
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0x3F;               //Only bits 7-6 can be read
                             break;
                         case 0xFF17:    //NR22
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             break;
                         case 0xFF18:    //NR23
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xFF;               //Cant be read
                             break;
                         case 0xFF19:    //NR24
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xBF;               //Only Bit 6 can be read
                             break;
                         case 0xFF1A:    //NR30
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0x7F;               //BIT 6,5,4,3,2,1,0 Not Used
                             break;
                         case 0xFF1B:    //NR31
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xFF;               //Cant be read
                             break;
                         case 0xFF1C:    //NR32
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0x9F;               //BIT 7,4,3,2,1,0 Not Used
                             break;
                         case 0xFF1D:    //NR33
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xFF;               //Cant be read
                             break;
                         case 0xFF1E:    //NR34
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xBF;               //Only Bit 6 can be read
                             break;
                         case 0xFF20:    //NR41
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xFF;               //Cant be read
                             break;
                         case 0xFF21:    //NR42
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             break;
                         case 0xFF22:    //NR43
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             break;
                         case 0xFF23:    //NR44
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0xBF;               //Only Bit 6 can be read
                             break;
                         case 0xFF24:    //NR50
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             break;
                         case 0xFF25:    //NR51
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             break;
                         case 0xFF26:    //NR52
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             temp |= 0x70;               //Only Bit 7,3,2,1,0 can be read
                             break;
                         case 0xFF30 ... 0xFF3F:   //WAVE pattern RAM
-                            temp = memory[address];
+                            temp = read_memory_apu(address);
+                            //temp = memory[address];
                             break;                                           
                         case 0xFF40:    //LCDC
                             temp = memory[address];
@@ -507,74 +548,96 @@ void writeMemory (unsigned short pos, unsigned char value){
             }
             else if (address == 0xFF10){    //NR10
                 value |= 0x80;              //BIT 7 Not Used
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF11){    //NR11
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF12){    //NR12
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF13){    //NR13
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF14){    //NR14
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF16){    //NR21
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF17){    //NR22
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF18){    //NR23
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF19){    //NR24
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF1A){    //NR30
                 value |= 0x7F;              //BIT 6,5,4,3,2,1,0 Not Used
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF1B){    //NR31
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF1C){    //NR32
                 value |= 0x9F;              //BIT 7,4,3,2,1,0 Not Used
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF1D){    //NR33
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF1E){    //NR34
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF20){    //NR41
                 value |= 0xC0;              //BIT 7,6 Not Used
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF21){    //NR42
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF22){    //NR43
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF23){    //NR44
                 value |= 0x3F;              //BIT 5,4,3,2,1,0 Not Used
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF24){    //NR50
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF25){    //NR51
+                write_memory_apu(address,value);
                 memory[address] = value;
             }
             else if (address == 0xFF26){    //NR52
                 value |= 0x70;              //BIT 6,5,4 Not Used
+                write_memory_apu(address,value);
                 memory[address] = value | 0x01; // Nasty Hack
             }
             else if (address >= 0xFF30 && address <= 0xFF3F){   //WAVE pattern RAM
+                write_memory_apu(address,value);
                 memory[address] = value;
             }                                           
             else if (address == 0xFF40){    //LCDC

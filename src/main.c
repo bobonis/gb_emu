@@ -9,14 +9,15 @@
 #include "input.h"
 #include "definitions.h"
 #include "hardware.h"
+#include "sound.h"
 
-#define version "0.86.9"
+#define version "0.90.3"
 
 
 int main(int argc, char **argv){
 
     SDL_Event event;                   //Event handler
-
+    init_apu();
     int QUIT = FALSE;
     
 	if (argc < 2){
