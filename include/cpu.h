@@ -30,6 +30,7 @@ extern int cpuSTOP;
 extern unsigned int executed_opcodes;
 
 void execute (void);
+void cpuReset(void);
 void tempfunction (void);
 void NOTVALID (void);
 

@@ -15,6 +15,18 @@ struct timer timerstate = {
 
 const unsigned int clocks[4] = {512, 8, 32, 128};
 
+
+void timersReset()
+{
+    timerstate.internal = 0;
+    timerstate.enable = FALSE;
+    timerstate.frequency = 0;
+    timerstate.overflow = FALSE;
+    timerstate.tima = 0;
+    timerstate.tma = 0;
+    timerstate.div = 0;
+    timerstate.tac = 0;
+}
 /* 
  * Address Register Details
  * ------------------------

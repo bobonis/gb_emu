@@ -1,3 +1,4 @@
+#include "cpu.h"
 #include "memory.h"
 #include "timers.h"
 #include "gpu.h"
@@ -6,10 +7,13 @@
 #include "sound.h"
 #include <stdio.h>
 #include "serial.h"
+#include "input.h"
 
 
 void hardwareTick(void){
+    #ifdef SOUND
     sound_tick(4);
+    #endif
     updateDMA();
     
     gpu_reading = 1;
@@ -18,4 +22,17 @@ void hardwareTick(void){
    
     timersTick();
     serialUpdateClock();
+}
+
+void hardwareReset(void)
+{
+    cpuReset();
+    gpuReset();
+    serialReset();
+    timersReset();
+    memoryReset();
+    inputReset();
+    #ifdef SOUND
+    init_apu();
+    #endif
 }

@@ -9,3 +9,4 @@ void inputPressKey(int key);
 void inputReleaseKey(int key);
 void inputCheckInterrupt(void);
 void inputHandleEvents(SDL_Event event);
+void inputReset(void);

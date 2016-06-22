@@ -15,6 +15,7 @@ void gpuSetStatus(unsigned char value);
 void gpuCompareLine (void);
 int gpuCountSprites(void);
 void gpuUpdateSprites(void);
+void gpuReset(void);
 
 extern unsigned char framebuffer[144][160][3];
 extern unsigned char gpu_state;

@@ -5,7 +5,7 @@ extern "C" {
 typedef int bool;
 
 void memCopy(unsigned short start, unsigned char *buffer, unsigned short length);
-void reset (void);
+void memoryReset (void);
 void setFlag (unsigned char flag);
 void resetFlag (unsigned char flag);
 int testFlag (unsigned char flag);
