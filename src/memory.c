@@ -37,7 +37,7 @@ struct registers registers;
  * ---------------------------  0000  --
  */
 unsigned char memory[0x10000];              /* 64KB System RAM Memory */
-unsigned char memory_backup[256];           /* Used when bios is loaded */
+//unsigned char memory_backup[256];           /* Used when bios is loaded */
 unsigned char memory_SRAM[512];
 
 
@@ -89,12 +89,20 @@ void memCopy(unsigned short start, unsigned char *buffer, unsigned short length)
 
 void memoryReset (void){
 	
+    int i;
+    for (i=0;i<0x10000;i++)
+        memory[i] = 0;
+    
+    memCopy(0x0000,cart_ROM,0x3FFF);
+    
     if (USINGBIOS){
-        int i;
         registers.PC = 0x0000;
         for (i=0;i<=255;i++){
-            memory_backup[i] = memory[i];   // backup address space that is overwitten from bios
+            //memory_backup[i] = memory[i];   // backup address space that is overwitten from bios
             memory[i] = bios[i];
+        }
+        for (i=0;i<512 ;i++){
+            memory_SRAM[i] = 0xFF;
         }
         //memory[0xFF26] = 0xF1;	// NR52
         memory[0xFF00] = 0xCF;    
@@ -174,7 +182,7 @@ unsigned char readMemory8 (unsigned short address){
     unsigned char temp;
     
     int address_map;
-
+   
     switch (address >> 12){                 /* Get most significant 4 bits */
         case 0x4 ... 0x7:                   /* switchable ROM bank */
             address_map = address - 0x4000;
@@ -191,14 +199,15 @@ unsigned char readMemory8 (unsigned short address){
             }
             break;
         case 0xA ... 0xB:                   /* switchable RAM bank */
-            printf("Read from ram at %x\n",address);
+            
             if (!RAM_bank_enabled){         /* if Ram bank is not enabled */
                 temp = 0xFF;                /* reads return 0xFF          */
                 break;
             }
                 
             if (MBC2){
-                temp = 0;
+                //printf("Read from ram at %x\n",address);
+                temp = 0xFF;
                 if (( address >= 0xA000 ) && ( address <= 0xA1FF )){
                     //printf(PRINT_RED "[DEBUG] Now we will read from SRAM and from address %4X" PRINT_RESET"\n",address);
                     if (!sram_active){
@@ -209,17 +218,17 @@ unsigned char readMemory8 (unsigned short address){
                             fp=fopen(cart_game,"rb");
                             sram_active = 1;
                             fread(memory_SRAM, 1, 512, fp); 
-                            address = address & 0x1FF;
+                            //address = address & 0x1FF;
                             /* Only the 4 lower bits are used, the upper bits should be ignored when reading */
-                            temp = memory_SRAM[address]  | 0xF0;  
+                            temp = memory_SRAM[address & 0x1FF]  | 0xF0;  
                             //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
                             fclose(fp);
                         }
                     }
                     else{
-                        address = address & 0x1FF;
+                        //address = address & 0x1FF;
                         /* Only the 4 lower bits are used, the upper bits should be ignored when reading */
-                        temp = memory_SRAM[address] | 0xF0;  
+                        temp = memory_SRAM[address & 0x1FF] | 0xF0;  
                         //printf(PRINT_RED "[DEBUG] memory_SRAM = %d" PRINT_RESET"\n", memory_SRAM[address]);
                    }
                }
@@ -434,7 +443,7 @@ unsigned char readMemory8 (unsigned short address){
     
     if (!gpu_reading)
         hardwareTick();
-        
+                
     return temp;
 }
 
@@ -455,8 +464,8 @@ void writeMemory16 (unsigned short pos, unsigned short value){
 void writeMemory (unsigned short pos, unsigned char value){
 
     unsigned short address = pos;
-    
 
+    
     switch (address & 0xFF00){
         case 0xFF00 : 
             if (address == 0xFF00){         //P1
@@ -471,7 +480,7 @@ void writeMemory (unsigned short pos, unsigned char value){
             }            
             else if (address == 0xFF02){    //SC
                 value |= 0x7E;              //BIT 6,5,4,3,2,1 Not Used
-                serialSetControl(value);
+                //serialSetControl(value);
                 memory[address] = value;
             }
             else if (address == 0xFF04){    //DIV
@@ -629,7 +638,7 @@ void writeMemory (unsigned short pos, unsigned char value){
             * was mapped, now gets mapped to the beginning of the cartridge’s ROM.
             */
             else if ((address == 0xFF50) && (value == 0x01)){
-                memCopy(0x0000, memory_backup, 0xFF);
+                memCopy(0x0000, cart_ROM, 0xFF);
             }
             else if (address >= 0xFF80 && address <= 0xFFFE){   //Usable RAM
                 memory[address] = value;

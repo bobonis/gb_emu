@@ -79,8 +79,8 @@ void inputCheckInterrupt (void)
 
     
     if ( (temp_signal == 0) && (joypad_signal == 1) ){
-        printf("state=%x, signal=%d, joypad=%x\n",joypad_state,joypad_signal,joypad);
-        printf("joypad interrupt\n");
+        /*printf("state=%x, signal=%d, joypad=%x\n",joypad_state,joypad_signal,joypad);
+        printf("joypad interrupt\n"); */
         triggerInterrupt(JOYPAD_INTERRUPT);
     }
     

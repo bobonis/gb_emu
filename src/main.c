@@ -10,7 +10,7 @@
 #include "definitions.h"
 #include "hardware.h"
 
-#define version "0.86.8"
+#define version "0.86.9"
 
 
 int main(int argc, char **argv){
@@ -71,6 +71,7 @@ int main(int argc, char **argv){
                         hardwareReset();
                     }
                 }
+                //inputHandleEvents(event);
                 
             }
         count = 0;

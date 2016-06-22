@@ -9,7 +9,7 @@
 #include "definitions.h"
 
 /* DEBUG FLAGS */
-int debug_mooneye = TRUE;
+int debug_mooneye = FALSE;
 int debug_test_run = FALSE;
 unsigned short debug_pc = 0x0000;
 unsigned int executed_opcodes = 0;
@@ -631,11 +631,12 @@ void execute (void){
 
     if (instruction == 0xCB){
         
-        if (debug_mooneye)
-            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
-            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
         
         instruction = readMemory8(++registers.PC);
+
+        if (debug_mooneye)
+            printf("[DEBUG] EPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n",
+            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);   
         
         operand_length = extendedopCodes[instruction].opLength;
         extended_opcode = TRUE;
@@ -645,8 +646,8 @@ void execute (void){
     }    
 
         if (debug_mooneye && extended_opcode == 0)
-            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x TIMA=%d TAC=%d LY=%d DIV=%d IF=%d IE=%d IME=%d\n",
-            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L,memory[0xff05],memory[0xff07],memory[0xff44],memory[0xff04],memory[0xff0f],memory[0xffff],cpustate.ime);   
+            printf("[DEBUG] OPC-0x%04x, PC-0x%04x, SP-0x%04x, A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n",
+            instruction,registers.PC+1,registers.SP,registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);   
    
     switch ( operand_length ){
         case 0 :

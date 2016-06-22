@@ -447,9 +447,11 @@ void gpuRenderBackground(void){
     //Initialize flags and memory addresses
                     
     if (testBit(LCDC,5) == TRUE){         //Window Display Enable (0=Off, 1=On)
-        if (gpustate.line >= memory[WY]){ //Current scanline is after window position
-            using_window = TRUE;
-            posY = gpustate.line - windowY;
+        if (memory[WX] <= 166 && memory[WY] <= 143){
+            if (gpustate.line >= memory[WY]){ //Current scanline is after window position
+                using_window = TRUE;
+                posY = gpustate.line - windowY;
+            }
         }
     }
 

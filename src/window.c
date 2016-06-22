@@ -174,7 +174,7 @@ gpointer threademulate(gpointer data)
     if (!emulator.autostart)
         loadRom(emulator.rom_filename);
 
-    reset();
+    hardwareReset();
 
     while(1) {
 

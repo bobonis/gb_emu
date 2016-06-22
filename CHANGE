@@ -1,3 +1,11 @@
+0.86.9
+    - Fix Window Bug
+    - Fix SRAM Bug
+    - Dragonball now playable
+
+0.86.8
+    - Add support for hardware reset key F9
+
 0.86.7
     - Minor input fix
     - Dummy serial port implementation

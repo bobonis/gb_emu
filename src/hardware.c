@@ -5,6 +5,7 @@
 #include "hardware.h"
 #include "definitions.h"
 #include "serial.h"
+#include "input.h"
 
 void hardwareTick(void){
     
@@ -25,4 +26,5 @@ void hardwareReset(void)
     serialReset();
     timersReset();
     memoryReset();
+    inputReset();
 }
