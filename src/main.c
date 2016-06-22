@@ -11,13 +11,13 @@
 #include "hardware.h"
 #include "sound.h"
 
-#define version "0.90.4"
+#define version "0.90.5"
 
 
 int main(int argc, char **argv){
 
     SDL_Event event;                   //Event handler
-    init_apu();
+    //init_apu();
     int QUIT = FALSE;
     
 	if (argc < 2){

@@ -10,6 +10,15 @@
 #include "sound.h"
 #include "serial.h"
 
+#ifndef SOUND
+void write_memory_apu(unsigned short address,unsigned char value){
+    
+}
+unsigned char read_memory_apu(unsigned short address){
+    return memory[address];
+}
+#endif
+
 struct registers registers;
 /*
  * Interrupt Enable Register

@@ -22,13 +22,13 @@ _OBJCC = rom.o display.o gpu.o memory.o cpu.o timers.o interrupts.o main.o input
 OBJCC = $(patsubst %,$(ODIRCC)/%,$(_OBJCC))
 
 $(ODIRCC)/%.o: %.c $(DEPSCC)
-	gcc -c -o $@ $< $(CCCFLAGS)
+	gcc -D SDL -D SOUND -c -o $@ $< $(CCCFLAGS)
 
 $(ODIRPP)/%.o: ../gb_apu/%.cpp $(DEPSPP)
-	g++ -c -o $@ $< $(CPPFLAGS)
+	g++ -D SDL -D SOUND -c -o $@ $< $(CPPFLAGS)
 
 gb_emu: $(OBJCC) $(OBJPP)
-	g++ -o $@ $^ $(CCCFLAGS) $(LIBS)
+	g++ -D SDL -D SOUND -o $@ $^ $(CCCFLAGS) $(LIBS)
 
 .PHONY: clean
 

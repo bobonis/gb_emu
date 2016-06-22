@@ -11,7 +11,9 @@
 
 
 void hardwareTick(void){
+    #ifdef SOUND
     sound_tick(4);
+    #endif
     updateDMA();
     
     gpu_reading = 1;
@@ -30,4 +32,7 @@ void hardwareReset(void)
     timersReset();
     memoryReset();
     inputReset();
+    #ifdef SOUND
+    init_apu();
+    #endif
 }
