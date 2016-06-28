@@ -4,20 +4,43 @@ extern "C" {
 
 typedef int bool;
 
-void memCopy(unsigned short start, unsigned char *buffer, unsigned short length);
+void memoryCopy(unsigned short start, unsigned char *buffer, unsigned short length);
 void memoryReset (void);
+void memoryDMAReset(void);
 void setFlag (unsigned char flag);
 void resetFlag (unsigned char flag);
 int testFlag (unsigned char flag);
 
-void writeMemory (unsigned short pos, unsigned char value);
-void writeMemory16 (unsigned short pos, unsigned short value);
+/* Read functions */
+unsigned char readMemory8(unsigned short address);
+unsigned char readMemoryROMBank(unsigned short address);
+unsigned char readMemoryRAMBank(unsigned short address);
+unsigned char readMemoryVRAM(unsigned short address);
+unsigned char readMemoryIOPorts(unsigned short address);
+unsigned char readMemoryOAM(unsigned short address);
+unsigned char readMemoryECHORAM(unsigned short address);
+unsigned char readMemoryWRAM(unsigned short address);
+unsigned short readMemory16(unsigned short address);
+
+/* Write functions */
+void writeMemory8(unsigned short pos, unsigned char value);
+void writeMemoryVRAM(unsigned short address, unsigned char data);
+void writeMemoryRAMBank(unsigned short address, unsigned char data);
+void writeMemoryWRAM(unsigned short address, unsigned char data);
+void writeMemoryECHORAM(unsigned short address, unsigned char data);
+void writeMemoryOAM(unsigned short address, unsigned char data);
+void writeMemoryIOPorts(unsigned short address, unsigned char data);
+void writeMemory16(unsigned short pos, unsigned short value);
+
+
+
+
+
 void setBit(unsigned short pos, unsigned char bit, bool value);
 bool testBit(unsigned short pos, unsigned char bit);
 void stackPush16 (unsigned short value);
 unsigned short stackPop16 (void);
-unsigned char readMemory8 (unsigned short address);
-unsigned short readMemory16 (unsigned short address);
+
 void updateDMA (void);
 void updateMBC2SRAM (void);
 

@@ -31,6 +31,7 @@ void hardwareReset(void)
     serialReset();
     timersReset();
     memoryReset();
+    memoryDMAReset();
     inputReset();
     #ifdef SOUND
     init_apu();

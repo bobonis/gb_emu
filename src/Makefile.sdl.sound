@@ -1,7 +1,7 @@
 IDIR =../include
 CCCFLAGS=-I$(IDIR) $(shell pkg-config --cflags --libs gtk+-3.0 epoxy) $(shell sdl2-config --cflags --libs) -O4 -fwrapv -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls -Wshadow -Wsign-conversion -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
 
-CPPFLAGS=-I$(IDIR) $(shell sdl2-config --cflags --libs)-O4 -fwrapv -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls -Wshadow -Wsign-conversion -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
+CPPFLAGS=-I$(IDIR) $(shell sdl2-config --cflags --libs) -O4 -fwrapv -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls -Wshadow -Wsign-conversion -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
 
 ODIRCC=obj/objcc
 

@@ -7,7 +7,7 @@ extern unsigned char *cart_RAM;
 extern unsigned char active_RAM_bank;
 extern int RAM_bank_enabled;
 extern unsigned char active_ROM_bank;
-extern int MBC2;
+extern int MBC_type;
 extern char cart_game[];
 
 int loadRom(const char *filename);
