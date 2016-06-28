@@ -756,13 +756,13 @@ void LD_L_n (void){ registers.L = operand8; }
  void LD_L_H (void) { registers.L = registers.H;}
  void LD_L_L (void) { registers.L = registers.L;}
  void LD_L_HL (void) { registers.L = readMemory8(registers.HL);}
- void LD_HL_B (void) { writeMemory(registers.HL, registers.B);} 
- void LD_HL_C (void) { writeMemory(registers.HL, registers.C);}
- void LD_HL_D (void) { writeMemory(registers.HL, registers.D);}
- void LD_HL_E (void) { writeMemory(registers.HL, registers.E);}
- void LD_HL_H (void) { writeMemory(registers.HL, registers.H);}
- void LD_HL_L (void) { writeMemory(registers.HL, registers.L);}
- void LD_HL_n (void) { writeMemory(registers.HL, operand8);}
+ void LD_HL_B (void) { writeMemory8(registers.HL, registers.B);} 
+ void LD_HL_C (void) { writeMemory8(registers.HL, registers.C);}
+ void LD_HL_D (void) { writeMemory8(registers.HL, registers.D);}
+ void LD_HL_E (void) { writeMemory8(registers.HL, registers.E);}
+ void LD_HL_H (void) { writeMemory8(registers.HL, registers.H);}
+ void LD_HL_L (void) { writeMemory8(registers.HL, registers.L);}
+ void LD_HL_n (void) { writeMemory8(registers.HL, operand8);}
  
 /*
  * LD A,n
@@ -795,10 +795,10 @@ void LD_A_n  (void){registers.A = operand8;}
  void LD_E_A (void){registers.E = registers.A;}
  void LD_H_A (void){registers.H = registers.A;}
  void LD_L_A (void){registers.L = registers.A;}
- void LD_BC_A (void){writeMemory(registers.BC, registers.A);}
- void LD_DE_A (void){writeMemory(registers.DE, registers.A);}
- void LD_HL_A (void){writeMemory(registers.HL, registers.A);}
- void LD_nn_A (void){writeMemory(operand16, registers.A);}
+ void LD_BC_A (void){writeMemory8(registers.BC, registers.A);}
+ void LD_DE_A (void){writeMemory8(registers.DE, registers.A);}
+ void LD_HL_A (void){writeMemory8(registers.HL, registers.A);}
+ void LD_nn_A (void){writeMemory8(operand16, registers.A);}
 
 /*
  * LD A,(C)
@@ -809,7 +809,7 @@ void LD_A_MC (void) { registers.A = readMemory8(0xFF00 + registers.C);}
   * LD (C),A
   * Description: Put A into address $FF00 + register C.
   */
-  void LD_MC_A (void) {writeMemory(0xFF00 + registers.C, registers.A);}
+  void LD_MC_A (void) {writeMemory8(0xFF00 + registers.C, registers.A);}
 /*
  * LDD A,(HL)
  * Description: Put value at address HL into A. Decrement HL.
@@ -827,7 +827,7 @@ void LDD_A_HL (void){
  * Same as: LD (HL),A - DEC HL
  */
 void LDD_HL_A (void) {    
-    writeMemory(registers.HL, registers.A);
+    writeMemory8(registers.HL, registers.A);
     registers.HL--;
 }
 
@@ -847,7 +847,7 @@ void LDD_HL_A (void) {
  * Same as: LD (HL),A - INC HL
  */
  void LDI_HL_A (void){
-     writeMemory(registers.HL, registers.A);
+     writeMemory8(registers.HL, registers.A);
      registers.HL++;
  }
  
@@ -856,7 +856,7 @@ void LDD_HL_A (void) {
  * Description: Put A into memory address $FF00+n.
  * Use with: n = one byte immediate value.
  */
-void LDH_n_A (void) { writeMemory(0xFF00 + operand8, registers.A); }
+void LDH_n_A (void) { writeMemory8(0xFF00 + operand8, registers.A); }
 /*
  * LDH A,(n)
  * Description: Put memory address $FF00+n into A.
@@ -1124,7 +1124,7 @@ void XOR_n (void) { xor (operand8); }
  void INC_E (void) {registers.E = inc (registers.E);}
  void INC_H (void) {registers.H = inc (registers.H);}
  void INC_L (void) {registers.L = inc (registers.L);}
- void INC_MHL (void) {writeMemory(registers.HL, inc (readMemory8(registers.HL)));}
+ void INC_MHL (void) {writeMemory8(registers.HL, inc (readMemory8(registers.HL)));}
 /*
  * DEC n
  * Description: Decrement register n.
@@ -1142,7 +1142,7 @@ void DEC_D (void) {registers.D = dec (registers.D);}
 void DEC_E (void) {registers.E = dec (registers.E);}
 void DEC_H (void) {registers.H = dec (registers.H);}
 void DEC_L (void) {registers.L = dec (registers.L);}
-void DEC_MHL (void) {writeMemory(registers.HL, dec (readMemory8(registers.HL)));}
+void DEC_MHL (void) {writeMemory8(registers.HL, dec (readMemory8(registers.HL)));}
 /********************
  * 16-Bit Arithmetic*
  ********************/
@@ -1395,7 +1395,7 @@ void RRCA (void){ registers.A = rrc(registers.A); resetFlag(ZERO_F); }
  void RL_E (void) {registers.E = rl(registers.E);}
  void RL_H (void) {registers.H = rl(registers.H);}
  void RL_L (void) {registers.L = rl(registers.L);}
- void RL_HL (void) {writeMemory(registers.HL,rl(readMemory8(registers.HL)));}
+ void RL_HL (void) {writeMemory8(registers.HL,rl(readMemory8(registers.HL)));}
 
 /*
  * RR n
@@ -1414,7 +1414,7 @@ void RRCA (void){ registers.A = rrc(registers.A); resetFlag(ZERO_F); }
  void RR_E (void) {registers.E = rr(registers.E);}
  void RR_H (void) {registers.H = rr(registers.H);}
  void RR_L (void) {registers.L = rr(registers.L);}
- void RR_HL (void) {writeMemory(registers.HL,rr(readMemory8(registers.HL)));}
+ void RR_HL (void) {writeMemory8(registers.HL,rr(readMemory8(registers.HL)));}
  
 /*
  * SLA n
@@ -1432,7 +1432,7 @@ void SLA_D (void) {registers.D = sla(registers.D);}
 void SLA_E (void) {registers.E = sla(registers.E);}
 void SLA_H (void) {registers.H = sla(registers.H);}
 void SLA_L (void) {registers.L = sla(registers.L);}
-void SLA_HL (void) {writeMemory(registers.HL,sla(readMemory8(registers.HL)));}
+void SLA_HL (void) {writeMemory8(registers.HL,sla(readMemory8(registers.HL)));}
 
 /*
  * SRA n
@@ -1451,7 +1451,7 @@ void SRA_D (void) {registers.D = sra(registers.D);}
 void SRA_E (void) {registers.E = sra(registers.E);}
 void SRA_H (void) {registers.H = sra(registers.H);}
 void SRA_L (void) {registers.L = sra(registers.L);}
-void SRA_HL (void) {writeMemory(registers.HL,sra(readMemory8(registers.HL)));}
+void SRA_HL (void) {writeMemory8(registers.HL,sra(readMemory8(registers.HL)));}
 
 /*
  * RLA
@@ -1491,7 +1491,7 @@ void RRA (void){registers.A = rr(registers.A); resetFlag(ZERO_F);}
  void RLC_E (void) {registers.E = rlc(registers.E);}
  void RLC_H (void) {registers.H = rlc(registers.H);}
  void RLC_L (void) {registers.L = rlc(registers.L);}
- void RLC_HL (void) {writeMemory(registers.HL,rlc(readMemory8(registers.HL)));}
+ void RLC_HL (void) {writeMemory8(registers.HL,rlc(readMemory8(registers.HL)));}
 
 /* RRC n
  * Description: Rotate n right. Old bit 0 to Carry flag.
@@ -1509,7 +1509,7 @@ void RRA (void){registers.A = rr(registers.A); resetFlag(ZERO_F);}
  void RRC_E (void) {registers.E = rrc(registers.E);}
  void RRC_H (void) {registers.H = rrc(registers.H);}
  void RRC_L (void) {registers.L = rrc(registers.L);}
- void RRC_HL (void) {writeMemory(registers.HL,rrc(readMemory8(registers.HL)));}
+ void RRC_HL (void) {writeMemory8(registers.HL,rrc(readMemory8(registers.HL)));}
  
 /*
  * SRL n
@@ -1528,7 +1528,7 @@ void RRA (void){registers.A = rr(registers.A); resetFlag(ZERO_F);}
  void SRL_E (void) {registers.E = srl(registers.E);}
  void SRL_H (void) {registers.H = srl(registers.H);}
  void SRL_L (void) {registers.L = srl(registers.L);}
- void SRL_HL (void) {writeMemory(registers.HL,srl(readMemory8(registers.HL)));}
+ void SRL_HL (void) {writeMemory8(registers.HL,srl(readMemory8(registers.HL)));}
 /********************
  * Bit Opcodes      *
  ********************/
@@ -1696,7 +1696,7 @@ void SWAP_D (void) { registers.D = swap(registers.D); }
 void SWAP_E (void) { registers.E = swap(registers.E); }
 void SWAP_H (void) { registers.H = swap(registers.H); }
 void SWAP_L (void) { registers.L = swap(registers.L); }
-void SWAP_HL (void) { writeMemory (registers.HL, swap(readMemory8(registers.HL))); }
+void SWAP_HL (void) { writeMemory8(registers.HL, swap(readMemory8(registers.HL))); }
 
 /*
  * SET b,r
@@ -1768,14 +1768,14 @@ void SET_5_L (void) { registers.L = set(5,registers.L); }
 void SET_6_L (void) { registers.L = set(6,registers.L); }
 void SET_7_L (void) { registers.L = set(7,registers.L); }
 
-void SET_0_HL (void) { writeMemory (registers.HL, set(0,readMemory8(registers.HL))); }
-void SET_1_HL (void) { writeMemory (registers.HL, set(1,readMemory8(registers.HL))); }
-void SET_2_HL (void) { writeMemory (registers.HL, set(2,readMemory8(registers.HL))); }
-void SET_3_HL (void) { writeMemory (registers.HL, set(3,readMemory8(registers.HL))); }
-void SET_4_HL (void) { writeMemory (registers.HL, set(4,readMemory8(registers.HL))); }
-void SET_5_HL (void) { writeMemory (registers.HL, set(5,readMemory8(registers.HL))); }
-void SET_6_HL (void) { writeMemory (registers.HL, set(6,readMemory8(registers.HL))); }
-void SET_7_HL (void) { writeMemory (registers.HL, set(7,readMemory8(registers.HL))); }
+void SET_0_HL (void) { writeMemory8(registers.HL, set(0,readMemory8(registers.HL))); }
+void SET_1_HL (void) { writeMemory8(registers.HL, set(1,readMemory8(registers.HL))); }
+void SET_2_HL (void) { writeMemory8(registers.HL, set(2,readMemory8(registers.HL))); }
+void SET_3_HL (void) { writeMemory8(registers.HL, set(3,readMemory8(registers.HL))); }
+void SET_4_HL (void) { writeMemory8(registers.HL, set(4,readMemory8(registers.HL))); }
+void SET_5_HL (void) { writeMemory8(registers.HL, set(5,readMemory8(registers.HL))); }
+void SET_6_HL (void) { writeMemory8(registers.HL, set(6,readMemory8(registers.HL))); }
+void SET_7_HL (void) { writeMemory8(registers.HL, set(7,readMemory8(registers.HL))); }
 
 /*
  * RES b,r
@@ -1847,14 +1847,14 @@ void RES_5_L (void) { registers.L = res(5,registers.L); }
 void RES_6_L (void) { registers.L = res(6,registers.L); }
 void RES_7_L (void) { registers.L = res(7,registers.L); }
 
-void RES_0_HL (void) { writeMemory (registers.HL, res(0,readMemory8(registers.HL))); }
-void RES_1_HL (void) { writeMemory (registers.HL, res(1,readMemory8(registers.HL))); }
-void RES_2_HL (void) { writeMemory (registers.HL, res(2,readMemory8(registers.HL))); }
-void RES_3_HL (void) { writeMemory (registers.HL, res(3,readMemory8(registers.HL))); }
-void RES_4_HL (void) { writeMemory (registers.HL, res(4,readMemory8(registers.HL))); }
-void RES_5_HL (void) { writeMemory (registers.HL, res(5,readMemory8(registers.HL))); }
-void RES_6_HL (void) { writeMemory (registers.HL, res(6,readMemory8(registers.HL))); }
-void RES_7_HL (void) { writeMemory (registers.HL, res(7,readMemory8(registers.HL))); }
+void RES_0_HL (void) { writeMemory8(registers.HL, res(0,readMemory8(registers.HL))); }
+void RES_1_HL (void) { writeMemory8(registers.HL, res(1,readMemory8(registers.HL))); }
+void RES_2_HL (void) { writeMemory8(registers.HL, res(2,readMemory8(registers.HL))); }
+void RES_3_HL (void) { writeMemory8(registers.HL, res(3,readMemory8(registers.HL))); }
+void RES_4_HL (void) { writeMemory8(registers.HL, res(4,readMemory8(registers.HL))); }
+void RES_5_HL (void) { writeMemory8(registers.HL, res(5,readMemory8(registers.HL))); }
+void RES_6_HL (void) { writeMemory8(registers.HL, res(6,readMemory8(registers.HL))); }
+void RES_7_HL (void) { writeMemory8(registers.HL, res(7,readMemory8(registers.HL))); }
 /*
  * BIT b,r
  * Description: Test bit b in register r.

@@ -22,8 +22,8 @@ unsigned char total_RAM_banks = 0;
 int RAM_bank_enabled = FALSE;		/* We assume that the RAM Bank is disabled at startup */
 unsigned char active_ROM_bank = 1;
 unsigned char total_ROM_banks = 0;
-int MBC1 = FALSE;
-int MBC2 = FALSE;
+
+int MBC_type = NOMBC;
 int MBC_mode = 0; 					/* 0 - switch ROM bank, 1 - switch RAM bank (default 0) */
 
 
@@ -78,31 +78,31 @@ int loadRom(const char *filename){
 	switch (romtype){
 		case 0x00 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM ONLY" PRINT_RESET"\n",romtype);
-			memCopy(0x0000,cart_ROM,0x3FFF);
+			memoryCopy(0x0000,cart_ROM,0x3FFF);
 			break;
 		case 0x01 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC1" PRINT_RESET"\n",romtype);
-			memCopy(0x0000,cart_ROM,0x3FFF);
-            MBC1 = TRUE;
+			memoryCopy(0x0000,cart_ROM,0x3FFF);
+            MBC_type = MBC1;
 			break;			
 		case 0x02 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC1+RAM" PRINT_RESET"\n",romtype);
-			memCopy(0x0000,cart_ROM,0x3FFF);
-            MBC1 = TRUE;	
+			memoryCopy(0x0000,cart_ROM,0x3FFF);
+            MBC_type = MBC1;	
 		case 0x03 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC1+RAM+BATT" PRINT_RESET"\n",romtype);
-            memCopy(0x0000,cart_ROM,0x3FFF);
-            MBC1 = TRUE;
+            memoryCopy(0x0000,cart_ROM,0x3FFF);
+            MBC_type = MBC1;
 			break;
 		case 0x05 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC2" PRINT_RESET"\n",romtype);
-            memCopy(0x0000,cart_ROM,0x3FFF);
-            MBC2 = TRUE;
+            memoryCopy(0x0000,cart_ROM,0x3FFF);
+            MBC_type = MBC2;
 			break;
 		case 0x06 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC2+BATTERY" PRINT_RESET"\n",romtype);
-            memCopy(0x0000,cart_ROM,0x3FFF);
-            MBC2 = TRUE;
+            memoryCopy(0x0000,cart_ROM,0x3FFF);
+            MBC_type = MBC2;
             if (!(file_exist (cart_game))){
                 if((fp = fopen(cart_game,"wb"))==NULL) {
                     printf(PRINT_RED "[DEBUG]Cannot create file." PRINT_RESET "\n");
@@ -310,7 +310,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
      * RAM bank!!)
      */
     if (address <= 0x1FFF){
-        if (MBC1){
+        if (MBC_type == MBC1){
             if (( value & 0x0F ) == 0x0A ){
                 /* if (MBC_mode)   //RAM mode This seems incorrect */
                     RAM_bank_enabled = TRUE;    //Enable external RAM
@@ -320,7 +320,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                     RAM_bank_enabled = FALSE;   //Disable external RAM
             }
         }
-		else if (MBC2){
+		else if (MBC_type == MBC2){
 			/* The least significant bit of the upper address byte must be '0' to enable/disable cart RAM. */
          	if (address & 0x0100) 
 				return;
@@ -332,7 +332,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
 		}
     }
     else if (( address >= 0x2000 ) && ( address <= 0x3FFF )){
-        if (MBC1){
+        if (MBC_type == MBC1){
             if (MBC_mode == 0){     //ROM mode 16/8
                 value &= 0x1F; // keep 5 LSB
                 active_ROM_bank &= 0x60; // Turn off 5 LSB 0XX00000
@@ -352,7 +352,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             }
 
 		}
-        else if (MBC2){
+        else if (MBC_type == MBC2){
 			/* The least significant bit of the upper address byte must be '1' to select a ROM bank. */
          	if (address & 0x0100){ 
 	        	active_ROM_bank = value & 0x0F;
@@ -364,7 +364,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
 		}
     }
     else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
-        if (MBC1){
+        if (MBC_type == MBC1){
             if (MBC_mode == 0){     //ROM mode  16/8
                 value &= 0x03;  // keep 2 LSB 000000BB
                 value <<= 5; // Move LSB to MSB 0BB00000
@@ -391,7 +391,7 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
     }
     else if (( address >= 0x6000 ) && ( address <= 0x7FFF )){
 
-        if (MBC1){
+        if (MBC_type == MBC1){
             if (( value & 0x01 ) == 0 ){
                 MBC_mode = 0;   //ROM mode (no RAM banks, up to 2MB ROM)
                 active_RAM_bank = 0;

@@ -78,6 +78,10 @@ extern "C" {
 #define USINGBIOS TRUE
 #define VSYNC TRUE
 
+/* MEMORY BANK CONTROLERS */
+#define NOMBC 0
+#define MBC1  1
+#define MBC2  2
 
 
 #define LOG_FATAL    (1)
