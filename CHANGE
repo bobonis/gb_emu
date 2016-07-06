@@ -1,3 +1,8 @@
+0.90.7
+    - Fixed another bug when window won't cover entire line
+    - Did some housekeeping with Makefiles
+    - Added tests folder and new tests
+
 0.90.6
     - Serial emulation updated
     - Total rewrite of memory module

@@ -1,0 +1,40 @@
+IDIR =../include
+CCCFLAGS=-I$(IDIR) $(shell sdl2-config --cflags --libs) -O4 -fwrapv -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls -Wshadow -Wsign-conversion -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused -Wl,--subsystem,console
+
+CPPFLAGS=-I$(IDIR) $(shell sdl2-config --cflags --libs) -O4 -fwrapv -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls -Wshadow -Wsign-conversion -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
+
+ODIRCC=obj/objcc
+
+ODIRPP=obj/objpp
+
+#LIBS=$(shell pkg-config --libs gtk+-3.0) $(shell sdl2-config --cflags --libs) -lGL
+LIBS=-lmingw32 -lSDL2main -lSDL2 -mwindows -lglu32 -lopengl32
+
+DEPSCC = rom.h display.h gpu.h memory.h cpu.h timers.h interrupts.h input.h hardware.h serial.h
+DEPSCC = $(patsubst %,$(IDIR)/%,$(_DEPSCC))
+
+DEPSPP = sound.h Blip_Buffer.h Effects_Buffer.h Gb_Apu.h Gb_Apu_State.h Gb_Oscs.h Multi_Buffer.h Sound_Queue.h
+DEPSPP = $(patsubst %,$(IDIR)/%,$(_DEPSPP))
+
+_OBJPP = sound.o Blip_Buffer.o Effects_Buffer.o Gb_Apu.o Gb_Apu_State.o Gb_Oscs.o Multi_Buffer.o Sound_Queue.o
+OBJPP = $(patsubst %,$(ODIRPP)/%,$(_OBJPP))
+
+_OBJCC = rom.o display.o gpu.o memory.o cpu.o timers.o interrupts.o main.o input.o hardware.o serial.o
+OBJCC = $(patsubst %,$(ODIRCC)/%,$(_OBJCC))
+
+$(ODIRCC)/%.o: %.c $(DEPSCC)
+	gcc -D SDL -D SOUND -c -o $@ $< $(CCCFLAGS)
+
+$(ODIRPP)/%.o: ../gb_apu/%.cpp $(DEPSPP)
+	g++ -D SDL -D SOUND -c -o $@ $< $(CPPFLAGS)
+
+gb_emu: $(OBJCC) $(OBJPP)
+	g++ -D SDL -D SOUND -o $@ $^ $(CCCFLAGS) $(LIBS)
+
+.PHONY: clean
+
+clean:
+	rm -f $(ODIRCC)/*.o $(ODIRPP)/*.o *~ core $(INCDIR)/*~ 
+
+$(shell mkdir -p ./obj/objcc ./obj/objpp ./sram)
+$(shell export SDL_AUDIODRIVER=alsa)
