@@ -1,0 +1,29 @@
+# -pedantic          
+#
+
+IDIR =../include
+CC=gcc
+CFLAGS=-I$(IDIR) -O4 -fwrapv -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wredundant-decls -Wshadow -Wsign-conversion -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused -Wl,--subsystem,console
+
+ODIR=obj
+LDIR =../lib
+
+LIBS=-lmingw32 -lSDL2main -lSDL2 -mwindows -lglu32 -lopengl32
+
+DEPS = rom.h display.h gpu.h memory.h cpu.h timers.h interrupts.h input.h hardware.h serial.h
+DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
+
+_OBJ = rom.o display.o gpu.o memory.o cpu.o timers.o interrupts.o main.o input.o hardware.o serial.o
+OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+
+
+$(ODIR)/%.o: %.c $(DEPS)
+	$(CC) -D SDL -c -o $@ $< $(CFLAGS)
+
+gb_emu: $(OBJ)
+	gcc -D SDL -o $@ $^ $(CFLAGS) $(LIBS)
+
+.PHONY: clean
+
+clean:
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 

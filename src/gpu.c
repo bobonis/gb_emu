@@ -450,7 +450,7 @@ void gpuRenderBackground(void){
         if (memory[WX] <= 166 && memory[WY] <= 143){
             if (gpustate.line >= memory[WY]){ //Current scanline is after window position
                 using_window = TRUE;
-                posY = gpustate.line - windowY;
+                //posY = gpustate.line - windowY;
             }
         }
     }
@@ -487,10 +487,12 @@ void gpuRenderBackground(void){
         
         //should read tile for every pixel??
         posX = pixel + memory[SCX];
-        
+        posY = memory[SCY] + gpustate.line;
+
         if (using_window){
             if (pixel >= windowX){
                 posX = pixel - windowX;
+                posY = gpustate.line - windowY;
                 tilemap_start_addr = tilemap_start_addr_window;
             }
             else{

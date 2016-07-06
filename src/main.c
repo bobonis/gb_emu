@@ -11,7 +11,7 @@
 #include "hardware.h"
 #include "sound.h"
 
-#define version "0.90.6"
+#define version "0.90.7"
 
 
 int main(int argc, char **argv){
