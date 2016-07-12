@@ -471,7 +471,7 @@ void gpuRenderBackground(void){
        }
     else{
         tilemap_start_addr_background = 0x9C00;
-    }         
+    }
 
     if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
         tileset_start_addr = 0x8800;
@@ -490,8 +490,19 @@ void gpuRenderBackground(void){
         posY = memory[SCY] + gpustate.line;
 
         if (using_window){
+            
+            /* In case WX register is less than 7, the window is scrolled to the left
+               and is not displayed. The drawing starts from the first visible pixel
+             */ 
+            int window_scroll = 0;
+            
+            if (memory[WX] < 7 ) {
+                windowX = 0;
+                 window_scroll = 7 - memory[WX];
+            }
+            
             if (pixel >= windowX){
-                posX = pixel - windowX;
+                posX = pixel - windowX + window_scroll;
                 posY = gpustate.line - windowY;
                 tilemap_start_addr = tilemap_start_addr_window;
             }
