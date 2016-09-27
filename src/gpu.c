@@ -25,7 +25,8 @@ struct gpu gpustate = {
     FALSE,      /* interrupt */
     0,          /* line */
     FALSE,      /* first line */
-    0           /* lyc */
+    0,          /* lyc */
+    FALSE       /* statsignal */
 };
 
 void gpuReset(void)
@@ -37,6 +38,7 @@ void gpuReset(void)
     gpustate.line = 0;
     gpustate.firstframe = FALSE;
     gpustate.lyc = 0;
+    gpustate.statsignal = FALSE;
 }
 
 /*  Period  GPU mode          Time spent   (clocks)
@@ -71,6 +73,7 @@ void gpuReset(void)
                 gpustate.mode = SCAN_VRAM;
                 memory[STAT] &= 0xFC;
                 memory[STAT] |= SCAN_VRAM;
+                gpuCheckStatSignal();
                 gpuDrawScanline();
             }
             break;
@@ -84,9 +87,7 @@ void gpuReset(void)
                 memory[STAT] &= 0xFC;
                 memory[STAT] |= H_BLANK;
                 gpustate.clock += H_BLANK_CYCLES  - adjust - gpuAdjustCycles();
-                if (testBit(STAT,3) == TRUE){
-                    triggerInterrupt(LCDC_INTERRUPT);   /* HBLANK INTERRUPT */
-                }
+                gpuCheckStatSignal();
             }
             break;
             
@@ -108,15 +109,8 @@ void gpuReset(void)
                     memory[STAT] |= V_BLANK;
                     gpustate.clock = V_BLANK_CYCLES;
                     triggerInterrupt(VBLANK_INTERRUPT);     /* VBLANK INTERRUPT */
-                    if (testBit(STAT,4) == TRUE){
-                        triggerInterrupt(LCDC_INTERRUPT);   /* STAT VBLANK INTERRUPT */
-                    } 
-                    else if (testBit(STAT,5) == TRUE){
-                        triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                    }
-                    else{
-                        gpuCompareLine();                       /* LYC INTERRUPT */
-                    }
+                    gpuCheckLYC();
+                    gpuCheckStatSignal();
                 }
                 else{
                     if (gpustate.firstframe == TRUE){
@@ -124,19 +118,15 @@ void gpuReset(void)
                         gpustate.mode = SCAN_VRAM;
                         memory[STAT] &= 0xFC;
                         memory[STAT] |= SCAN_VRAM;
-                        gpustate.clock = SCAN_VRAM_CYCLES;   
+                        gpustate.clock = SCAN_VRAM_CYCLES;
                     }
                     else{
                         gpustate.mode = SCAN_OAM;
                         memory[STAT] &= 0xFC;
                         memory[STAT] |= SCAN_OAM;
                         gpustate.clock = SCAN_OAM_CYCLES;
-                        if (testBit(STAT,5) == TRUE){
-                            triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                        }
-                        else if (gpustate.line != 0){
-                            gpuCompareLine();                       /* LYC INTERRUPT */
-                        }
+                        gpuCheckLYC();
+                        gpuCheckStatSignal();
                     }
                 }
             }
@@ -145,7 +135,8 @@ void gpuReset(void)
         case V_BLANK:   /*mode 1 */
             if (gpustate.clock <= 452 && gpustate.clock > 448){
                 if (gpustate.line == 0){
-                    gpuCompareLine();
+                    gpuCheckLYC();
+                    gpuCheckStatSignal();
                 } 
             }
             else if (gpustate.clock <= 4 && gpustate.clock > 0){
@@ -155,26 +146,21 @@ void gpuReset(void)
                 }
             }
             else if (gpustate.clock <= 0){
-                
-                gpuCompareLine();                       /* LYC INTERRUPT */
-                
+                gpuCheckLYC();
+                gpuCheckStatSignal();
+
                 if (gpustate.line == 153){
                     gpustate.line = 0;
                     memory[LY] = gpustate.line;
                     gpustate.clock = V_BLANK_CYCLES;
-                    if (testBit(STAT,5) == TRUE){
-                        //triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                    }
                 }
                 else if (gpustate.line == 0){
                     gpustate.mode = SCAN_OAM;
                     memory[STAT] &= 0xFC;
                     memory[STAT] |= SCAN_OAM;
                     gpustate.clock = SCAN_OAM_CYCLES;
-                    if (testBit(STAT,5) == TRUE){
-                        triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                    }
-                    
+                    gpuCheckStatSignal();
+
                     #ifdef GTK
                         displayGTK();
                         fpsthink();
@@ -184,10 +170,6 @@ void gpuReset(void)
                 }
                 else{
                     gpustate.clock = V_BLANK_CYCLES;
-                    if (testBit(STAT,5) == TRUE){
-                        //triggerInterrupt(LCDC_INTERRUPT);   /* OAM INTERRUPT */
-                        //printf("[GPU] OAM INT\n");
-                    }
                 }
             }
             break;
@@ -195,6 +177,56 @@ void gpuReset(void)
             break;
     }
 }
+
+void gpuCheckStatSignal(void)
+{
+    if (gpustate.enable == FALSE)
+    {
+        gpustate.statsignal = 0;
+        return;
+    }
+
+    int any_condition_met =
+            ( (memory[LY] == memory[LYC]) && testBit(STAT,6) ) ||
+            ( (gpustate.mode == 0) && (testBit(STAT,3)) ) ||
+            ( (gpustate.mode == 2) && (testBit(STAT,5)) ) ||
+            ( (gpustate.mode == 1) &&  (testBit(STAT,4)) ) ||
+            ( (gpustate.mode == 1) &&  (testBit(STAT,5)) && (gpustate.line == 144) ); // Not only IENABLE_VBL
+
+    if(any_condition_met)
+    {
+        if(gpustate.statsignal == 0) // rising edge
+        {
+            triggerInterrupt(LCDC_INTERRUPT);
+        }
+        else {
+
+        }
+
+        gpustate.statsignal = 1;
+    }
+    else
+    {
+        gpustate.statsignal = 0;
+    }
+}
+
+void gpuCheckLYC(void)
+{
+    if(gpustate.enable)
+    {
+        if(memory[LY] == memory[LYC])
+            setBit(STAT,2,TRUE);
+        else
+            setBit(STAT,2,FALSE);
+    }
+    else
+    {
+        setBit(STAT,2,FALSE);
+    }
+}
+
+
 
 void gpuUpdateSprites(void){
     
@@ -218,10 +250,9 @@ void gpuUpdateSprites(void){
 int gpuCountSprites (void){
     
     int i;
-    int spritesline = 0;
-    int spritesx = 0;
     unsigned int scanline = gpustate.line + 16;
     unsigned char sprite_size = 8;
+
     if (!testBit(LCDC,1)){
         return 0;
     }
@@ -231,107 +262,13 @@ int gpuCountSprites (void){
     }
     
     for (i=0;i<40;i++){
-        if ((scanline >= sprites[i].Ypos) && (scanline < (sprites[i].Ypos + sprite_size))){
+        if ((scanline >= sprites[i].Ypos) && (scanline < (sprites[i].Ypos + sprite_size)) && sprites[i].Xpos < 168){
             
-            //if (sprites[i].Xpos > 16){
-                sprites[i].draw = TRUE;
-                spritesline += 1;
-            //}
-            
-            
-            int temp = sprites[i].Xpos % 0x08;
-    
-            //printf("%d\n",sprites[i].Xpos);
-    
-            switch (temp){
-                case 7:
-                    spritesx = 0;
-                    break;
-                case 6:
-                    spritesx = 0;
-                    break;
-                case 5:
-                    spritesx = 0;
-                    break;
-                case 4:
-                    spritesx = 0;
-                    break;
-                case 3:
-                    spritesx = 0;
-                    break;
-                case 2:
-                    spritesx = 0;
-                    break;
-                case 1:
-                    spritesx = 0;
-                    break;
-                case 0:
-                    spritesx = 0;
-                    break;
-                default:
-                    break;
-            }
+            sprites[i].draw = TRUE;
         }
     }
 
-    //spritesx = ((spritesx / 4) * 4);
-    //printf("%d\n",spritesline);
-    //return spritesline * 8;
-    
-    //spritesline = (spritesline % 4) * 4;
-    switch (spritesline){
-        case 0:
-            return 0 + spritesx;
-            break;
-        case 1:
-            return 8+ spritesx;
-            break;
-        case 2:
-            return 16+ spritesx;
-            break;
-        case 3:
-            return 20+ spritesx;
-            break;
-        case 4:
-            return 28+ spritesx;
-            break;
-        case 5:
-            return 32+ spritesx;
-            break;
-        case 6:
-            return 40+ spritesx;
-            break;
-        case 7:
-            return 44+ spritesx;
-            break;
-        case 8:
-            return 52+ spritesx;
-            break;
-        case 9:
-            return 56+ spritesx;
-            break;
-        case 10:
-            return 64+ spritesx;
-            break;
-        default:
-            //printf("%d\n",spritesline);
-            return 64;
-            break;
-    }
-}
-
-
-void gpuCompareLine (void){
-    
-    if (memory[LY] == memory[LYC]){
-        setBit(STAT,2,TRUE);
-        if (testBit(STAT,6) == TRUE){
-            triggerInterrupt(LCDC_INTERRUPT);
-        }
-    }
-    else{
-        setBit(STAT,2,FALSE);
-    }
+    return 0;
 }
 
 void gpuSetStatus(unsigned char value){
@@ -339,11 +276,12 @@ void gpuSetStatus(unsigned char value){
         if ( !(memory[LCDC] & 0x80) && (value & 0x80) ){
             //printf("[DEBUG] LCD turned on\n");
             memory[LY] = 0;
-            gpuCompareLine();
+            gpuCheckLYC();
             
             gpustate.enable = TRUE;
             gpustate.firstframe = TRUE;
-            gpustate.clock = SCAN_OAM_CYCLES;            
+            gpustate.clock = SCAN_OAM_CYCLES; 
+            gpuCheckStatSignal();           
         }
         // switch off
         else if ( (memory[LCDC] & 0x80) && !(value & 0x80) ){ // switch off
@@ -471,7 +409,7 @@ void gpuRenderBackground(void){
        }
     else{
         tilemap_start_addr_background = 0x9C00;
-    }
+    }         
 
     if (testBit(LCDC,4) == FALSE){     //BG & Window Tile Data Select (0=8800-97FF, 1=8000-8FFF)
         tileset_start_addr = 0x8800;
@@ -594,7 +532,7 @@ void gpuRenderSprites(void){
             end = 0;
         }
     }
-
+    
 
     /* DRAW SPRITES */
 

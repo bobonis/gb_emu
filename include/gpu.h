@@ -16,6 +16,8 @@ void gpuCompareLine (void);
 int gpuCountSprites(void);
 void gpuUpdateSprites(void);
 void gpuReset(void);
+void gpuCheckStatSignal(void);
+void gpuCheckLYC(void);
 
 extern unsigned char framebuffer[144][160][3];
 extern unsigned char gpu_state;
@@ -45,6 +47,7 @@ extern struct gpu
     unsigned int line;
     unsigned int firstframe;
     unsigned int lyc;
+    unsigned int statsignal;
 }gpustate;
 
 

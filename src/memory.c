@@ -330,6 +330,16 @@ unsigned char readMemoryRAMBank(unsigned short address)
             data = 0xFF; /* if no RAM is mapped reads return 0xFF */
         }
         break;
+    case MBC3:
+        if (RTC_register_enabled == FALSE) {
+            address -= 0xA000;
+            address += 0x2000 * active_RAM_bank; /* move address space to correct RAM Bank */
+            data = cart_RAM[address];
+        } else {
+            printf("[MEM] Read from RTC register\n");
+            data = 0x00;
+        }
+        break;
     default:
         data = 0xFF;    /* if no RAM is mapped reads return 0xFF */
         break;
@@ -692,6 +702,14 @@ void writeMemoryRAMBank(unsigned short address, unsigned char data)
                     memory[address] = data; */
                 }
                 break;
+            case MBC3 :
+                if (RTC_register_enabled == FALSE) {
+                    address -= 0xA000;
+                    address += 0x2000 * active_RAM_bank; /*move address space to correct RAM Bank */
+                    cart_RAM[address] = data;  
+                } else {
+                    printf("[MEM] Write to RTC register\n");
+                }
             default :
                 /* if no RAM is mapped there is nowere to write */
                 break;
@@ -895,8 +913,14 @@ void writeMemoryIOPorts(unsigned short address, unsigned char data)
         data &= 0xFC;
         data |= memory[address] & 0x03;    /* bobonis assumes 3 LSB cannot be set */
         memory[address] = data;
-        if (gpustate.enable)
-           gpuCompareLine();
+        gpuCheckStatSignal();
+        
+        //Road Rush 
+        /*if(gpustate.enable && ((gpustate.mode == 0) || (gpustate.mode == 0)))
+        {
+            printf("[MEM] Trigger IRQ from STAT Bug, mode = %d, LY = %d\n",gpustate.mode, gpustate.line);
+            triggerInterrupt(LCDC_INTERRUPT);
+        }*/
         break;
     case 0xFF42 :                   /* SCY */
         memory[address] = data;
@@ -911,8 +935,10 @@ void writeMemoryIOPorts(unsigned short address, unsigned char data)
         break;
     case 0xFF45 :                   /* LYC */
         memory[address] = data;
-        if (gpustate.enable)
-            gpuCompareLine();
+        if (gpustate.enable){
+            gpuCheckLYC();
+            gpuCheckStatSignal();
+        }
         break;            
     case 0xFF46 :                   /* DMA */
         dmastate.prepare = TRUE;

@@ -67,7 +67,7 @@ function all {
     test ./gb_emu ../tests/mooneye/acceptance/gpu/intr_1_2_timing-GS.gb > /dev/null
     test ./gb_emu ../tests/mooneye/acceptance/gpu/intr_2_mode0_timing.gb > /dev/null
     test ./gb_emu ../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb > /dev/null
-    test ./gb_emu ../tests/mooneye/acceptance/stat_irq_blocking.gb > /dev/null
+    test ./gb_emu ../tests/mooneye/acceptance/gpu/stat_irq_blocking.gb > /dev/null
     test ./gb_emu ../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb > /dev/null
     test ./gb_emu ../tests/mooneye/acceptance/gpu/hblank_ly_scx_timing-GS.gb > /dev/null
     test ./gb_emu ../tests/mooneye/acceptance/jp_timing.gb > /dev/null
@@ -99,7 +99,7 @@ function gpu {
     test ./gb_emu ../tests/mooneye/acceptance/gpu/vblank_stat_intr-GS.gb > /dev/null
     test ./gb_emu ../tests/mooneye/acceptance/gpu/intr_2_mode0_timing_sprites.gb > /dev/null
     test ./gb_emu ../tests/mooneye/acceptance/gpu/hblank_ly_scx_timing-GS.gb > /dev/null
-    test ./gb_emu ../tests/mooneye/acceptance/stat_irq_blocking.gb > /dev/null
+    test ./gb_emu ../tests/mooneye/acceptance/gpu/stat_irq_blocking.gb > /dev/null
 }
 
 function timer {

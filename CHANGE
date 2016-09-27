@@ -1,3 +1,8 @@
+0.90.9
+    - Triggering of STAT IRQ updated
+    - Initial support of MBC3 cartridges
+    - Remove printout of executed opcodes
+
 0.90.8
     - Yet another bug with the window fixed when WX register < 7
 
