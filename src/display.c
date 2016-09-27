@@ -205,6 +205,5 @@ void fpsthink() {
 
         // now to make it an actual frames per second value...
         framespersecond = 1000.f / framespersecond;
-        printf("[INFO] FPS = %f, OPC = %d\n",framespersecond,executed_opcodes);
-        executed_opcodes = 0;
+        printf("[INFO] FPS = %f\n",framespersecond);
 }

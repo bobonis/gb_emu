@@ -12,7 +12,6 @@
 int debug_mooneye = FALSE;
 int debug_test_run = FALSE;
 unsigned short debug_pc = 0x0000;
-unsigned int executed_opcodes = 0;
 
 /* CPU VARIABLES */
 
@@ -596,7 +595,6 @@ void execute (void){
         handleInterrupts();
     }
 
-    executed_opcodes++;    
 /*  CPU OPERATION */
 
     int operand_length;                         // Decide how many octets to fetch after opcode
@@ -614,10 +612,15 @@ void execute (void){
     
     if (debug_test_run){
         if (current == 0x00 && previous == 0x18){
-            if (registers.A == 0x00)
+            if (registers.A == 0x00){
+                printf("[DEBUG]Test Passed\n");
                 exit(0);
-            else
+            }
+            else{
+                printf("[DEBUG]Test Failed\n");
+                //printf("[DEBUG] A=%3d,B=%3d,C=%3d,D=%3d,E=%3d,F=%3d,H=%3d,L=%3d\n",registers.A,registers.B,registers.C,registers.D,registers.E,registers.F,registers.H,registers.L);
                 exit(1);
+            }
         }
     }
 

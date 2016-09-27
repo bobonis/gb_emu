@@ -20,6 +20,8 @@ char cart_game[17] = "sram/cartridgerom";
 unsigned char active_RAM_bank = 0;
 unsigned char total_RAM_banks = 0;
 int RAM_bank_enabled = FALSE;		/* We assume that the RAM Bank is disabled at startup */
+int RTC_register_enabled = FALSE;
+unsigned char RTC_register_mapped = 0x00;
 unsigned char active_ROM_bank = 1;
 unsigned char total_ROM_banks = 0;
 
@@ -133,6 +135,8 @@ int loadRom(const char *filename){
 			break;			
 		case 0x10 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3+TIMER+RAM+BATT" PRINT_RESET"\n",romtype);
+            memoryCopy(0x0000,cart_ROM,0x3FFF);
+            MBC_type = MBC3;
 			break;
 		case 0x11 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3" PRINT_RESET"\n",romtype);
@@ -142,6 +146,8 @@ int loadRom(const char *filename){
 			break;
 		case 0x13 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC3+RAM+BATT" PRINT_RESET"\n",romtype);
+            memoryCopy(0x0000,cart_ROM,0x3FFF);
+            MBC_type = MBC3;
 			break;
 		case 0x19 :
 			printf(PRINT_CYAN "[INFO] Cartridge type is: 0x%02x - ROM+MBC5" PRINT_RESET"\n",romtype);
@@ -330,6 +336,19 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             else
                 RAM_bank_enabled = FALSE;   /* Disable external RAM */
 		}
+        else if (MBC_type == MBC3){
+            /* Writing to this address range any value with 0Ah in the lower 4 bits 
+               enables RAM and RTC registers, and any other value disables them. 
+               Usually, 00h is used to disable them and 0Ah is used to enable them.
+            */
+            if (( value & 0x0F ) == 0x0A ){
+                    RAM_bank_enabled = TRUE;    //Enable external RAM
+            }
+            else{
+                    RAM_bank_enabled = FALSE;   //Disable external RAM
+                    RTC_register_enabled = FALSE;
+            }
+        }
     }
     else if (( address >= 0x2000 ) && ( address <= 0x3FFF )){
         if (MBC_type == MBC1){
@@ -362,6 +381,17 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
             		active_ROM_bank = 1;
 			}
 		}
+        else if (MBC_type == MBC3){
+            /* The 7 lower bits of the value written here is the ROM bank that will be mapped to 4000h-3FFFh */
+            active_ROM_bank = value & 0x7F;
+            /* handle the case when more that available rom banks are set */
+            while (active_ROM_bank > total_ROM_banks){
+                active_ROM_bank = active_ROM_bank - total_ROM_banks;
+            }
+            if (active_ROM_bank == 0){ /* Bank 0 is not allowed */
+                active_ROM_bank = 1;
+            }
+		}
     }
     else if (( address >= 0x4000 ) && ( address <= 0x5FFF )){
         if (MBC_type == MBC1){
@@ -385,6 +415,25 @@ void cartridgeSwitchBanks(unsigned short address, unsigned char value){
                 while (active_RAM_bank > total_RAM_banks){
                     active_RAM_bank = active_RAM_bank - total_RAM_banks;
                 }
+            }
+        }
+        else if (MBC_type == MBC3){
+            switch (value){
+                /* writing a value in range for 00h-03h maps the corresponding external RAM Bank (if any) into memory at A000-BFFF */
+                case 0x00 ... 0x07 :
+                    active_RAM_bank = value;
+                    while (active_RAM_bank > total_RAM_banks){
+                        active_RAM_bank = active_RAM_bank - total_RAM_banks;
+                    }
+                    RTC_register_enabled = FALSE;
+                    break;
+                /* writing a value of 08h-0Ch, this will map the corresponding RTC register into memory at A000-BFFF */
+                case 0x08 ... 0x0C :
+                    RTC_register_enabled = TRUE;
+                    RTC_register_mapped = value;
+                    break;
+                default :
+                    break;
             }
         }
         
