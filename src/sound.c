@@ -69,6 +69,8 @@ typedef struct {
     
     unsigned int fivebitcounter;
     unsigned int unifiedlengthclock;
+    unsigned int framesequencerclock;
+    unsigned int framesequencerstep;
     
     struct { /* Tone & Sweep */
         
@@ -90,6 +92,8 @@ typedef struct {
             unsigned char period;
             unsigned char increasing;
             unsigned char shift;
+            unsigned int enable;
+            unsigned short shadowregister;
             } sweep;
         } Chn1;
 
@@ -143,12 +147,68 @@ typedef struct {
 static _GB_SOUND_HARDWARE_ soundstate;
 
 
-
+/*
+Step   Length Ctr  Vol Env     Sweep
+---------------------------------------
+0      Clock       -           -
+1      -           -           -
+2      Clock       -           Clock
+3      -           -           -
+4      Clock       -           -
+5      -           -           -
+6      Clock       -           Clock
+7      -           Clock       -
+---------------------------------------
+Rate   256 Hz      64 Hz       128 Hz
+*/
 void soundTick(void)
 {
+    soundstate.framesequencerclock -= 4;
+    
+    if (soundstate.framesequencerclock == 0) {
+        soundstate.framesequencerclock = 8192;
+        switch (soundstate.framesequencerstep) {
+            case 0 :
+                soundTickLenghthCounter();
+                break;
+            case 1 :
+            
+                break;
+            case 2 :
+                soundTickLenghthCounter();
+                soundTickSweepCounter();
+                break;
+            case 3 :
+            
+                break;
+            case 4 :
+                soundTickLenghthCounter();
+                break;
+            case 5 :
+            
+                break;
+            case 6 :
+                soundTickLenghthCounter();
+                soundTickSweepCounter();
+                break;
+            case 7 :
+            
+                break;
+            default :
+                break;
+        }
+        
+        if (soundstate.framesequencerstep < 7){
+            soundstate.framesequencerstep += 1;
+        } else {
+            soundstate.framesequencerstep = 0;
+        }
+        
+    }
     
     soundTickProgrammableCounter();
-    soundTickLenghthCounter();
+    //soundTickLenghthCounter();
+    //soundTickSweepCounter();
 
 }
 
@@ -182,10 +242,10 @@ void soundTickLenghthCounter(void)
        particular channel is on. It is common to all channels, so when it clocks for
        one channel it clocks all of them. */
 
-    soundstate.unifiedlengthclock -=4;
+    //soundstate.unifiedlengthclock -=4;
     
-    if (soundstate.unifiedlengthclock == 0) {
-        soundstate.unifiedlengthclock = 16384;
+    //if (soundstate.unifiedlengthclock == 0) {
+        //soundstate.unifiedlengthclock = 16384;
 
         if (soundstate.Chn1.enable | soundstate.Chn2.enable | soundstate.Chn3.enable | soundstate.Chn4.enable |
             soundstate.Chn1.trigger  | soundstate.Chn2.trigger  | soundstate.Chn3.trigger  | soundstate.Chn4.trigger)
@@ -247,12 +307,30 @@ void soundTickLenghthCounter(void)
                     setBit(NR52,3,FALSE);
                 }
         } 
-        
-        
-        
-        
-    }
+    //}
+}
 
+void soundTickSweepCounter(void) {
+    /* When the sweep's internal enabled flag is set and the sweep period is not zero, 
+       a new frequency is calculated and the overflow check is performed 
+     */
+     unsigned short temp_frequency;
+    if ((soundstate.Chn1.sweep.enable) && (soundstate.Chn1.sweep.period)){
+        temp_frequency = soundstate.Chn1.sweep.shadowregister + (soundstate.Chn1.sweep.shadowregister >> soundstate.Chn1.sweep.shift);
+        if ((temp_frequency <= 2047) && (soundstate.Chn1.sweep.shift)) {
+            soundstate.Chn1.sweep.shadowregister = temp_frequency;
+            memory[NR13] = temp_frequency & 0x00FF;
+            memory[NR14] &= 0xF8;
+            memory[NR14] |= ((temp_frequency >> 8) & 0x0007);
+            
+            soundstate.Chn1.sweep.shadowregister += soundstate.Chn1.sweep.shadowregister >> soundstate.Chn1.sweep.shift;
+            /* if this is greater than 2047, square 1 is disabled */
+            if (soundstate.Chn1.sweep.shadowregister > 2047) {
+                soundstate.Chn1.trigger = FALSE;
+                setBit(NR52,0,FALSE);
+            }
+        }
+    }
 }
 
 void soundWriteRegister(unsigned short address,unsigned char value)
@@ -326,11 +404,41 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 setBit(NR52,0,TRUE);
             }
 
+            /* Frequency Sweep */
+            
+            if (soundstate.Chn1.trigger) {
+                
+                /* Square 1's frequency is copied to the shadow register */
+                soundstate.Chn1.sweep.shadowregister = soundstate.Chn1.frequency;
+                
+                /* The sweep timer is reloaded */
+
+                
+                /* The internal enabled flag is set if either the sweep period or shift are non-zero, cleared otherwise */
+                if ((soundstate.Chn1.sweep.period) || (soundstate.Chn1.sweep.shift)) {
+                    soundstate.Chn1.sweep.enable = TRUE;
+                } else {
+                    soundstate.Chn1.sweep.enable = FALSE;
+                }
+                                
+                /* If the sweep shift is non-zero, frequency calculation and the overflow check are performed immediately */
+                if (soundstate.Chn1.sweep.shift) {
+                    /* Frequency calculation consists of taking the value in the frequency shadow register, shifting it right by sweep shift, optionally negating the value, and summing this with the frequency shadow register to produce a new frequency */
+                    soundstate.Chn1.sweep.shadowregister += soundstate.Chn1.sweep.shadowregister >> soundstate.Chn1.sweep.shift;
+                    /* if this is greater than 2047, square 1 is disabled */
+                    if (soundstate.Chn1.sweep.shadowregister > 2047) {
+                        soundstate.Chn1.trigger = FALSE;
+                        setBit(NR52,0,FALSE);
+                    } 
+                }
+            }
+
+
 
             if ( ( (value & 0x40) >> 6)  ) {
                 /* when the frame sequencer's next step is one that doesn't clock the length counter
                    if the length counter was PREVIOUSLY disabled and now enabled */
-                if ((soundstate.unifiedlengthclock > 8192) && (soundstate.Chn1.enable == FALSE)) {
+                if ((soundstate.framesequencerstep % 2) && (soundstate.Chn1.enable == FALSE)) {
                     /* if the length counter is not zero, it is decremented */
                     if (soundstate.Chn1.length_cnt) {
                         soundstate.Chn1.length_cnt -= 1;
@@ -350,7 +458,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                the length counter and the length counter is now enabled and length is being set to 64 
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn1.length_cnt == 0)) {
-                if ((soundstate.Chn1.enable) && (soundstate.unifiedlengthclock > 8192)){
+                if ((soundstate.Chn1.enable) && (soundstate.framesequencerstep % 2)){
                     soundstate.Chn1.length_cnt = 63;
                 } else {
                     soundstate.Chn1.length_cnt = 64;
@@ -409,7 +517,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
             if ( ( (value & 0x40) >> 6)  ) {
                 /* when the frame sequencer's next step is one that doesn't clock the length counter
                    if the length counter was PREVIOUSLY disabled and now enabled */
-                if ((soundstate.unifiedlengthclock > 8192) && (soundstate.Chn2.enable == FALSE)) {
+                if ((soundstate.framesequencerstep % 2) && (soundstate.Chn2.enable == FALSE)) {
                     /* if the length counter is not zero, it is decremented */
                     if (soundstate.Chn2.length_cnt) {
                         soundstate.Chn2.length_cnt -= 1;
@@ -429,7 +537,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                the length counter and the length counter is now enabled and length is being set to 64 
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn2.length_cnt == 0)) {
-                if ((soundstate.Chn2.enable) && (soundstate.unifiedlengthclock > 8192)){
+                if ((soundstate.Chn2.enable) && (soundstate.framesequencerstep % 2)){
                     soundstate.Chn2.length_cnt = 63;
                 } else {
                     soundstate.Chn2.length_cnt = 64;
@@ -485,7 +593,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
             if ( ( (value & 0x40) >> 6)  ) {
                 /* when the frame sequencer's next step is one that doesn't clock the length counter
                    if the length counter was PREVIOUSLY disabled and now enabled */
-                if ((soundstate.unifiedlengthclock > 8192) && (soundstate.Chn3.enable == FALSE)) {
+                if ((soundstate.framesequencerstep % 2) && (soundstate.Chn3.enable == FALSE)) {
                     /* if the length counter is not zero, it is decremented */
                     if (soundstate.Chn3.length_cnt) {
                         soundstate.Chn3.length_cnt -= 1;
@@ -505,7 +613,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                the length counter and the length counter is now enabled and length is being set to 64 
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn3.length_cnt == 0)) {
-                if ((soundstate.Chn3.enable) && (soundstate.unifiedlengthclock > 8192)){
+                if ((soundstate.Chn3.enable) && (soundstate.framesequencerstep % 2)){
                     soundstate.Chn3.length_cnt = 255;
                 } else {
                     soundstate.Chn3.length_cnt = 256;
@@ -561,7 +669,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
             if ( ( (value & 0x40) >> 6)  ) {
                 /* when the frame sequencer's next step is one that doesn't clock the length counter
                    if the length counter was PREVIOUSLY disabled and now enabled */
-                if ((soundstate.unifiedlengthclock > 8192) && (soundstate.Chn4.enable == FALSE)) {
+                if ((soundstate.framesequencerstep % 2) && (soundstate.Chn4.enable == FALSE)) {
                     /* if the length counter is not zero, it is decremented */
                     if (soundstate.Chn4.length_cnt) {
                         soundstate.Chn4.length_cnt -= 1;
@@ -581,7 +689,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                the length counter and the length counter is now enabled and length is being set to 64 
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn4.length_cnt == 0)) {
-                if ((soundstate.Chn4.enable) && (soundstate.unifiedlengthclock > 8192)){
+                if ((soundstate.Chn4.enable) && (soundstate.framesequencerstep % 2)){
                     soundstate.Chn4.length_cnt = 63;
                 } else {
                     soundstate.Chn4.length_cnt = 64;
@@ -735,7 +843,7 @@ unsigned char soundReadRegister(unsigned short address)
             break;
     }
     
-    printf("[SND] Read %x from %x, clock=%4d\n",data,address,soundstate.unifiedlengthclock);
+    //printf("[SND] Read %x from %x, clock=%4d\n",data,address,soundstate.unifiedlengthclock);
     return data;
 
 }
@@ -787,6 +895,8 @@ void soundReset(void)
     soundstate.Chn1.sweep.period = 0;
     soundstate.Chn1.sweep.increasing = 0;
     soundstate.Chn1.sweep.shift = 0;
+    soundstate.Chn1.sweep.enable = 0;
+    soundstate.Chn1.sweep.shadowregister = 0;
     /*************
     * Channel 2  *
     *************/
@@ -833,6 +943,8 @@ void soundReset(void)
     
     soundstate.fivebitcounter = 32;
     soundstate.unifiedlengthclock = 16384;
+    soundstate.framesequencerstep = 0;
+    soundstate.framesequencerclock = 8192;
 }
 
 void soundTurnOn(void)

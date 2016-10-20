@@ -21,6 +21,7 @@ void soundTurnOff(void);
 void soundTick(void);
 void soundTickProgrammableCounter(void);
 void soundTickLenghthCounter(void);
+void soundTickSweepCounter(void);
 
 #ifdef __cplusplus
 }
