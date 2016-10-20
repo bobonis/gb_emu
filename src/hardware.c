@@ -13,6 +13,8 @@
 void hardwareTick(void){
     #ifdef SOUND
     sound_tick(4);
+    #else
+    soundTick();
     #endif
     updateDMA();
     
@@ -35,5 +37,7 @@ void hardwareReset(void)
     inputReset();
     #ifdef SOUND
     init_apu();
+    #else
+    soundReset();
     #endif
 }
