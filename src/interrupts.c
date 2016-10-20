@@ -14,15 +14,12 @@
  */
 void triggerInterrupt(int interrupt){
     
-    if (cpustate.ime == TRUE){
+    
+    /* HALT mode is exited when a flag in register IF is set and the 
+     * corresponding flag in IE is also set, regardless of the value of IME.
+     */
+    if (testBit(IER, interrupt)) {
         cpustate.halt = FALSE;
-        //cpustate.interrupt = TRUE;
-    }
-    else{
-        if (cpustate.halt == TRUE){
-            cpustate.halt = FALSE;
-            cpustate.interrupt = TRUE;            
-        }
     }
     
     setBit(IFR, interrupt, TRUE);

@@ -128,6 +128,7 @@ void memoryReset(void)
 
         memory[0xFF00] = 0xCF;    
         memory[0xFF07] = 0xF8;
+#ifdef SOUND
         memory[0xFF10] = 0x80;	/* NR10 */
 	    memory[0xFF11] = 0xBF;	/* NR11 */
 	    memory[0xFF12] = 0xF3;	/* NR12 */
@@ -146,6 +147,7 @@ void memoryReset(void)
 	    memory[0xFF24] = 0x77;	/* NR50 */
 	    memory[0xFF25] = 0xF3;	/* NR51 */
 	    memory[0xFF26] = 0xF1;	/* NR52 */
+#endif
         memory[0xFF0F] = 0xE0;
         memory[0xFFFF] = 0xE0;
         memory[0xFF46] = 0xFF;
@@ -441,6 +443,7 @@ unsigned char readMemoryIOPorts(unsigned short address)
         data = memory[address];
         data |= 0xE0;               /* BIT 7,6,5 Not Used */
         break;
+#ifdef SOUND
     case 0xFF10 :                   /* NR10 */
         data = read_memory_apu(address);
         data |= 0x80;               /* BIT 7 Not Used */
@@ -521,7 +524,12 @@ unsigned char readMemoryIOPorts(unsigned short address)
         break;
     case 0xFF30 ... 0xFF3F :        /* WAVE pattern RAM */
         data = read_memory_apu(address);
-        break;                       
+        break;
+#else
+    case 0xFF10 ... 0xFF3F :        /* Hande Sound */
+        data = soundReadRegister(address);
+        break;
+#endif
     case 0xFF40 :                   /* LCDC */
         data = memory[address];
         break;            
@@ -810,7 +818,8 @@ void writeMemoryIOPorts(unsigned short address, unsigned char data)
         data |= 0xE0;               /* BIT 7,6,5 Not Used */
         memory[address] = data;
         break;
-    case 0xFF10 :                   /* NR10 */
+#ifdef SOUND
+        case 0xFF10 :                   /* NR10 */
         data |= 0x80;               /* BIT 7 Not Used */
         write_memory_apu(address,data);
         memory[address] = data;
@@ -903,7 +912,12 @@ void writeMemoryIOPorts(unsigned short address, unsigned char data)
     case 0xFF30 ... 0xFF3F :        /* WAVE pattern RAM */
         write_memory_apu(address,data);
         memory[address] = data;
-        break;                       
+        break;         
+#else
+    case 0xFF10 ... 0xFF3F :        /* Hande Sound */
+        soundWriteRegister(address,data);
+        break;
+#endif
     case 0xFF40 :                   /* LCDC */
         gpuSetStatus(data);
         memory[address] = data;

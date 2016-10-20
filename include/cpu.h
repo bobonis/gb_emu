@@ -27,7 +27,7 @@ extern struct cpu{
 
 extern int cpuHALT;
 extern int cpuSTOP;
-extern unsigned int executed_opcodes;
+extern int debug_mooneye;
 
 void execute (void);
 void cpuReset(void);
