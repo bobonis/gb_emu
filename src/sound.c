@@ -484,6 +484,36 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 }
             }
 
+            /* Frequency Sweep */
+            
+            if (soundstate.Chn1.trigger) {
+                
+                /* Square 1's frequency is copied to the shadow register */
+                soundstate.Chn1.sweep.shadowregister = soundstate.Chn1.frequency;
+                
+                /* The sweep timer is reloaded */
+
+                
+                /* The internal enabled flag is set if either the sweep period or shift are non-zero, cleared otherwise */
+                if ((soundstate.Chn1.sweep.period) || (soundstate.Chn1.sweep.shift)) {
+                    soundstate.Chn1.sweep.enable = TRUE;
+                } else {
+                    soundstate.Chn1.sweep.enable = FALSE;
+                }
+                                
+                /* If the sweep shift is non-zero, frequency calculation and the overflow check are performed immediately */
+                if (soundstate.Chn1.sweep.shift) {
+                    /* Frequency calculation consists of taking the value in the frequency shadow register, shifting it right by sweep shift, optionally negating the value, and summing this with the frequency shadow register to produce a new frequency */
+                    soundstate.Chn1.sweep.shadowregister += soundstate.Chn1.sweep.shadowregister >> soundstate.Chn1.sweep.shift;
+                    /* if this is greater than 2047, square 1 is disabled */
+                    if (soundstate.Chn1.sweep.shadowregister > 2047) {
+                        soundstate.Chn1.trigger = FALSE;
+                        setBit(NR52,0,FALSE);
+                    } 
+                }
+            }
+
+
 
 
             if ( ( (value & 0x40) >> 6)  ) {

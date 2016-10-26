@@ -28,6 +28,7 @@ void soundTickSweepCounter(void);
 void channelEnable(unsigned int);
 void channelDisable(unsigned int);
 unsigned short channelCalculateSweepFreq(void);
+
 #ifdef __cplusplus
 }
 #endif
