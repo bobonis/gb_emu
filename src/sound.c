@@ -43,7 +43,6 @@ NR52 FF26 P--- NW21 Power control/status, Channel length statuses
      FF30 0000 1111 Samples 0 and 1
      ....
      FF3F 0000 1111 Samples 30 and 31
-     
 */
 
 #include "sound.h"
@@ -207,33 +206,15 @@ void soundTick(void)
         }
         
     }
-    
-    soundTickProgrammableCounter();
-    //soundTickLenghthCounter();
-    //soundTickSweepCounter();
 
+    soundTickProgrammableCounter();
 }
 
 
 void soundTickProgrammableCounter(void)
 {
-   // soundstate.fivebitcounter -= 4;
-    
-    //if (soundstate.fivebitcounter != 0)
-       // return;
-    
-    /* Channel 1 */
-    
 
-    /* Channel 2 */
-    
-    
-    /* Channel 3 */
-    
-    //soundstate.fivebitcounter = 32;
 }
-
-
 
 void soundTickLenghthCounter(void)
 {
@@ -484,38 +465,6 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 }
             }
 
-            /* Frequency Sweep */
-            
-            if (soundstate.Chn1.trigger) {
-                
-                /* Square 1's frequency is copied to the shadow register */
-                soundstate.Chn1.sweep.shadowregister = soundstate.Chn1.frequency;
-                
-                /* The sweep timer is reloaded */
-
-                
-                /* The internal enabled flag is set if either the sweep period or shift are non-zero, cleared otherwise */
-                if ((soundstate.Chn1.sweep.period) || (soundstate.Chn1.sweep.shift)) {
-                    soundstate.Chn1.sweep.enable = TRUE;
-                } else {
-                    soundstate.Chn1.sweep.enable = FALSE;
-                }
-                                
-                /* If the sweep shift is non-zero, frequency calculation and the overflow check are performed immediately */
-                if (soundstate.Chn1.sweep.shift) {
-                    /* Frequency calculation consists of taking the value in the frequency shadow register, shifting it right by sweep shift, optionally negating the value, and summing this with the frequency shadow register to produce a new frequency */
-                    soundstate.Chn1.sweep.shadowregister += soundstate.Chn1.sweep.shadowregister >> soundstate.Chn1.sweep.shift;
-                    /* if this is greater than 2047, square 1 is disabled */
-                    if (soundstate.Chn1.sweep.shadowregister > 2047) {
-                        soundstate.Chn1.trigger = FALSE;
-                        setBit(NR52,0,FALSE);
-                    } 
-                }
-            }
-
-
-
-
             if ( ( (value & 0x40) >> 6)  ) {
                 /* when the frame sequencer's next step is one that doesn't clock the length counter
                    if the length counter was PREVIOUSLY disabled and now enabled */
@@ -538,7 +487,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                the length counter and the length counter is now enabled and length is being set to 64 
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn1.length_cnt == 0)) {
-                if ((soundstate.Chn1.enable) && (soundstate.framesequencerstep % 2)){
+                if ((soundstate.Chn1.enable) && (soundstate.framesequencerstep % 2)) {
                     soundstate.Chn1.length_cnt = 63;
                 } else {
                     soundstate.Chn1.length_cnt = 64;
@@ -549,7 +498,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
             if (soundstate.Chn1.dac == OFF) {
                 channelDisable(1);
             }
-            
+
             break;
         /*************
         * Channel 2  *
@@ -624,11 +573,10 @@ void soundWriteRegister(unsigned short address,unsigned char value)
 
             printf("[SND] Lenght after: %d\n",soundstate.Chn2.length_cnt);
 
-            
             break;
         /*************
         * Channel 3  *
-        *************/  
+        *************/
         case NR30 : /* 0xFF1A E--- ---- DAC power */
             memory[NR30] = value;
             soundstate.Chn3.dac = (value & 0x80) >> 7;
@@ -696,7 +644,6 @@ void soundWriteRegister(unsigned short address,unsigned char value)
 
             printf("[SND] Lenght after: %d\n",soundstate.Chn3.length_cnt);
 
-          
             break;
         /*************
         * Channel 4  *
@@ -797,7 +744,6 @@ void soundWriteRegister(unsigned short address,unsigned char value)
         default :
             break;
     }
-    
     
 }
 
@@ -939,17 +885,17 @@ void soundResetRegisters(void)
     memory[NR10] = 0x80;
 	memory[NR11] = 0x00;
 	memory[NR12] = 0x00;
-    memory[NR13] = 0xFF;    /* No Change */
+    memory[NR13] = 0x00;    /* No Change */
 	memory[NR14] = 0xBF;
     memory[NR20] = 0xFF;    /* No Change */
 	memory[NR21] = 0x3F;
 	memory[NR22] = 0x00;
-    memory[NR23] = 0xFF;    /* No Change */
+    memory[NR23] = 0x00;    /* No Change */
 	memory[NR24] = 0xBF;
 	memory[NR30] = 0x7F;
 	memory[NR31] = 0xFF;
 	memory[NR32] = 0x9F;
-    memory[NR33] = 0xFF;    /* No Change */
+    memory[NR33] = 0x00;    /* No Change */
 	memory[NR34] = 0xBF;
     memory[NR40] = 0xFF;    /* No Change */
 	memory[NR41] = 0xFF;
