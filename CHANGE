@@ -219,5 +219,5 @@ bobonis
     - changed debug output in cpu.c
     - moved bioslogo declaration to rom.c to get rid of warning
     - included rom.h in main.c declarations to get rid of warning
-    - added dummy functions for gpu timers input and interrups
+    - added dummy functions for gpu timers input and interrupts
     - moved header files under include folder
