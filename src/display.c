@@ -4,7 +4,7 @@
 #include "input.h"
 #include "definitions.h"
 
-int modifier = 1;  
+int modifier = 2;  
 
 const char* WINDOW_TITLE = "GB Emu";    //Window Title
 

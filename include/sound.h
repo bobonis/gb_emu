@@ -25,6 +25,7 @@ void soundTick(void);
 void soundTickProgrammableCounter(void);
 void soundTickLenghthCounter(void);
 void soundTickSweepCounter(void);
+void soundTickEnvelope(void);
 void channelEnable(unsigned int);
 void channelDisable(unsigned int);
 unsigned short channelCalculateSweepFreq(void);

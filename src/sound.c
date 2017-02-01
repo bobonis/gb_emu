@@ -80,11 +80,14 @@ typedef struct {
         unsigned char length_cnt;
         unsigned int length_cnt_skip;
         unsigned char wave_duty;
+        unsigned char volume;
         
         struct {
             unsigned char volume;
             unsigned char increasing;
             unsigned char period;
+            unsigned char timer;
+            unsigned int enable;
             } envelope;
             
         struct {
@@ -107,11 +110,14 @@ typedef struct {
         unsigned char length_cnt;
         unsigned int length_cnt_skip;
         unsigned char wave_duty;
+        unsigned char volume;
         
         struct {
             unsigned char volume;
             unsigned char increasing;
             unsigned char period;
+            unsigned char timer;
+            unsigned int enable;
             } envelope;
         } Chn2;
 
@@ -135,11 +141,14 @@ typedef struct {
         unsigned char length_cnt;
         unsigned int length_cnt_skip;
         unsigned char noise;
+        unsigned char volume;
         
         struct {
             unsigned char volume;
             unsigned char increasing;
             unsigned char period;
+            unsigned char timer;
+            unsigned int enable;
             } envelope;
         } Chn4;
 
@@ -193,7 +202,7 @@ void soundTick(void)
                 soundTickSweepCounter();
                 break;
             case 7 :
-            
+                soundTickEnvelope();
                 break;
             default :
                 break;
@@ -207,10 +216,109 @@ void soundTick(void)
         
     }
 
+    //run
+
+
     soundTickProgrammableCounter();
 }
 
+void soundTickEnvelope(void)
+{
+    /* On DMG no clocking when sound is disabled */
+    if (soundstate.enable == FALSE) {
+        return;
+    }
+    
+    /*************
+    * Channel 1  *
+    *************/
+    if (soundstate.Chn1.enable) {
+        if ((soundstate.Chn1.envelope.enable) && (soundstate.Chn1.envelope.period)) {
+            if (soundstate.Chn1.envelope.timer == 0) {
+                
+                soundstate.Chn1.envelope.timer = soundstate.Chn1.envelope.period;
+    
+                if (soundstate.Chn1.envelope.increasing) {
+                    if (soundstate.Chn1.volume < 0x0F) {
+                        soundstate.Chn1.volume += 1;
+                        /* TODO update stereo volume */
+                    } else {
+                        soundstate.Chn1.envelope.enable = 0;
+                    }
+                } else {
+                    if (soundstate.Chn1.volume > 0x00) {
+                        soundstate.Chn1.volume -= 1;
+                        /* TODO update stereo volume */
+                    } else {
+                        soundstate.Chn1.envelope.enable = 0;
+                    }
+                }                
+            } else {
+                soundstate.Chn1.envelope.timer -= 1;
+            }
+        }        
+    }
+    /*************
+    * Channel 2  *
+    *************/
+    if (soundstate.Chn2.enable) {
+        if ((soundstate.Chn2.envelope.enable) && (soundstate.Chn2.envelope.period)) {
+            if (soundstate.Chn2.envelope.timer == 0) {
+                
+                soundstate.Chn2.envelope.timer = soundstate.Chn2.envelope.period;
+    
+                if (soundstate.Chn2.envelope.increasing) {
+                    if (soundstate.Chn2.volume < 0x0F) {
+                        soundstate.Chn2.volume += 1;
+                        /* TODO update stereo volume */
+                    } else {
+                        soundstate.Chn2.envelope.enable = 0;
+                    }
+                } else {
+                    if (soundstate.Chn2.volume > 0x00) {
+                        soundstate.Chn2.volume -= 1;
+                        /* TODO update stereo volume */
+                    } else {
+                        soundstate.Chn2.envelope.enable = 0;
+                    }
+                }                
+            } else {
+                soundstate.Chn2.envelope.timer -= 1;
+            }
+        }        
+    }
+    /*************
+    * Channel 4  *
+    *************/
+    if (soundstate.Chn4.enable) {
+        if ((soundstate.Chn4.envelope.enable) && (soundstate.Chn4.envelope.period)) {
+            if (soundstate.Chn4.envelope.timer == 0) {
+                
+                soundstate.Chn4.envelope.timer = soundstate.Chn4.envelope.period;
+    
+                if (soundstate.Chn4.envelope.increasing) {
+                    if (soundstate.Chn4.volume < 0x0F) {
+                        soundstate.Chn4.volume += 1;
+                        /* TODO update stereo volume */
+                    } else {
+                        soundstate.Chn4.envelope.enable = 0;
+                    }
+                } else {
+                    if (soundstate.Chn4.volume > 0x00) {
+                        soundstate.Chn4.volume -= 1;
+                        /* TODO update stereo volume */
+                    } else {
+                        soundstate.Chn4.envelope.enable = 0;
+                    }
+                }                
+            } else {
+                soundstate.Chn4.envelope.timer -= 1;
+            }
+        }        
+    }
+    
 
+}
 void soundTickProgrammableCounter(void)
 {
 
@@ -240,13 +348,13 @@ void soundTickLenghthCounter(void)
         soundstate.Chn1.trigger,soundstate.Chn1.enable,soundstate.Chn1.length_cnt,
         soundstate.Chn2.trigger,soundstate.Chn2.enable,soundstate.Chn2.length_cnt,
         soundstate.Chn3.trigger,soundstate.Chn3.enable,soundstate.Chn3.length_cnt,
-        soundstate.Chn4.trigger,soundstate.Chn4.enable,soundstate.Chn4.length_cnt, memory[NR52] ); */ 
+        soundstate.Chn4.trigger,soundstate.Chn4.enable,soundstate.Chn4.length_cnt, memory[NR52] ); */
         
         /* The clocking of the counter is enabled or disabled depending on the status of
            the 'length counter enable register' (AKA the 'consecutive' bit) in register
            set 5, a 1 enabling the counter, a 0 disabling it. */
         
-        printf ("[SND] CH1=%2d, CH2=%2d, CH3=%2d, CH4=%2d\n",soundstate.Chn1.length_cnt,soundstate.Chn2.length_cnt,soundstate.Chn3.length_cnt,soundstate.Chn4.length_cnt);
+        //printf ("[SND] CH1=%2d, CH2=%2d, CH3=%2d, CH4=%2d\n",soundstate.Chn1.length_cnt,soundstate.Chn2.length_cnt,soundstate.Chn3.length_cnt,soundstate.Chn4.length_cnt);
         /*************
         * Channel 1  *
         *************/    
@@ -266,7 +374,7 @@ void soundTickLenghthCounter(void)
                 if (soundstate.Chn2.length_cnt == 0) { /* Length becoming 0 should clear status */
                     channelDisable(2);
                 }
-        } 
+        }
         /*************
         * Channel 3  *
         *************/
@@ -276,7 +384,7 @@ void soundTickLenghthCounter(void)
                 if (soundstate.Chn3.length_cnt == 0) { /* Length becoming 0 should clear status */
                     channelDisable(3);
                 }
-        } 
+        }
         /*************
         * Channel 4  *
         *************/
@@ -286,13 +394,13 @@ void soundTickLenghthCounter(void)
                 if (soundstate.Chn4.length_cnt == 0) { /* Length becoming 0 should clear status */
                     channelDisable(4);
                 }
-        } 
+        }
     //}
 }
 
 void soundTickSweepCounter(void) {
-    /* When the sweep's internal enabled flag is set and the sweep period is not zero, 
-       a new frequency is calculated and the overflow check is performed 
+    /* When the sweep's internal enabled flag is set and the sweep period is not zero,
+       a new frequency is calculated and the overflow check is performed
     */
     
     if (soundstate.Chn1.sweep.enable) {
@@ -319,6 +427,8 @@ void soundTickSweepCounter(void) {
             memory[NR13] = frequency & 0x00FF;
             memory[NR14] &= 0xF8;
             memory[NR14] |= ((frequency >> 8) & 0x0007);
+
+            soundstate.Chn1.frequency = frequency;
             
             channelCalculateSweepFreq();
             
@@ -343,7 +453,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
         memory[address] = value;
     }
     
-    /* Any writes to those registers are ignored while power remains off except of the 
+    /* Any writes to those registers are ignored while power remains off except of the
        length counters that are unaffected by power and can still be written while off */
     if (soundstate.enable == FALSE) {
         switch (address) {
@@ -353,7 +463,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                     /* Writing a 0 to bit position 7 in register $FF26(NR52) disables the power to the audio processing unit */
                     soundstate.enable = FALSE;
                     /* Unused bits 4,5,6 are 1, all other bits are 0 */
-                    memory[NR52] = 0x70; 
+                    memory[NR52] = 0x70;
                 } else { /* Turn audio processing unit on */
                     soundTurnOn();
                 }
@@ -390,8 +500,8 @@ void soundWriteRegister(unsigned short address,unsigned char value)
             printf("     [1] period= %d\n",soundstate.Chn1.sweep.period);
             printf("     [1] negate= %d\n",soundstate.Chn1.sweep.negate);
             printf("     [1] shift= %d\n",soundstate.Chn1.sweep.shift);
-            /* Clearing the sweep negate mode bit in NR10 after at least one 
-               sweep calculation has been made using the negate mode since the 
+            /* Clearing the sweep negate mode bit in NR10 after at least one
+               sweep calculation has been made using the negate mode since the
                last trigger causes the channel to be immediately disabled
              */
             if ((soundstate.Chn1.sweep.negate_flag) && !(soundstate.Chn1.sweep.negate)) {
@@ -402,13 +512,32 @@ void soundWriteRegister(unsigned short address,unsigned char value)
             memory[NR11] = value;
             /* The 5-bit length value is subtracted from 64 and the result being written to the counter */
             soundstate.Chn1.length_cnt = 64 - (value & 0x3F);
-            soundstate.Chn1.wave_duty = (value >> 6) & 0x03; 
+            soundstate.Chn1.wave_duty = (value >> 6) & 0x03;
             break;
         case NR12 : /* 0xFF12 VVVV APPP Starting volume, Envelope add mode, period */
-            memory[NR12] = value;
-            soundstate.Chn1.envelope.volume = (value >> 4) & 0x0F;
-            soundstate.Chn1.envelope.increasing = (value & 0x08) >> 3;
-            soundstate.Chn1.envelope.period = value & 0x07;
+
+            /* Zombie mode */
+            if (soundstate.Chn1.enable) {
+                /* If the old envelope period was zero and the envelope is still doing automatic updates, volume is incremented by 1 */
+                if (soundstate.Chn1.envelope.enable && (soundstate.Chn1.envelope.period == 0)) {
+                    soundstate.Chn1.volume += 1;
+                /* otherwise if the envelope was in subtract mode, volume is incremented by 2 */
+                } else if (soundstate.Chn1.envelope.increasing == 0) {
+                    soundstate.Chn1.volume += 2;
+                }
+
+                /* If the mode was changed (add to subtract or subtract to add), volume is set to 16-volume */
+                if (soundstate.Chn1.envelope.increasing != ((value & 0x08) >> 3))
+                    soundstate.Chn1.volume = 0x10 - soundstate.Chn1.volume;
+                
+                /* Only the low 4 bits of volume are kept after the above operations */
+                soundstate.Chn1.volume &= 0x0F;
+
+                /* TODO update stereo volume */
+            }
+
+            memory[NR12] = value;            
+            
             if (!(value & 0xF8)) { /* Disabling DAC should disable channel immediately */
                 soundstate.Chn1.dac = FALSE;
                 channelDisable(1);
@@ -460,9 +589,21 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                                 
                 /* If the sweep shift is non-zero, frequency calculation and the overflow check are performed immediately */
                 if (soundstate.Chn1.sweep.shift) {
-                    unsigned short frequency = channelCalculateSweepFreq(); 
+                    unsigned short frequency = channelCalculateSweepFreq();
                     printf("     [1] Calculated new frequency %d\n",frequency);
                 }
+
+                /* Envelope Calculation */
+
+                /* Channel volume is reloaded */
+                soundstate.Chn1.volume = (memory[NR12] >> 4) & 0x0F;
+                soundstate.Chn1.envelope.enable = TRUE;
+                soundstate.Chn1.envelope.increasing = (memory[NR12] & 0x08) >> 3;
+                soundstate.Chn1.envelope.period = memory[NR12] & 0x07;
+                /* Volume envelope timer is reloaded with period */
+                soundstate.Chn1.envelope.timer = soundstate.Chn1.envelope.period;
+
+                /* TODO update stereo volume */
             }
 
             if ( ( (value & 0x40) >> 6)  ) {
@@ -483,8 +624,8 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 soundstate.Chn1.enable = FALSE;
             }
 
-            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock 
-               the length counter and the length counter is now enabled and length is being set to 64 
+            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock
+               the length counter and the length counter is now enabled and length is being set to 64
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn1.length_cnt == 0)) {
                 if ((soundstate.Chn1.enable) && (soundstate.framesequencerstep % 2)) {
@@ -494,10 +635,12 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 }
             }
 
-            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */ 
+            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */
             if (soundstate.Chn1.dac == OFF) {
                 channelDisable(1);
             }
+            
+
 
             break;
         /*************
@@ -505,18 +648,37 @@ void soundWriteRegister(unsigned short address,unsigned char value)
         *************/
          case NR20 : /* 0xFF15 ---- ---- Not used */
             memory[NR20] = 0xFF;
-            break; 
+            break;
          case NR21 : /* 0xFF16 DDLL LLLL Duty, Length load (64-L) */
             memory[NR21] = value;
             /* The 5-bit length value is subtracted from 64 and the result being written to the counter */
             soundstate.Chn2.length_cnt = 64 - (value & 0x3F);
-            soundstate.Chn2.wave_duty = (value >> 6) & 0x03; 
+            soundstate.Chn2.wave_duty = (value >> 6) & 0x03;
             break;
         case NR22 : /* 0xFF17 VVVV APPP Starting volume, Envelope add mode, period */
+            
+            /* Zombie mode */
+            if (soundstate.Chn2.enable) {
+                /* If the old envelope period was zero and the envelope is still doing automatic updates, volume is incremented by 1 */
+                if (soundstate.Chn2.envelope.enable && (soundstate.Chn2.envelope.period == 0)) {
+                    soundstate.Chn2.volume += 1;
+                /* otherwise if the envelope was in subtract mode, volume is incremented by 2 */
+                } else if (soundstate.Chn2.envelope.increasing == 0) {
+                    soundstate.Chn2.volume += 2;
+                }
+
+                /* If the mode was changed (add to subtract or subtract to add), volume is set to 16-volume */
+                if (soundstate.Chn2.envelope.increasing != ((value & 0x08) >> 3))
+                    soundstate.Chn2.volume = 0x10 - soundstate.Chn2.volume;
+                
+                /* Only the low 4 bits of volume are kept after the above operations */
+                soundstate.Chn2.volume &= 0x0F;
+
+                /* TODO update stereo volume */
+            }
+
             memory[NR22] = value;
-            soundstate.Chn2.envelope.volume = (value >> 4) & 0x0F;
-            soundstate.Chn2.envelope.increasing = (value & 0x08) >> 3;
-            soundstate.Chn2.envelope.period = value & 0x07;
+
             if (!(value & 0xF8)) { /* Disabling DAC should disable channel immediately */
                 soundstate.Chn2.dac = FALSE;
                 channelDisable(2);
@@ -536,6 +698,20 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 channelEnable(2);
             }
 
+            if (( (value & 0x80) >> 7) ){
+
+                /* Envelope Calculation */
+
+                /* Channel volume is reloaded */
+                soundstate.Chn2.volume = (memory[NR12] >> 4) & 0x0F;
+                soundstate.Chn2.envelope.enable = TRUE;
+                soundstate.Chn2.envelope.increasing = (memory[NR12] & 0x08) >> 3;
+                soundstate.Chn2.envelope.period = memory[NR12] & 0x07;
+                /* Volume envelope timer is reloaded with period */
+                soundstate.Chn2.envelope.timer = soundstate.Chn2.envelope.period;
+
+                /* TODO update stereo volume */
+            }
 
             if ( ( (value & 0x40) >> 6)  ) {
                 /* when the frame sequencer's next step is one that doesn't clock the length counter
@@ -555,8 +731,8 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 soundstate.Chn2.enable = FALSE;
             }
 
-            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock 
-               the length counter and the length counter is now enabled and length is being set to 64 
+            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock
+               the length counter and the length counter is now enabled and length is being set to 64
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn2.length_cnt == 0)) {
                 if ((soundstate.Chn2.enable) && (soundstate.framesequencerstep % 2)){
@@ -566,21 +742,21 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 }
             }
 
-            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */ 
+            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */
             if (soundstate.Chn2.dac == OFF) {
                 channelDisable(2);
             }
 
             printf("[SND] Lenght after: %d\n",soundstate.Chn2.length_cnt);
-
+            
             break;
         /*************
         * Channel 3  *
-        *************/
+        *************/  
         case NR30 : /* 0xFF1A E--- ---- DAC power */
             memory[NR30] = value;
             soundstate.Chn3.dac = (value & 0x80) >> 7;
-            break; 
+            break;
         case NR31 : /* 0xFF1B LLLL LLLL Length load (256-L) */
             memory[NR31] = value;
             soundstate.Chn3.length_cnt = 256 - value;
@@ -626,8 +802,8 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 soundstate.Chn3.enable = FALSE;
             }
 
-            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock 
-               the length counter and the length counter is now enabled and length is being set to 64 
+            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock
+               the length counter and the length counter is now enabled and length is being set to 64
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn3.length_cnt == 0)) {
                 if ((soundstate.Chn3.enable) && (soundstate.framesequencerstep % 2)){
@@ -637,29 +813,48 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 }
             }
 
-            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */ 
+            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */
             if (soundstate.Chn3.dac == OFF) {
                 channelDisable(3);
             }
 
             printf("[SND] Lenght after: %d\n",soundstate.Chn3.length_cnt);
-
+          
             break;
         /*************
         * Channel 4  *
         *************/
         case NR40 : /* 0xFF1F ---- ---- Not used */
             memory[NR40] = 0xFF;
-            break; 
+            break;
         case NR41 : /* 0xFF20 --LL LLLL Length load (64-L) */
             memory[NR41] = value;
             soundstate.Chn4.length_cnt = 64 - (value & 0x3F);
             break;
         case NR42 : /* 0xFF21 VVVV APPP Starting volume, Envelope add mode, period */
+            
+            /* Zombie mode */
+            if (soundstate.Chn4.enable) {
+                /* If the old envelope period was zero and the envelope is still doing automatic updates, volume is incremented by 1 */
+                if (soundstate.Chn4.envelope.enable && (soundstate.Chn4.envelope.period == 0)) {
+                    soundstate.Chn4.volume += 1;
+                /* otherwise if the envelope was in subtract mode, volume is incremented by 2 */
+                } else if (soundstate.Chn4.envelope.increasing == 0) {
+                    soundstate.Chn4.volume += 2;
+                }
+
+                /* If the mode was changed (add to subtract or subtract to add), volume is set to 16-volume */
+                if (soundstate.Chn4.envelope.increasing != ((value & 0x08) >> 3))
+                    soundstate.Chn4.volume = 0x10 - soundstate.Chn4.volume;
+                
+                /* Only the low 4 bits of volume are kept after the above operations */
+                soundstate.Chn4.volume &= 0x0F;
+
+                /* TODO update stereo volume */
+            }
+
             memory[NR42] = value;
-            soundstate.Chn4.envelope.volume = (value >> 4) & 0x0F;
-            soundstate.Chn4.envelope.increasing = (value & 0x08) >> 3;
-            soundstate.Chn4.envelope.period = value & 0x07;
+
             if (!(value & 0xF8)) { /* Disabling DAC should disable channel immediately */
                 soundstate.Chn4.dac = FALSE;
                 channelDisable(4);
@@ -678,6 +873,20 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 channelEnable(4);
             }
 
+            if (( (value & 0x80) >> 7) ){
+
+                /* Envelope Calculation */
+
+                /* Channel volume is reloaded */
+                soundstate.Chn4.volume = (memory[NR12] >> 4) & 0x0F;
+                soundstate.Chn4.envelope.enable = TRUE;
+                soundstate.Chn4.envelope.increasing = (memory[NR12] & 0x08) >> 3;
+                soundstate.Chn4.envelope.period = memory[NR12] & 0x07;
+                /* Volume envelope timer is reloaded with period */
+                soundstate.Chn4.envelope.timer = soundstate.Chn4.envelope.period;
+
+                /* TODO update stereo volume */
+            }
 
             if ( ( (value & 0x40) >> 6)  ) {
                 /* when the frame sequencer's next step is one that doesn't clock the length counter
@@ -697,8 +906,8 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 soundstate.Chn4.enable = FALSE;
             }
 
-            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock 
-               the length counter and the length counter is now enabled and length is being set to 64 
+            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock
+               the length counter and the length counter is now enabled and length is being set to 64
                (256 for wave channel) because it was previously zero, it is set to 63 instead */
             if (((value & 0x80) >> 7) && (soundstate.Chn4.length_cnt == 0)) {
                 if ((soundstate.Chn4.enable) && (soundstate.framesequencerstep % 2)){
@@ -708,7 +917,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 }
             }
 
-            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */ 
+            /* if the channel's DAC is off, after the above actions occur the channel will be immediately disabled again */
             if (soundstate.Chn4.dac == OFF) {
                 channelDisable(4);
             }
@@ -735,7 +944,7 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                 /* Writing a 0 to bit position 7 in register $FF26(NR52) disables the power to the audio processing unit */
                 soundstate.enable = FALSE;
                 /* Unused bits 4,5,6 are 1, all other bits are 0 */
-                memory[NR52] = 0x70; 
+                memory[NR52] = 0x70;
             } else { /* Turn audio processing unit on */
                 soundTurnOn();
 
@@ -756,7 +965,7 @@ unsigned char soundReadRegister(unsigned short address)
     switch (address) {
         /*************
         * Channel 1  *
-        *************/ 
+        *************/
         case NR10 :
             data = memory[NR10] | 0x80;                 /* BIT 7 Not Used               */
             break;
@@ -842,7 +1051,7 @@ unsigned char soundReadRegister(unsigned short address)
             break;
         /*************
         * Wave       *
-        *************/ 
+        *************/
         case 0xFF30 ... 0xFF3F :        /* WAVE pattern RAM */
             data = memory[address];
             break;
@@ -883,27 +1092,27 @@ void soundReset(void)
 void soundResetRegisters(void)
 {
     memory[NR10] = 0x80;
-	memory[NR11] = 0x00;
-	memory[NR12] = 0x00;
+    memory[NR11] = 0x00;
+    memory[NR12] = 0x00;
     memory[NR13] = 0x00;    /* No Change */
-	memory[NR14] = 0xBF;
+    memory[NR14] = 0xBF;
     memory[NR20] = 0xFF;    /* No Change */
-	memory[NR21] = 0x3F;
-	memory[NR22] = 0x00;
+    memory[NR21] = 0x3F;
+    memory[NR22] = 0x00;
     memory[NR23] = 0x00;    /* No Change */
-	memory[NR24] = 0xBF;
-	memory[NR30] = 0x7F;
-	memory[NR31] = 0xFF;
-	memory[NR32] = 0x9F;
+    memory[NR24] = 0xBF;
+    memory[NR30] = 0x7F;
+    memory[NR31] = 0xFF;
+    memory[NR32] = 0x9F;
     memory[NR33] = 0x00;    /* No Change */
-	memory[NR34] = 0xBF;
+    memory[NR34] = 0xBF;
     memory[NR40] = 0xFF;    /* No Change */
-	memory[NR41] = 0xFF;
-	memory[NR42] = 0x00;
-	memory[NR43] = 0x00;
-	memory[NR44] = 0xBF;
-	memory[NR50] = 0x00;
-	memory[NR51] = 0x00;
+    memory[NR41] = 0xFF;
+    memory[NR42] = 0x00;
+    memory[NR43] = 0x00;
+    memory[NR44] = 0xBF;
+    memory[NR50] = 0x00;
+    memory[NR51] = 0x00;
     memory[NR52] = 0xF0;
 }
 
@@ -930,7 +1139,7 @@ void soundResetChannel(unsigned int channel)
         case 1 :
     /*************
     * Channel 1  *
-    *************/ 
+    *************/
     soundstate.Chn1.dac = 0;
     soundstate.Chn1.trigger = 0;
     soundstate.Chn1.enable = 0;
@@ -938,9 +1147,10 @@ void soundResetChannel(unsigned int channel)
     //soundstate.Chn1.length_cnt = 0;
     soundstate.Chn1.length_cnt_skip = FALSE;
     soundstate.Chn1.wave_duty = 0;
-    soundstate.Chn1.envelope.volume = 0;
     soundstate.Chn1.envelope.increasing = 0;
     soundstate.Chn1.envelope.period = 0;
+    soundstate.Chn1.envelope.timer = 0;
+    soundstate.Chn1.envelope.enable = 0;
     soundstate.Chn1.sweep.timer = 0;
     soundstate.Chn1.sweep.period = 0;
     soundstate.Chn1.sweep.negate = 0;
@@ -948,6 +1158,7 @@ void soundResetChannel(unsigned int channel)
     soundstate.Chn1.sweep.shift = 0;
     soundstate.Chn1.sweep.enable = 0;
     soundstate.Chn1.sweep.shadowregister = 0;
+    soundstate.Chn1.volume = 0;
             break;
         case 2 :
     /*************
@@ -963,11 +1174,14 @@ void soundResetChannel(unsigned int channel)
     soundstate.Chn2.envelope.volume = 0;
     soundstate.Chn2.envelope.increasing = 0;
     soundstate.Chn2.envelope.period = 0;
+    soundstate.Chn2.envelope.timer = 0;
+    soundstate.Chn2.envelope.enable = 0;
+    soundstate.Chn2.volume = 0;
             break;
         case 3 :
     /*************
     * Channel 3  *
-    *************/ 
+    *************/
     soundstate.Chn3.dac = 0;
     soundstate.Chn3.trigger = 0;
     soundstate.Chn3.enable = 0;
@@ -989,6 +1203,9 @@ void soundResetChannel(unsigned int channel)
     soundstate.Chn4.envelope.volume = 0;
     soundstate.Chn4.envelope.increasing = 0;
     soundstate.Chn4.envelope.period = 0;
+    soundstate.Chn4.envelope.timer = 0;
+    soundstate.Chn4.envelope.enable = 0;
+    soundstate.Chn4.volume = 0;
             break;
         default :
             break;
@@ -999,7 +1216,7 @@ void soundTurnOn(void)
 {
     if (soundstate.enable == FALSE) {
         soundstate.enable = TRUE;
-        memory[NR52] = 0x80; 
+        memory[NR52] = 0x80;
         printf("[SND] ##### Sound Enabled #####\n");
         soundstate.framesequencerstep = 0;
         soundstate.framesequencerclock = 8192;
@@ -1020,7 +1237,7 @@ void soundTurnOff(void)
 }
 
 
-void channelEnable(unsigned int channel) 
+void channelEnable(unsigned int channel)
 {
     printf("[SND][%d] Channel Enabled\n",channel);    
     switch (channel) {
@@ -1046,16 +1263,18 @@ void channelEnable(unsigned int channel)
 }
 
 
-void channelDisable(unsigned int channel) 
+void channelDisable(unsigned int channel)
 {
     printf("[SND][%d] Channel Disabled\n",channel);      
     switch (channel) {
         case 1 :
             soundstate.Chn1.trigger = FALSE;
+            soundstate.Chn1.envelope.enable = FALSE;
             setBit(NR52,0,FALSE);
             break;  
         case 2 :
             soundstate.Chn2.trigger = FALSE;
+            soundstate.Chn2.envelope.enable = FALSE;
             setBit(NR52,1,FALSE);
             break;  
         case 3 :
@@ -1064,6 +1283,7 @@ void channelDisable(unsigned int channel)
             break;  
         case 4 :
             soundstate.Chn4.trigger = FALSE;
+            soundstate.Chn4.envelope.enable = FALSE;
             setBit(NR52,3,FALSE);
             break;        
         default :
@@ -1071,13 +1291,13 @@ void channelDisable(unsigned int channel)
     }
 }
 
-/* 
- * Frequency calculation consists of taking the value in the frequency 
- * shadow register, shifting it right by sweep shift, optionally negating 
- * the value, and summing this with the frequency shadow register to produce 
- * a new frequency 
+/*
+ * Frequency calculation consists of taking the value in the frequency
+ * shadow register, shifting it right by sweep shift, optionally negating
+ * the value, and summing this with the frequency shadow register to produce
+ * a new frequency
  */
-unsigned short channelCalculateSweepFreq(void) 
+unsigned short channelCalculateSweepFreq(void)
 {
     unsigned short frequency = soundstate.Chn1.sweep.shadowregister >> soundstate.Chn1.sweep.shift;
  
@@ -1093,5 +1313,5 @@ unsigned short channelCalculateSweepFreq(void)
         channelDisable(1);
     }
     
-    return frequency; 
+    return frequency;
 }
