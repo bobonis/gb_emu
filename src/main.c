@@ -11,7 +11,7 @@
 #include "hardware.h"
 #include "sound.h"
 
-#define version "0.91.4"
+#define version "0.91.5"
 
 
 int main(int argc, char **argv){
@@ -32,6 +32,8 @@ int main(int argc, char **argv){
     if (displayInit()){
         return 1;
     }
+    
+    audioInit();
     
 	
 	hardwareReset();

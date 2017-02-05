@@ -22,13 +22,17 @@ void soundResetChannel(unsigned int channel);
 void soundTurnOn(void);
 void soundTurnOff(void);
 void soundTick(void);
-void soundTickProgrammableCounter(void);
+void soundTickSampler(void);
 void soundTickLenghthCounter(void);
 void soundTickSweepCounter(void);
 void soundTickEnvelope(void);
+void soundTickDuty(void);
 void channelEnable(unsigned int);
 void channelDisable(unsigned int);
 unsigned short channelCalculateSweepFreq(void);
+static void update_stream(void *, unsigned char *, int);
+
+void audioInit(void);
 
 #ifdef __cplusplus
 }

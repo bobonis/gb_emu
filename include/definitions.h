@@ -106,7 +106,7 @@ extern "C" {
 
 /* FLAGS */
 #define USINGBIOS TRUE
-#define VSYNC FALSE
+#define VSYNC TRUE
 
 /* MEMORY BANK CONTROLERS */
 #define NOMBC 0
