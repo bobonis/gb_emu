@@ -26,6 +26,11 @@ extern "C" {
 #define FREQ_3  65536 /*   64 cycles */
 #define FREQ_4 262144 /*   16 cycles */
 
+/* APU */
+
+#define GB_BUFFER_SIZE (16384)
+#define GB_BUFFER_SAMPLES (GB_BUFFER_SIZE/2)
+
 /* CPU FLAGS */
 
 #define ZERO_F          7

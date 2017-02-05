@@ -53,15 +53,13 @@ NR52 FF26 P--- NW21 Power control/status, Channel length statuses
 
 #define SDL_BUFFER_SAMPLES (1024);
 
+/* Sound */
+int samples_left_to_input;
+int samples_left_to_output;
+unsigned int buffer_next_output_sample;
+unsigned int buffer_next_input_sample;
+short samplebuffer[GB_BUFFER_SIZE/2];
 
-
-/* SDL */
-signed short *playbuffer; 
-unsigned int buffer_full = 0;
-unsigned int buffer_position = 0;
-unsigned int buffer_size = 0;
-unsigned int sample_rate = 0;
-unsigned int sample_count = 0;
 
 typedef struct {
 
@@ -211,7 +209,7 @@ Rate   256 Hz      64 Hz       128 Hz
 void soundTick(void)
 {
     
-    soundTickSampler();
+    //soundTickSampler();
     
      soundstate.framesequencerclock -= 4;
 
@@ -257,24 +255,41 @@ void soundTick(void)
      }
      soundTickDuty();
      //run
- 
+     soundTickSampler();
 }
 
 void soundTickSampler(void)
 {
-    
-    if (soundstate.enable == FALSE) {
-        return;
+    soundstate.sampler += 4;
+    //4194304 Hz CPU / 22050 Hz sound output.
+    if (samples_left_to_output > samples_left_to_input - (GB_BUFFER_SAMPLES/2)) {
+        if (soundstate.sampler > (191+4)) {
+            soundstate.sampler -= (191+4);
+            soundMix();
+            
+        }
+    } else {
+        if (soundstate.sampler > (191-4) ) {
+            soundstate.sampler -= (191-4);
+            soundMix();
+        }
     }
-    
-    /* sampling */
-    if (soundstate.sampler < 22050) {
-        soundstate.sampler += 4;
-        return;
-    }
+}
 
-    soundstate.sampler -= 22050;
-        
+void soundMix(void)
+{
+    if (samples_left_to_input < 1) return;
+    
+    samples_left_to_input--;
+    samples_left_to_output++;
+    
+    if (soundstate.enable == 0) {
+        samplebuffer[buffer_next_input_sample++] = 0;
+        samplebuffer[buffer_next_input_sample++] = 0;
+        buffer_next_input_sample &= GB_BUFFER_SAMPLES-1;
+        return;
+    }
+    
     /* mixing */  
     
     int left_sample = 0;
@@ -316,19 +331,11 @@ void soundTickSampler(void)
         default :                                                           break;  /*100.0% */
     }
 
-    if (soundstate.enable == FALSE) {
-        left_sample = 0;
-        right_sample = 0;
-    }
-
-    playbuffer[soundstate.next_buffer_sample++] = left_sample;
-    playbuffer[soundstate.next_buffer_sample++] = right_sample;
-    
-    if (soundstate.next_buffer_sample >= (buffer_size / 2)) {
-        soundstate.next_buffer_sample = 0;
-        buffer_full = 1;
-    }
-    //soundstate.next_buffer_sample &= SDL_BUFFER_SAMPLES - 1;
+  
+    //printf("[SOUND] Left Sample: %d -- Right Sample: %d\n",left_sample,right_sample);
+    samplebuffer[buffer_next_input_sample++] = left_sample;
+    samplebuffer[buffer_next_input_sample++] = right_sample;
+    buffer_next_input_sample &= GB_BUFFER_SAMPLES-1;
 
 }
 
@@ -350,6 +357,7 @@ void soundTickDuty(void)
             case 3: output = (soundstate.Chn1.duty.phase <= 5); break; /* ------__ */
             default : output = 0; break;
         }
+        printf("[SOUND DUTY] period = %d\n",soundstate.Chn1.duty.period);
     }
     
     soundstate.Chn1.output = 0;
@@ -357,8 +365,10 @@ void soundTickDuty(void)
     if (soundstate.Chn1.enable) {
         if (output) {
             soundstate.Chn1.output = soundstate.Chn1.volume;
+            printf("%d", soundstate.Chn1.output);
         }
     }
+    
     /*************
     * Channel 2  *
     *************/
@@ -1426,6 +1436,7 @@ void soundTurnOff(void)
      printf("[SND] ##### Sound Disabled #####\n");
      soundResetRegisters();
      soundResetControl();
+     soundResetBufferPointers();
      soundResetChannel(1);
      soundResetChannel(2);
      soundResetChannel(3);
@@ -1543,21 +1554,30 @@ void audioInit(void)
         return;
     }
     
-    sample_rate = audiospec.freq;
-    buffer_size = audiospec.size;
-    sample_count = audiospec.samples;
-    playbuffer = (signed short *)malloc(audiospec.size + 1);
-    memset(playbuffer,0,audiospec.size);
-    
     SDL_PauseAudio(0);
-    
-    printf("[DEBUG] SDL samples : %d\n",sample_count);
-    printf("[DEBUG] SDL buffer size : %d\n",buffer_size);
+
 }
 
 static void update_stream(void * userdata, unsigned char * stream, int len)
 {
-    printf("[DEBUG] SDL buffer length : %d\n",len);
-    memcpy(stream,playbuffer,len);
-    //memset(playbuffer,0,len);
+    if (samples_left_to_output < len/4) return;
+
+    samples_left_to_input += len/4;
+    samples_left_to_output -= len/4;
+
+    int i;
+    
+    for (i = 0; i < len/2; i++) {
+        stream[i] = samplebuffer[buffer_next_output_sample++] / 128;
+        buffer_next_output_sample &= GB_BUFFER_SAMPLES-1;
+    }
+    printf("[SOUND] SDL stream has been updated\n");
+}
+
+void soundResetBufferPointers(void)
+{
+    buffer_next_input_sample = 0;
+    buffer_next_output_sample = 0;
+    samples_left_to_input = GB_BUFFER_SAMPLES;
+    samples_left_to_output = 0;
 }
