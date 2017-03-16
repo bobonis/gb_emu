@@ -19,15 +19,24 @@ void soundReset(void);
 void soundResetControl(void);
 void soundResetRegisters(void);
 void soundResetChannel(unsigned int channel);
+void soundResetBufferPointers(void);
 void soundTurnOn(void);
 void soundTurnOff(void);
 void soundTick(void);
+void soundTickSampler(void);
 void soundTickProgrammableCounter(void);
 void soundTickLenghthCounter(void);
 void soundTickSweepCounter(void);
+void soundTickEnvelope(void);
+void soundTickFrequency(void);
+void soundTickDuty(int channel);
+void soundMix(void);
 void channelEnable(unsigned int);
 void channelDisable(unsigned int);
 unsigned short channelCalculateSweepFreq(void);
+void update_stream(void *, unsigned char *, int);
+
+void audioInit(void);
 
 #ifdef __cplusplus
 }
