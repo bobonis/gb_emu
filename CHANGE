@@ -1,3 +1,6 @@
+0.92.0
+    - Finally we can hear something!!
+    - Premature code for syncing when VSYNC is not available
 0.91.2
     - Moar work on sound, sweep tests pass now
     - Blaarg dmg_sound 8/12 cases complete!

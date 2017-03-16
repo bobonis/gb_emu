@@ -42,6 +42,19 @@ void display (void){
     SDL_GL_SwapWindow(window);
     fpsthink();
     //SDL_Delay(50);
+   
+    static unsigned int lastTime = 0;
+    
+    if (SYNC == TRUE) {
+        unsigned int currentTime = SDL_GetTicks();
+        //printf("[HW ] Current time - %d, Last time - %d\n",currentTime, lastTime);
+        if (currentTime < lastTime + 17) {
+            SDL_Delay(17 - (currentTime - lastTime));
+            //  printf("[HW ] Delay %d msec\n",17 - (currentTime - lastTime));
+        }
+        lastTime = currentTime;
+    }
+
 }
 
 
@@ -64,6 +77,9 @@ int displayInit(void){
      * You may need to change this to 16 or 32 for your system */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    //SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL,0);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 
     //Create window
     int width = SCREEN_WIDTH * modifier;

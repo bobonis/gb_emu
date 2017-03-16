@@ -24,15 +24,17 @@ void soundTurnOn(void);
 void soundTurnOff(void);
 void soundTick(void);
 void soundTickSampler(void);
+void soundTickProgrammableCounter(void);
 void soundTickLenghthCounter(void);
 void soundTickSweepCounter(void);
 void soundTickEnvelope(void);
-void soundTickDuty(void);
+void soundTickFrequency(void);
+void soundTickDuty(int channel);
 void soundMix(void);
 void channelEnable(unsigned int);
 void channelDisable(unsigned int);
 unsigned short channelCalculateSweepFreq(void);
-static void update_stream(void *, unsigned char *, int);
+void update_stream(void *, unsigned char *, int);
 
 void audioInit(void);
 

@@ -21,13 +21,14 @@ extern "C" {
 #define V_BLANK_CYCLES   456
 
 #define CLOCKSPEED 4194304
+#define CLOCKSPERFRAME 70224
 #define FREQ_1   4096 /* 1024 cycles */
 #define FREQ_2  16384 /*  256 cycles */
 #define FREQ_3  65536 /*   64 cycles */
 #define FREQ_4 262144 /*   16 cycles */
 
 /* APU */
-
+#define AUDIO_FREQUENCY 22050
 #define GB_BUFFER_SIZE (16384)
 #define GB_BUFFER_SAMPLES (GB_BUFFER_SIZE/2)
 
@@ -112,6 +113,7 @@ extern "C" {
 /* FLAGS */
 #define USINGBIOS TRUE
 #define VSYNC TRUE
+#define SYNC TRUE /* sync each frame to actual gameboy timing */
 
 /* MEMORY BANK CONTROLERS */
 #define NOMBC 0
