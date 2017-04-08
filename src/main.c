@@ -11,7 +11,7 @@
 #include "hardware.h"
 #include "sound.h"
 
-#define version "0.92.0"
+#define version "0.92.1"
 
 
 int main(int argc, char **argv){
@@ -75,6 +75,21 @@ int main(int argc, char **argv){
                     if (event.key.keysym.sym == SDLK_F9){
                         hardwareReset();
                     }
+#ifndef SOUND
+
+                    if (event.key.keysym.sym == SDLK_1){
+                        switchChannel(1);
+                    }
+                    if (event.key.keysym.sym == SDLK_2){
+                        switchChannel(2);
+                    }
+                    if (event.key.keysym.sym == SDLK_3){
+                        switchChannel(3);
+                    }
+                    if (event.key.keysym.sym == SDLK_4){
+                        switchChannel(4);
+                    }
+#endif  
                 }
                 //inputHandleEvents(event);
                 

@@ -4,6 +4,7 @@ extern "C" {
 
 void hardwareTick(void);
 void hardwareReset(void);
+void hardwareSync(void);
 
 #ifdef __cplusplus
 }
