@@ -112,7 +112,7 @@ extern "C" {
 
 /* FLAGS */
 #define USINGBIOS TRUE
-#define VSYNC TRUE
+#define VSYNC FALSE
 #define SYNC TRUE /* sync each frame to actual gameboy timing */
 
 /* MEMORY BANK CONTROLERS */

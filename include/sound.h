@@ -30,11 +30,14 @@ void soundTickSweepCounter(void);
 void soundTickEnvelope(void);
 void soundTickFrequency(void);
 void soundTickDuty(int channel);
+void soundTicLFSR(void);
 void soundMix(void);
 void channelEnable(unsigned int);
 void channelDisable(unsigned int);
 unsigned short channelCalculateSweepFreq(void);
 void update_stream(void *, unsigned char *, int);
+void switchChannel(int);
+void soundSync(int);
 
 void audioInit(void);
 

@@ -1,6 +1,7 @@
 #include "sound.h"
 #include "memory.h"
 #include "definitions.h"
+#include "hardware.h"
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <stdint.h>
@@ -13,14 +14,19 @@ int samples_left_to_output;
 unsigned int buffer_next_output_sample;
 unsigned int buffer_next_input_sample;
 short samplebuffer[GB_BUFFER_SIZE/2];
+const int NoiseFreqRatio[8] = {1048576,524288,262144,174763,131072,104858,87381,74898 };
+int samplerate = CLOCKSPEED / AUDIO_FREQUENCY;
 
 #define debug_length 0
 #define debug_sweep 0
 #define debug_duty 0
 #define debug_output 0
 #define debug_sampler 0
+#define debug_adapt 0
+#define debug_memory 0
 
 int sampleslost = 0;
+unsigned int lasttimeread = 0;
 
 typedef struct {
 
@@ -30,6 +36,11 @@ typedef struct {
      unsigned int framesequencerstep;
      int sampler;
      unsigned int next_buffer_sample;
+
+     int channel1_output;
+     int channel2_output;
+     int channel3_output;
+     int channel4_output;
 
      struct { /* Master */
 
@@ -80,7 +91,7 @@ typedef struct {
              
          struct {
              unsigned int period;
-             unsigned short counter;
+             int counter;
              unsigned char phase;
             } duty;
 
@@ -110,7 +121,7 @@ typedef struct {
 
          struct {
              unsigned int period;
-             unsigned short counter;
+             int counter;
              unsigned char phase;
             } duty;
 
@@ -124,7 +135,7 @@ typedef struct {
          
      struct { /* Wave Output */
 
-         unsigned short wave_ram[16];
+         unsigned char wave_table[32];
          unsigned int dac;
          unsigned short frequency;
          unsigned char volume;
@@ -135,6 +146,11 @@ typedef struct {
              int counter;
              unsigned int consecutive;
          } length;
+
+         struct {
+             int counter;
+             int pointer;
+         } wave;
          
          } Chn3;
 
@@ -142,7 +158,7 @@ typedef struct {
 
          unsigned int dac;
          unsigned char volume;
-         unsigned int frequency;
+         //unsigned int frequency;
          int output;
 
          struct {
@@ -156,7 +172,9 @@ typedef struct {
          struct {
              unsigned char shift;
              unsigned char width;
-             unsigned char ratio;
+             unsigned char divisor;
+             unsigned short lfsr;
+             int counter;
              } noise;
 
          struct {
@@ -171,6 +189,7 @@ typedef struct {
 
 static _GB_SOUND_HARDWARE_ soundstate;
 
+long unsigned int tempcounter = 0;
 /************************************************************************************************************************
 *
 *                                             TIMER COUNTERS CLOCKS 
@@ -193,12 +212,13 @@ Rate   256 Hz      64 Hz       128 Hz
 */
 void soundTick(void)
 {
-    soundstate.fivebitcounter -= 4;
+    soundTickSampler();
+    //soundstate.fivebitcounter -= 4;
 
-    if (soundstate.fivebitcounter == 0) {
+    //if (soundstate.fivebitcounter == 0) {
         soundTickProgrammableCounter();
-        soundstate.fivebitcounter = 4;
-    }
+        //soundstate.fivebitcounter = 8;
+    //}
 
     soundstate.framesequencerclock -= 4;
 
@@ -235,9 +255,10 @@ void soundTick(void)
         soundstate.framesequencerclock = 8192;
         soundstate.framesequencerstep += 1;
         soundstate.framesequencerstep &= 0x07;  /* 3-bit counter */
+        //lasttimeread = 0;
     }
 
-    soundTickSampler();
+    
 }
 
 /************************************************************************************************************************
@@ -304,20 +325,18 @@ void soundTickLenghthCounter(void)
 ************************************************************************************************************************/
 void soundTickSweepCounter(void) {
  
-     /* On DMG no clocking when sound is disabled */
+    /* On DMG no clocking when sound is disabled */
     if (soundstate.master.enable == FALSE) {
         return;
     }
     
     /* When the sweep's internal enabled flag is set and the sweep period is not zero,
        a new frequency is calculated and the overflow check is performed */
-
     if (soundstate.Chn1.sweep.enable) {
         soundstate.Chn1.sweep.timer -= 1;
         if (soundstate.Chn1.sweep.timer) {
             if (debug_sweep)
                 printf(PRINT_GREEN"[SND][1] Sweep tick %2d, f = %d, t = %d"PRINT_RESET"\n",soundstate.Chn1.sweep.timer,soundstate.framesequencerstep,soundstate.framesequencerclock);
-            //soundstate.Chn1.sweep.timer -= 1;
             return;
         }
     } else {
@@ -325,12 +344,10 @@ void soundTickSweepCounter(void) {
     }
     
     if (debug_sweep){
-         printf(PRINT_GREEN"[SND][1] Sweep tick %2d, f = %d, t = %d"PRINT_RESET"\n",soundstate.Chn1.sweep.timer,soundstate.framesequencerstep,soundstate.framesequencerclock);    if ((soundstate.Chn1.sweep.period == 0) && (soundstate.Chn1.sweep.shift == 0))
-    //if (debug_sweep)
-         printf(PRINT_GREEN"[SND][1] Sweep counter expired"PRINT_RESET"\n");
-         }
-         //channelDisable(1);
-         //soundstate.Chn1.sweep.enable = 0;
+        printf(PRINT_GREEN"[SND][1] Sweep tick %2d, f = %d, t = %d"PRINT_RESET"\n",soundstate.Chn1.sweep.timer,soundstate.framesequencerstep,soundstate.framesequencerclock);    if ((soundstate.Chn1.sweep.period == 0) && (soundstate.Chn1.sweep.shift == 0))
+        printf(PRINT_GREEN"[SND][1] Sweep counter expired"PRINT_RESET"\n");
+    }
+
 
 
     if (soundstate.Chn1.sweep.period) {
@@ -353,10 +370,10 @@ void soundTickSweepCounter(void) {
         }
         soundstate.Chn1.sweep.timer = soundstate.Chn1.sweep.period;
 
-        printf("     [1] Sweep timer reloaded %d\n",soundstate.Chn1.sweep.timer);
+        //printf("     [1] Sweep timer reloaded %d\n",soundstate.Chn1.sweep.timer);
     } else {
         soundstate.Chn1.sweep.timer = 8;
-        printf("     [1] Sweep timer reloaded %d\n",soundstate.Chn1.sweep.timer);
+        //printf("     [1] Sweep timer reloaded %d\n",soundstate.Chn1.sweep.timer);
     }
 }
 
@@ -380,12 +397,12 @@ unsigned short channelCalculateSweepFreq(void)
      } else {
          frequency = soundstate.Chn1.sweep.shadowregister + frequency;
      }
-     printf("     [1] Calculated new frequency %d\n",frequency);
+     //printf("     [1] Calculated new frequency %d\n",frequency);
      /* if this is greater than 2047, square 1 is disabled */
      if (frequency > 2047) {
          channelDisable(1);
          soundstate.Chn1.sweep.enable = 0;
-         printf("*****************************\n");
+         //printf("*****************************\n");
          //soundstate.Chn1.length.consecutive = FALSE;
      }
 
@@ -528,13 +545,197 @@ void soundTickProgrammableCounter(void)
             soundstate.Chn2.duty.counter = 2048 - soundstate.Chn2.frequency;
             soundTickDuty(2);
         }
+    }
+
+    /************** Channel 3  **************/
+    if (soundstate.Chn3.length.enable == TRUE) {
+        if (soundstate.Chn3.wave.counter == 0)
+            exit(0);
+
+        //printf("[SND][3] Wave Counter = %d\n",soundstate.Chn3.wave.counter);
+        soundstate.Chn3.wave.counter -= 1;
+
+        if (soundstate.Chn3.wave.counter <= 0) {
+            soundstate.Chn3.wave.counter = 2048 - soundstate.Chn3.frequency;
+            soundTickWave(0);
+        }
+
+        soundstate.Chn3.wave.counter -= 1;
+
+        if (soundstate.Chn3.wave.counter <= 0) {
+            soundstate.Chn3.wave.counter = 2048 - soundstate.Chn3.frequency;
+            soundTickWave(2);
+        }
+    }
+
+    /************** Channel 4  **************/     
+    if (soundstate.Chn4.length.enable == TRUE) {
+        /* Using a noise channel clock shift of 14 or 15 results in the LFSR receiving no clocks */
+        if (soundstate.Chn4.noise.shift > 13)
+            return;
+        
+        soundstate.Chn4.noise.counter -= 1;
+
+        if (soundstate.Chn4.noise.counter <= 0) {
+            unsigned int s = soundstate.Chn4.noise.shift + 4;
+            unsigned int d = soundstate.Chn4.noise.divisor;
+
+            if (d == 0) {
+                d = 1;
+                s -= 1;
+            }
+
+            soundstate.Chn4.noise.counter = (d << s);
+            //printf("RELOAD NOISE COUNTER %d\n",soundstate.Chn4.noise.counter);
+            //printf("[SND][4] Noise set counter to %d\n",soundstate.Chn4.noise.counter);
+            //printf("TRIGGER LFSR\n");
+            soundTicLFSR();
+            //printf("LFSR = %x, counter = %d\n",soundstate.Chn4.noise.lfsr,soundstate.Chn4.noise.counter);
+        }
+                soundstate.Chn4.noise.counter -= 1;
+
+        if (soundstate.Chn4.noise.counter <= 0) {
+            unsigned int s = soundstate.Chn4.noise.shift + 4;
+            unsigned int d = soundstate.Chn4.noise.divisor;
+
+            if (d == 0) {
+                d = 1;
+                s -= 1;
+            }
+
+            soundstate.Chn4.noise.counter = (d << s);
+            //printf("RELOAD NOISE COUNTER %d\n",soundstate.Chn4.noise.counter);
+            //printf("[SND][4] Noise set counter to %d\n",soundstate.Chn4.noise.counter);
+            //printf("TRIGGER LFSR\n");
+            soundTicLFSR();
+            //printf("LFSR = %x, counter = %d\n",soundstate.Chn4.noise.lfsr,soundstate.Chn4.noise.counter);
+        }
+                soundstate.Chn4.noise.counter -= 1;
+
+        if (soundstate.Chn4.noise.counter <= 0) {
+            unsigned int s = soundstate.Chn4.noise.shift + 4;
+            unsigned int d = soundstate.Chn4.noise.divisor;
+
+            if (d == 0) {
+                d = 1;
+                s -= 1;
+            }
+
+            soundstate.Chn4.noise.counter = (d << s);
+            //printf("RELOAD NOISE COUNTER %d\n",soundstate.Chn4.noise.counter);
+            //printf("[SND][4] Noise set counter to %d\n",soundstate.Chn4.noise.counter);
+            //printf("TRIGGER LFSR\n");
+            soundTicLFSR();
+            //printf("LFSR = %x, counter = %d\n",soundstate.Chn4.noise.lfsr,soundstate.Chn4.noise.counter);
+        }
+                soundstate.Chn4.noise.counter -= 1;
+
+        if (soundstate.Chn4.noise.counter <= 0) {
+            unsigned int s = soundstate.Chn4.noise.shift + 4;
+            unsigned int d = soundstate.Chn4.noise.divisor;
+
+            if (d == 0) {
+                d = 1;
+                s -= 1;
+            }
+
+            soundstate.Chn4.noise.counter = (d << s);
+            //printf("RELOAD NOISE COUNTER %d\n",soundstate.Chn4.noise.counter);
+            //printf("[SND][4] Noise set counter to %d\n",soundstate.Chn4.noise.counter);
+            //printf("TRIGGER LFSR\n");
+            soundTicLFSR();
+            //printf("LFSR = %x, counter = %d\n",soundstate.Chn4.noise.lfsr,soundstate.Chn4.noise.counter);
+        }
     } 
-
-
-
 }
 
+void soundTickWave(int temp)
+{
+    int output;
 
+    soundstate.Chn3.wave.pointer += 1;
+    soundstate.Chn3.wave.pointer &= 0x1F;
+
+    output = soundstate.Chn3.wave_table[soundstate.Chn3.wave.pointer];
+    lasttimeread = soundstate.framesequencerclock + temp;
+    //printf("[SND][3] Read %x from %x, DAC=%d%d%d%d, frame=%d, time=%4d\n",output,soundstate.Chn3.wave.pointer,soundstate.Chn1.dac,soundstate.Chn2.dac,soundstate.Chn3.dac,soundstate.Chn4.dac,soundstate.framesequencerstep,soundstate.framesequencerclock);
+    //printf("[SND][3] Output = %d, Pointer = %d, clock = %d, lasttimeread = %d\n",output, soundstate.Chn3.wave.pointer,soundstate.framesequencerclock,lasttimeread);
+    /* Code   Shift   Volume
+    -----------------------
+    0      4         0% (silent)
+    1      0       100%
+    2      1        50%
+    3      2        25%
+    */
+    
+    switch (soundstate.Chn3.volume) {
+        case 0 :
+            output = output >> 4;
+            break;
+        case 1 :
+            output = output >> 0;
+            break;
+        case 2 :
+            output = output >> 1;
+            break;
+        case 3 :
+            output = output >> 2;
+            break;
+        default :
+            break;
+    }
+
+    if (soundstate.Chn3.length.enable == TRUE){
+        soundstate.Chn3.output = output * 76;
+    } else {
+        soundstate.Chn3.output = 0;
+    }
+
+}
+void soundTicLFSR(void)
+{
+    /* The linear feedback shift register (LFSR) generates a pseudo-random bit sequence. 
+       It has a 15-bit shift register with feedback. When clocked by the frequency timer, 
+       the low two bits (0 and 1) are XORed, all bits are shifted right by one, and the 
+       result of the XOR is put into the now-empty high bit. If width mode is 1 (NR43), 
+       the XOR result is ALSO put into bit 6 AFTER the shift, resulting in a 7-bit LFSR. 
+    */
+    unsigned int bit0, bit1, xored;
+    int output;
+    unsigned char volume = soundstate.Chn4.volume;
+
+    bit0 = soundstate.Chn4.noise.lfsr & 0x01;
+    bit1 = (soundstate.Chn4.noise.lfsr & 0x02) >> 1;
+    xored = (bit0 ^ bit1) & 0x01;
+
+    soundstate.Chn4.noise.lfsr = soundstate.Chn4.noise.lfsr >> 1;
+
+    soundstate.Chn4.noise.lfsr |= xored << 14;
+    //printf("LFSR = %x\n", soundstate.Chn4.noise.lfsr);
+
+    if (soundstate.Chn4.noise.width) {
+        soundstate.Chn4.noise.lfsr &= 0x7FBF;
+        soundstate.Chn4.noise.lfsr |= xored << 6;
+    }
+    
+    /*The waveform output is bit 0 of the LFSR, INVERTED */
+    if (soundstate.Chn4.noise.lfsr & 0x01) {
+        output = (int)volume * (0);
+    } else {
+        output = (int)volume * (11) * soundstate.Chn4.noise.divisor;
+    }
+    
+    
+
+    if (soundstate.Chn4.length.enable == TRUE){
+        soundstate.Chn4.output = output;
+    } else {
+        soundstate.Chn4.output = 0;
+    }
+    //previousoutput = output;
+    //previousoutput = soundstate.Chn4.output;
+    
+}
 
 
 void soundTickDuty(int channel)
@@ -575,9 +776,9 @@ void soundTickDuty(int channel)
     }
 
     if (output) {
-        output = (int)volume * 127;
+        output = (int)volume * 76;
     } else {
-        output = (int)volume * (-128);
+        output = (int)volume * (0);
     }
     
     if (debug_duty)
@@ -605,10 +806,31 @@ void soundTickDuty(int channel)
 
 void soundWriteRegister(unsigned short address,unsigned char value)
 {
-     printf("[SND] --> Wrote %2x at %x, DAC=%d%d%d%d, frame=%d, time=%4d\n",value,address,soundstate.Chn1.dac,soundstate.Chn2.dac,soundstate.Chn3.dac,soundstate.Chn4.dac,soundstate.framesequencerstep,soundstate.framesequencerclock);
+    if (debug_memory)
+        printf("[SND] --> Wrote %2x at %x, DAC=%d%d%d%d, frame=%d, time=%4d\n",value,address,soundstate.Chn1.dac,soundstate.Chn2.dac,soundstate.Chn3.dac,soundstate.Chn4.dac,soundstate.framesequencerstep,soundstate.framesequencerclock);
 
      if ((address >= 0xFF30) && (address <= 0xFF3F)) {
+        if (soundstate.Chn3.length.enable == TRUE) {
+            //printf("[SND][MEM][WRITE] lasttimeread = %d, clock = %d\n",lasttimeread,soundstate.framesequencerclock);
+            if (lasttimeread < soundstate.framesequencerclock) {
+                lasttimeread += 8192; 
+            }
+            if ( lasttimeread == (soundstate.framesequencerclock + 6)) {
+                memory[0xFF30 + (soundstate.Chn3.wave.pointer >> 1)] = value;
+                //printf("[SND][MEM][WROTE] \n");
+                return;
+                //to do
+                //soundstate.Chn3.wave_table[(address - 0xFF30) << 1] = (value >> 4) & 0x0F;
+                //soundstate.Chn3.wave_table[((address - 0xFF30) << 1) + 1] = (value) & 0x0F;
+            } else {
+                return;
+            }
+        }
+
          memory[address] = value;
+
+         soundstate.Chn3.wave_table[(address - 0xFF30) << 1] = (value >> 4) & 0x0F;
+         soundstate.Chn3.wave_table[((address - 0xFF30) << 1) + 1] = (value) & 0x0F;
      }
 
      /* Any writes to those registers are ignored while power remains off except of the
@@ -629,16 +851,22 @@ void soundWriteRegister(unsigned short address,unsigned char value)
              case NR11 :
                  soundstate.Chn1.length.counter = 64 - (value & 0x3F);
                  if (debug_length)
-                    printf(PRINT_BLUE"[SND][1] Wrote new lenght = %d"PRINT_RESET"\n",soundstate.Chn1.length.counter);
+                    printf(PRINT_BLUE"[SND][1] Wrote new lenght while OFF = %d"PRINT_RESET"\n",soundstate.Chn1.length.counter);
                  break;
              case NR21 :
                  soundstate.Chn2.length.counter = 64 - (value & 0x3F);
+                 if (debug_length)
+                    printf(PRINT_BLUE"[SND][2] Wrote new lenght while OFF = %d"PRINT_RESET"\n",soundstate.Chn2.length.counter);
                  break;
              case NR31 :
                  soundstate.Chn3.length.counter = 256 - value;
+                 if (debug_length)
+                    printf(PRINT_BLUE"[SND][3] Wrote new lenght while OFF = %d"PRINT_RESET"\n",soundstate.Chn3.length.counter);
                  break;
              case NR41 :
                  soundstate.Chn4.length.counter = 64 - (value & 0x3F);
+                 if (debug_length)
+                    printf(PRINT_BLUE"[SND][4] Wrote new lenght while OFF = %d"PRINT_RESET"\n",soundstate.Chn4.length.counter);
                  break;
              default :
                  break;
@@ -711,14 +939,14 @@ void soundWriteRegister(unsigned short address,unsigned char value)
          case NR13 : /* 0xFF13 FFFF FFFF Frequency LSB */
              memory[NR13] = value;
              //soundstate.Chn1.frequency = ((memory[NR14] & 0x07) << 8 ) | value;
-             printf("[SND][1] Update frequency\n");
-             printf("     [1] New frequency = %d\n",value);
+             soundstate.Chn1.frequency = ((memory[NR14] & 0x07 ) << 8 ) | memory[NR13];
+             //printf("[SND][1] New frequency = %d\n",soundstate.Chn1.frequency);
              break;
          case NR14 : /* 0xFF14 TL-- -FFF Trigger, Length enable, Frequency MSB */
              memory[NR14] = value;
+             soundstate.Chn1.frequency = ((memory[NR14] & 0x07 ) << 8 ) | memory[NR13];
              //soundstate.Chn1.frequency = ((value & 0x07) << 8 ) | memory[NR13];
-             printf("[SND][1] Update frequency\n");
-             printf("     [1] New frequency = %d\n",((value & 0x07) << 8 ) | memory[NR13]);
+             //printf("[SND][1] New frequency = %d\n",soundstate.Chn1.frequency);
 
             /* trigger channel */
 
@@ -771,16 +999,16 @@ void soundWriteRegister(unsigned short address,unsigned char value)
 
                 /* Frequency Sweep */
                 
-                 printf("[SND][1] ** Trigger channel **\n");
+                 //printf("[SND][1] ** Trigger channel **\n");
                  soundstate.Chn1.sweep.negate_flag = FALSE;
                  /* Square 1's frequency is copied to the shadow register */
-                 soundstate.Chn1.frequency = ((memory[NR14] & 0x07 ) << 8 ) | memory[NR13];
+                 //soundstate.Chn1.frequency = ((memory[NR14] & 0x07 ) << 8 ) | memory[NR13];
                  soundstate.Chn1.sweep.shadowregister = ((memory[NR14] & 0x07 ) << 8 ) | memory[NR13];
-                 printf("     [1] Update shadowregister = %d\n",soundstate.Chn1.frequency);
+                 //printf("     [1] Update shadowregister = %d\n",soundstate.Chn1.frequency);
 
                  /* The internal enabled flag is set if either the sweep period or shift are non-zero, cleared otherwise */
                  if ((soundstate.Chn1.sweep.period) || (soundstate.Chn1.sweep.shift)) {
-                     printf("     [1] Sweep enabled\n");
+                     //printf("     [1] Sweep enabled\n");
                      soundstate.Chn1.sweep.enable = TRUE;
                      /* The sweep timer is reloaded */
                      if (soundstate.Chn1.sweep.period) {
@@ -790,9 +1018,9 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                      }
                      //if ((soundstate.framesequencerstep == 2) || (soundstate.framesequencerstep == 6))
                        // soundstate.Chn1.sweep.timer -= 1;
-                     printf("     [1] Update timer = %d\n",soundstate.Chn1.sweep.timer);
+                     //printf("     [1] Update timer = %d\n",soundstate.Chn1.sweep.timer);
                  } else {
-                     printf("     [1] Sweep disabled\n");
+                     //printf("     [1] Sweep disabled\n");
                      soundstate.Chn1.sweep.enable = FALSE;
                      soundstate.Chn1.sweep.timer = 0;
                  }
@@ -811,7 +1039,14 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                  soundstate.Chn1.envelope.increasing = (memory[NR12] & 0x08) >> 3;
                  soundstate.Chn1.envelope.period = memory[NR12] & 0x07;
                  /* Volume envelope timer is reloaded with period */
-                 soundstate.Chn1.envelope.timer = soundstate.Chn1.envelope.period;
+
+                 /* The volume envelope timer treat a period of 0 as 8 */
+                 if (soundstate.Chn1.envelope.period) {
+                    soundstate.Chn1.envelope.timer = soundstate.Chn1.envelope.period;
+                 } else {
+                    soundstate.Chn1.envelope.timer = 8;
+                 }
+                 
 
                  /* Programmable Counter init */
 
@@ -875,17 +1110,19 @@ void soundWriteRegister(unsigned short address,unsigned char value)
              break;
          case NR23 : /* 0xFF18 FFFF FFFF Frequency LSB */
              memory[NR23] = value;
+             soundstate.Chn2.frequency = ((memory[NR24] & 0x07 ) << 8 ) | memory[NR23];
              //soundstate.Chn2.frequency = ((memory[NR24] & 0x07) << 8 ) | value;
              break;
          case NR24 : /* 0xFF19 TL-- -FFF Trigger, Length enable, Frequency MSB */
              memory[NR24] = value;
+             soundstate.Chn2.frequency = ((memory[NR24] & 0x07 ) << 8 ) | memory[NR23];
              //soundstate.Chn2.frequency = ((value & 0x07) << 8 ) | memory[NR23];
 
             /* trigger channel */
 
             if ((value & 0x80) >> 7) {
                 channelEnable(2);
-                soundstate.Chn2.frequency = ((memory[NR24] & 0x07 ) << 8 ) | memory[NR23];
+                //soundstate.Chn2.frequency = ((memory[NR24] & 0x07 ) << 8 ) | memory[NR23];
                 soundstate.Chn2.duty.counter = 2048 - soundstate.Chn2.frequency;
             }
 
@@ -933,12 +1170,18 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                  /* Envelope Calculation */
 
                  /* Channel volume is reloaded */
-                 soundstate.Chn2.volume = (memory[NR12] >> 4) & 0x0F;
+                 soundstate.Chn2.volume = (memory[NR22] >> 4) & 0x0F;
                  soundstate.Chn2.envelope.enable = TRUE;
-                 soundstate.Chn2.envelope.increasing = (memory[NR12] & 0x08) >> 3;
-                 soundstate.Chn2.envelope.period = memory[NR12] & 0x07;
+                 soundstate.Chn2.envelope.increasing = (memory[NR22] & 0x08) >> 3;
+                 soundstate.Chn2.envelope.period = memory[NR22] & 0x07;
                  /* Volume envelope timer is reloaded with period */
-                 soundstate.Chn2.envelope.timer = soundstate.Chn2.envelope.period;
+                 
+                 /* The volume envelope timer treat a period of 0 as 8 */
+                 if (soundstate.Chn2.envelope.period) {
+                    soundstate.Chn2.envelope.timer = soundstate.Chn2.envelope.period;
+                 } else {
+                    soundstate.Chn2.envelope.timer = 8;
+                 }
 
                  /* TODO update stereo volume */
              }
@@ -954,7 +1197,12 @@ void soundWriteRegister(unsigned short address,unsigned char value)
          *************/
          case NR30 : /* 0xFF1A E--- ---- DAC power */
              memory[NR30] = value;
-             soundstate.Chn3.dac = (value & 0x80) >> 7;
+             if (!(value & 0x80)) { /* Disabling DAC should disable channel immediately */
+                 soundstate.Chn3.dac = FALSE;
+                 channelDisable(3);
+             } else { /* Enabling DAC shouldn't re-enable channel */
+                 soundstate.Chn3.dac = TRUE;
+             }
              break;
          case NR31 : /* 0xFF1B LLLL LLLL Length load (256-L) */
              memory[NR31] = value;
@@ -965,25 +1213,45 @@ void soundWriteRegister(unsigned short address,unsigned char value)
          case NR32 : /* 0xFF1C -VV- ---- Volume code (00=0%, 01=100%, 10=50%, 11=25%) */
              memory[NR32] = value;
              soundstate.Chn3.volume = (value & 0x60) >> 5;
-             if (!(value & 0xF8)) { /* Disabling DAC should disable channel immediately */
-                 soundstate.Chn3.dac = FALSE;
-                 channelDisable(3);
-             } else { /* Enabling DAC shouldn't re-enable channel */
-                 soundstate.Chn3.dac = TRUE;
-             }
              break;
          case NR33 : /* 0xFF1D FFFF FFFF Frequency LSB */
              memory[NR33] = value;
-             soundstate.Chn3.frequency = ((memory[NR34] & 0x07) << 8 ) | value;
+             soundstate.Chn3.frequency = ((memory[NR34] & 0x07 ) << 8 ) | memory[NR33];
              break;
          case NR34 : /* 0xFF1E TL-- -FFF Trigger, Length enable, Frequency MSB */
              memory[NR34] = value;
-             //soundstate.Chn3.frequency = ((value & 0x07) << 8 ) | memory[NR33];
+             soundstate.Chn3.frequency = ((value & 0x07) << 8 ) | memory[NR33];
 
             /* trigger channel */
 
             if ((value & 0x80) >> 7) {
                 channelEnable(3);
+                soundstate.Chn3.frequency = ((memory[NR34] & 0x07 ) << 8 ) | memory[NR33];
+                soundstate.Chn3.wave.counter = (2048 - soundstate.Chn3.frequency) + 3;
+                //printf("[SND][3] Init wave counter - %d, clock - %d, last - %d\n",soundstate.Chn3.wave.counter,soundstate.framesequencerclock,lasttimeread);
+                if ( lasttimeread == (soundstate.framesequencerclock + 4)) {
+                    unsigned int position = ((soundstate.Chn3.wave.pointer + 1) & 0x1F) >> 1;
+                    if (position < 4) {
+                        memory[0xFF30 + 0] = memory[0xFF30 + position + 0];
+                    } else if ((position >= 4) && (position <= 7)) {
+                        memory[0xFF30 + 0] = memory[0xFF30 + 4 + 0];
+                        memory[0xFF30 + 1] = memory[0xFF30 + 4 + 1];
+                        memory[0xFF30 + 2] = memory[0xFF30 + 4 + 2];
+                        memory[0xFF30 + 3] = memory[0xFF30 + 4 + 3];
+                    } else if ((position >= 8) && (position <= 11)) {
+                        memory[0xFF30 + 0] = memory[0xFF30 + 8 + 0];
+                        memory[0xFF30 + 1] = memory[0xFF30 + 8 + 1];
+                        memory[0xFF30 + 2] = memory[0xFF30 + 8 + 2];
+                        memory[0xFF30 + 3] = memory[0xFF30 + 8 + 3];
+                    } else if ((position >= 12) && (position <= 15)) {
+                        memory[0xFF30 + 0] = memory[0xFF30 + 12 + 0];
+                        memory[0xFF30 + 1] = memory[0xFF30 + 12 + 1];
+                        memory[0xFF30 + 2] = memory[0xFF30 + 12 + 2];
+                        memory[0xFF30 + 3] = memory[0xFF30 + 12 + 3];
+                    }
+                }
+                soundstate.Chn3.wave.pointer = 0;
+                //lasttimeread = soundstate.framesequencerclock + soundstate.Chn3.wave.counter + 3;
             }
 
             /* lenghth counter */
@@ -1078,21 +1346,18 @@ void soundWriteRegister(unsigned short address,unsigned char value)
              memory[NR43] = value;
              soundstate.Chn4.noise.shift = (value & 0xF0) >> 4;
              soundstate.Chn4.noise.width = (value & 0x08) >> 3;
-             soundstate.Chn4.noise.ratio = (value & 0x07);
+             soundstate.Chn4.noise.divisor = (value & 0x07);
 
-             /* Using a noise channel clock shift of 14 or 15 results in the LFSR receiving no clocks */
-             if (soundstate.Chn4.noise.shift > 13) {
-                soundstate.Chn4.frequency = 0;
-                return;
+             unsigned int s = soundstate.Chn4.noise.shift + 4;
+             unsigned int d = soundstate.Chn4.noise.divisor;
+
+             if (d == 0) {
+                 d = 1;
+                 s -= 1;
              }
 
-             /* Frequency = 524288 Hz / r / 2^(s+1)    For r=0 use r=0.5 instead */            
-             const unsigned int NoiseFreqRatio[8] = {1048576,524288,262144,174763,131072,104858,87381,74898 };
-             soundstate.Chn4.frequency = NoiseFreqRatio[soundstate.Chn4.noise.ratio] >> (soundstate.Chn4.noise.shift + 1);
-            
-             //if(Sound.Chn4.outfreq > (1<<18)) Sound.Chn4.outfreq = 1<<18;
-
-
+             soundstate.Chn4.noise.counter = (d << s);
+             //printf("RELOAD NOISE COUNTER %d\n",soundstate.Chn4.noise.counter);
              break;
          case NR44 : /* 0xFF23 TL-- ---- Trigger, Length enable */
              memory[NR44] = value;
@@ -1149,13 +1414,33 @@ void soundWriteRegister(unsigned short address,unsigned char value)
                  /* Envelope Calculation */
 
                  /* Channel volume is reloaded */
-                 soundstate.Chn4.volume = (memory[NR12] >> 4) & 0x0F;
+                 soundstate.Chn4.volume = (memory[NR42] >> 4) & 0x0F;
                  soundstate.Chn4.envelope.enable = TRUE;
-                 soundstate.Chn4.envelope.increasing = (memory[NR12] & 0x08) >> 3;
-                 soundstate.Chn4.envelope.period = memory[NR12] & 0x07;
+                 soundstate.Chn4.envelope.increasing = (memory[NR42] & 0x08) >> 3;
+                 soundstate.Chn4.envelope.period = memory[NR42] & 0x07;
                  /* Volume envelope timer is reloaded with period */
-                 soundstate.Chn4.envelope.timer = soundstate.Chn4.envelope.period;
+                 
+                 /* The volume envelope timer treat a period of 0 as 8 */
+                 if (soundstate.Chn4.envelope.period) {
+                    soundstate.Chn4.envelope.timer = soundstate.Chn4.envelope.period;
+                 } else {
+                    soundstate.Chn4.envelope.timer = 8;
+                 }                 
 
+                 /* Reload noise frequency counter */
+                 unsigned int s = soundstate.Chn4.noise.shift + 4;
+                 unsigned int d = soundstate.Chn4.noise.divisor;
+
+                 if (d == 0) {
+                    d = 1;
+                    s -= 1;
+                 }
+
+                 soundstate.Chn4.noise.counter = (d << s);
+                 //printf("RELOAD NOISE COUNTER %d\n",soundstate.Chn4.noise.counter);
+                 //printf("[SND][4] Noise set counter to %d\n",soundstate.Chn4.noise.counter);
+                 /* Noise channel's LFSR bits are all set to 1 */
+                 soundstate.Chn4.noise.lfsr = 0x7FFF;
                  /* TODO update stereo volume */
              }
 
@@ -1303,13 +1588,29 @@ unsigned char soundReadRegister(unsigned short address)
          *************/
          case 0xFF30 ... 0xFF3F :        /* WAVE pattern RAM */
              data = memory[address];
+
+             //data = (soundstate.Chn3.wave_table[(address - 0xFF30) << 1] << 4) | soundstate.Chn3.wave_table[((address - 0xFF30) << 1) + 1];
+             //printf("[SND][MEM] lasttimeread = %d, clock = %d\n",lasttimeread,soundstate.framesequencerclock);
+             if (soundstate.Chn3.length.enable == TRUE) {
+                if ( lasttimeread == (soundstate.framesequencerclock + 6)) {
+                    data = memory[0xFF30 + (soundstate.Chn3.wave.pointer >> 1)];
+                } else {
+                    data = 0xFF;
+                }
+             } else {
+                data = memory[address];
+                //printf("[SND][MEM] READ memory[%x] = %x\n",address,data);
+             }
+             
+
              break;
 
          default :
              data = 0xFF;
              break;
      }
-     printf("[SND][MEM] Read %x from %x, DAC=%d%d%d%d, frame=%d, time=%4d\n",data,address,soundstate.Chn1.dac,soundstate.Chn2.dac,soundstate.Chn3.dac,soundstate.Chn4.dac,soundstate.framesequencerstep,soundstate.framesequencerclock);
+    if (debug_memory)
+        printf("[SND][MEM] Read %x from %x, DAC=%d%d%d%d, frame=%d, time=%4d\n",data,address,soundstate.Chn1.dac,soundstate.Chn2.dac,soundstate.Chn3.dac,soundstate.Chn4.dac,soundstate.framesequencerstep,soundstate.framesequencerclock);
      return data;
 }
 
@@ -1336,6 +1637,11 @@ void soundReset(void)
      soundstate.framesequencerstep = 0;
      soundstate.framesequencerclock = 8192;
      soundstate.fivebitcounter = 32;
+
+     soundstate.channel1_output = 1;
+     soundstate.channel2_output = 1;
+     soundstate.channel3_output = 1;
+     soundstate.channel4_output = 1;
 }
 
 void soundResetRegisters(void)
@@ -1423,7 +1729,7 @@ void soundResetChannel(unsigned int channel)
      soundstate.Chn1.volume = 0;
      soundstate.Chn1.length.enable = 0;
      //soundstate.Chn1.length.counter = 0;
-     //soundstate.Chn1.length.consecutive = 0;
+     soundstate.Chn1.length.consecutive = 0;
              break;
          case 2 :
      /*************
@@ -1444,7 +1750,7 @@ void soundResetChannel(unsigned int channel)
      soundstate.Chn2.volume = 0;
      soundstate.Chn2.length.enable = 0;
      //soundstate.Chn2.length.counter = 0;
-     //soundstate.Chn2.length.consecutive = 0;
+     soundstate.Chn2.length.consecutive = 0;
              break;
          case 3 :
      /*************
@@ -1455,8 +1761,10 @@ void soundResetChannel(unsigned int channel)
      soundstate.Chn3.volume = 0;
      soundstate.Chn3.output = 0;
      soundstate.Chn3.length.enable = 0;
+     soundstate.Chn3.wave.counter = 0;
+     soundstate.Chn3.wave.pointer = 0;
      //soundstate.Chn3.length.counter = 0;
-     //soundstate.Chn3.length.consecutive = 0;
+     soundstate.Chn3.length.consecutive = 0;
              break;
          case 4 :
      /*************
@@ -1466,7 +1774,9 @@ void soundResetChannel(unsigned int channel)
      /* On system reset, this shift register is loaded with a value of 1 */
      soundstate.Chn4.noise.shift = 1;
      soundstate.Chn4.noise.width = 0;
-     soundstate.Chn4.noise.ratio = 0;
+     soundstate.Chn4.noise.divisor = 0;
+     soundstate.Chn4.noise.counter = 0;
+     soundstate.Chn4.noise.lfsr = 0;
      soundstate.Chn4.envelope.volume = 0;
      soundstate.Chn4.envelope.increasing = 0;
      soundstate.Chn4.envelope.period = 0;
@@ -1474,10 +1784,10 @@ void soundResetChannel(unsigned int channel)
      soundstate.Chn4.envelope.enable = 0;
      soundstate.Chn4.volume = 0;
      soundstate.Chn4.output = 0;
-     soundstate.Chn4.frequency = 0;
+     //soundstate.Chn4.frequency = 0;
      soundstate.Chn4.length.enable = 0;
      //soundstate.Chn4.length.counter = 0;
-     //soundstate.Chn4.length.consecutive = 0;
+     soundstate.Chn4.length.consecutive = 0;
              break;
          default :
              break;
@@ -1514,7 +1824,7 @@ void soundTurnOff(void)
 
 void channelEnable(unsigned int channel)
 {
-    printf("[SND][%d] Channel Enabled\n",channel);
+    //printf("[SND][%d] Channel Enabled\n",channel);
     switch (channel) {
         case 1 :
             soundstate.Chn1.length.enable = TRUE;
@@ -1540,7 +1850,7 @@ void channelEnable(unsigned int channel)
 
 void channelDisable(unsigned int channel)
 {
-    printf("[SND][%d] Channel Disabled\n",channel);
+    //printf("[SND][%d] Channel Disabled\n",channel);
     switch (channel) {
         case 1 :
             soundstate.Chn1.length.enable = FALSE;
@@ -1578,13 +1888,21 @@ void soundTickSampler(void)
 {
     /* On DMG no clocking when sound is disabled */
     if (soundstate.master.enable == FALSE) {
-        return;
+    //    return;
     }
 
     soundstate.sampler += 4;
     
     //4194304 Hz CPU / 22050 Hz sound output.
-    static int samplerate = CLOCKSPEED / AUDIO_FREQUENCY;
+    //int samplerate = CLOCKSPEED / AUDIO_FREQUENCY;
+    //samplerate -= 4;
+
+    if (soundstate.sampler >= samplerate) {
+        soundstate.sampler -= samplerate;
+        soundMix();
+    }
+
+/*
 
     if (samples_left_to_output > samples_left_to_input - (GB_BUFFER_SAMPLES/2)) {
         if (soundstate.sampler > (samplerate + 4)) {
@@ -1592,19 +1910,50 @@ void soundTickSampler(void)
             soundMix();
         }
     } else {
-        if (soundstate.sampler > (samplerate - 4)) {
+        if (soundstate.sampler >= (samplerate - 4)) {
             soundstate.sampler -= (samplerate - 4);
             soundMix();
         }
     }
-
+*/
 }
+
+static int previous = 0;
+static int capacitor = 0;
+
+int high_pass (int in)
+{
+    int out = 0;
+
+    if (in > previous){
+        out = previous + ((in - previous) * 0.8);
+        
+    } else if (in < previous) {
+        out = previous - ((previous - in) * 0.8);
+        
+    } else {
+        out = in;
+    }
+
+    previous = in;
+    printf("out = %d\n",out);
+    return out;
+}
+
 
 void soundMix(void)
 {
 
+
+
     if (samples_left_to_input < 1) {
+        if (sampleslost)
+            soundSync(1);
+
         sampleslost += 1;
+        
+        if (debug_output)
+            printf("[SND][X] Lost samples while mixing: lost - %d\n",sampleslost);
         return;
     }
     
@@ -1625,10 +1974,14 @@ void soundMix(void)
     short left_sample = 0;
     short right_sample = 0;
     
-    if(soundstate.master.channel1_left_enable) left_sample += soundstate.Chn1.output;
-    if(soundstate.master.channel2_left_enable) left_sample += soundstate.Chn2.output;
-    if(soundstate.master.channel3_left_enable) left_sample += soundstate.Chn3.output;
-    if(soundstate.master.channel4_left_enable) left_sample += soundstate.Chn4.output;
+    if (soundstate.Chn4.length.enable){
+        //soundstate.Chn4.output = high_pass (soundstate.Chn4.output);
+    }
+
+    if(soundstate.master.channel1_left_enable && soundstate.channel1_output) left_sample += soundstate.Chn1.output;
+    if(soundstate.master.channel2_left_enable && soundstate.channel2_output) left_sample += soundstate.Chn2.output;
+    if(soundstate.master.channel3_left_enable && soundstate.channel3_output) left_sample += soundstate.Chn3.output;
+    if(soundstate.master.channel4_left_enable && soundstate.channel4_output) left_sample += soundstate.Chn4.output;
     
     //left_sample = (left_sample * 512) - 16384;
     left_sample *= soundstate.master.left_volume;
@@ -1644,10 +1997,10 @@ void soundMix(void)
 //        default :                                                       break;  /*100.0% */
 //    }
     
-    if(soundstate.master.channel1_right_enable) right_sample += soundstate.Chn1.output;
-    if(soundstate.master.channel2_right_enable) right_sample += soundstate.Chn2.output;
-    if(soundstate.master.channel3_right_enable) right_sample += soundstate.Chn3.output;
-    if(soundstate.master.channel4_right_enable) right_sample += soundstate.Chn4.output;
+    if(soundstate.master.channel1_right_enable && soundstate.channel1_output) right_sample += soundstate.Chn1.output;
+    if(soundstate.master.channel2_right_enable && soundstate.channel2_output) right_sample += soundstate.Chn2.output;
+    if(soundstate.master.channel3_right_enable && soundstate.channel3_output) right_sample += soundstate.Chn3.output;
+    if(soundstate.master.channel4_right_enable && soundstate.channel4_output) right_sample += soundstate.Chn4.output;
     
     //right_sample = (right_sample * 512) - 16384;
     right_sample *= soundstate.master.right_volume;
@@ -1719,54 +2072,68 @@ void audioInit(void)
     printf("[SDL][AUDIO] Desired  - frequency: %d format: f %d s %d be %d sz %d channels: %d samples: %d\n", 
     want.freq, SDL_AUDIO_ISFLOAT(want.format), SDL_AUDIO_ISSIGNED(want.format), SDL_AUDIO_ISBIGENDIAN(want.format), SDL_AUDIO_BITSIZE(want.format), want.channels, want.samples);
 
-/*
-    if (SDL_OpenAudio(&audiospec, &audiospec_init) < 0)
+
+    if (SDL_OpenAudio(&want, &have) < 0)
     {
         printf("[ERROR] Couldn't open audio: %s\n", SDL_GetError());
         return;
     }
-*/
-    /* open audio device, allowing any changes to the specification */
-    SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_ANY_CHANGE);
-    /* print the audio driver we are using */
-    printf("[SDL][AUDIO] Selected audio driver: %s\n", SDL_GetCurrentAudioDriver());
 
-    if(!dev) {
+    /* open audio device, allowing any changes to the specification */
+    //SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_ANY_CHANGE);
+    /* print the audio driver we are using */
+    //printf("[SDL][AUDIO] Selected audio driver: %s\n", SDL_GetCurrentAudioDriver());
+
+    /*if(!dev) {
         printf("[SDL][AUDIO] Failed to open audio device: %s\n", SDL_GetError());
         SDL_Quit();
         return;
-    }
+    }*/
 
     printf("[SDL][AUDIO] Obtained - frequency: %d format: f %d s %d be %d sz %d channels: %d samples: %d\n", 
     have.freq, SDL_AUDIO_ISFLOAT(have.format), SDL_AUDIO_ISSIGNED(have.format), SDL_AUDIO_ISBIGENDIAN(have.format), SDL_AUDIO_BITSIZE(have.format), have.channels, have.samples);
     
-    SDL_PauseAudioDevice(dev, 0); /* play! */
-    //SDL_PauseAudio(0);
+    //SDL_PauseAudioDevice(dev, 0); /* play! */
+    SDL_PauseAudio(0);
 }
+
+void soundSync (int delta)
+{
+    samplerate += delta;
+    if (debug_adapt)
+        printf("[SND][X] New samplerate = %d, delta = %d\n",samplerate,delta);
+}
+
 
 
 void update_stream(void * userdata, unsigned char * stream, int len)
 {
-    //memset(stream, 0, len/2);
+
+
+
     if (samples_left_to_output < len/4){
-        printf("[SND][X] Update stream without enough samples: have - %d, want - %d\n",samples_left_to_output, len/4);
-        return;
-    } 
-    
-    if(soundstate.master.enable == 0) {
-        memset(stream,0,(size_t)len);
+        
+        soundSync(-1);
+
+        if (debug_output)
+            printf("[SND][X] Update stream without enough samples: have - %d, want - %d\n",samples_left_to_output, len/4);
         return;
     }
-
-    
+    sampleslost = 0;
     samples_left_to_input += len/4;
     //printf("[SND][X] Samples left to input = %d\n", samples_left_to_input);
     samples_left_to_output -= len/4;
 
-    if (debug_output)
-        printf(PRINT_RED"[SND][X] Samples : Out = %5d - In = %5d,lost = %d"PRINT_RESET"\n",samples_left_to_output,samples_left_to_input,sampleslost);
+    if(soundstate.master.enable == 0) {
+        memset(stream,0,(size_t)len/2);
+        return;
+    }
+
+
+    //if (debug_output)
+        //printf(PRINT_RED"[SND][X] Samples : Out = %5d - In = %5d,lost = %d"PRINT_RESET"\n",samples_left_to_output,samples_left_to_input,sampleslost);
     
-    sampleslost = 0;
+
     int i;
     int16_t * buf = (int16_t *)stream;
 
@@ -1783,5 +2150,30 @@ void soundResetBufferPointers(void)
     buffer_next_output_sample = 0;
     samples_left_to_input = GB_BUFFER_SAMPLES;
     samples_left_to_output = 0;
+}
+
+void switchChannel(int channel)
+{
+    switch (channel) {
+        case 1:
+            soundstate.channel1_output ^= 1;
+            printf("[SND][1] Switch channel %d\n",soundstate.channel1_output);
+            break;
+        case 2:
+            soundstate.channel2_output ^= 1;
+            printf("[SND][2] Switch channel %d\n",soundstate.channel2_output);
+            break;
+        case 3:
+            soundstate.channel3_output ^= 1;
+            printf("[SND][3] Switch channel %d\n",soundstate.channel3_output);
+            break;
+        case 4:
+            soundstate.channel4_output ^= 1;
+            printf("[SND][4] Switch channel %d\n",soundstate.channel4_output);
+            break;
+        default :
+            break;
+    }
+    
 }
 

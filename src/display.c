@@ -42,18 +42,7 @@ void display (void){
     SDL_GL_SwapWindow(window);
     fpsthink();
     //SDL_Delay(50);
-   
-    static unsigned int lastTime = 0;
-    
-    if (SYNC == TRUE) {
-        unsigned int currentTime = SDL_GetTicks();
-        //printf("[HW ] Current time - %d, Last time - %d\n",currentTime, lastTime);
-        if (currentTime < lastTime + 17) {
-            SDL_Delay(17 - (currentTime - lastTime));
-            //  printf("[HW ] Delay %d msec\n",17 - (currentTime - lastTime));
-        }
-        lastTime = currentTime;
-    }
+  
 
 }
 
